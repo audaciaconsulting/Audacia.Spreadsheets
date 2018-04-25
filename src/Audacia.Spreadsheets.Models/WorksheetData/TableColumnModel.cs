@@ -7,6 +7,7 @@ namespace Audacia.Spreadsheets.Models.WorksheetData
     {
         public string Name { get; set; }
         public bool IsIdColumn { get; set; }
+        public bool HideHeader { get; set; }
         public CellFormatType Format { get; set; } = CellFormatType.Text;
         public CellBackgroundColourAttribute CellBackgroundFormat { get; set; }
         public CellTextColourAttribute CellTextFormat { get; set; }

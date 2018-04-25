@@ -33,7 +33,7 @@ namespace Audacia.Spreadsheets.Export
             {
                 writer.WriteStartElement(new Row());
 
-                foreach (var column in model.Data.Columns)
+                foreach (var column in model.Data.Columns.Where(c => !c.HideHeader))
                 {
                     var cellStyle = new SpreadsheetCellStyle
                     {
