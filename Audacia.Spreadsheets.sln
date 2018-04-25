@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Models", "src\Audacia.Spreadsheets.Models\Audacia.Spreadsheets.Models.csproj", "{02840067-1EB1-4A7E-B3B1-BEE753F29F82}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Export", "src\Audacia.Spreadsheets.Export\Audacia.Spreadsheets.Export.csproj", "{FB8AB1E3-0383-4657-9A0B-0714D22EBA07}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{02840067-1EB1-4A7E-B3B1-BEE753F29F82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02840067-1EB1-4A7E-B3B1-BEE753F29F82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02840067-1EB1-4A7E-B3B1-BEE753F29F82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02840067-1EB1-4A7E-B3B1-BEE753F29F82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB8AB1E3-0383-4657-9A0B-0714D22EBA07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB8AB1E3-0383-4657-9A0B-0714D22EBA07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB8AB1E3-0383-4657-9A0B-0714D22EBA07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB8AB1E3-0383-4657-9A0B-0714D22EBA07}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {88F34279-B6A0-45E0-8E66-828A95232BA3}
+	EndGlobalSection
+EndGlobal
