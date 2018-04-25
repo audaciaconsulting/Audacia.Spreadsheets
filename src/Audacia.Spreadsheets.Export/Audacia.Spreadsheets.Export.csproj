@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Audacia.Spreadsheets.Extensions\Audacia.Spreadsheets.Extensions.csproj" />
+    <ProjectReference Include="..\Audacia.Spreadsheets.Extensions\Audacia.Spreadsheets.Extensions.csproj" />
     <ProjectReference Include="..\Audacia.Spreadsheets.Models\Audacia.Spreadsheets.Models.csproj" />
   </ItemGroup>
 
