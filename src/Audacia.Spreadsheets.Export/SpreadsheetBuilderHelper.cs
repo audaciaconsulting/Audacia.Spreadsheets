@@ -33,7 +33,7 @@ namespace Audacia.Spreadsheets.Export
             {
                 writer.WriteStartElement(new Row());
 
-                foreach (var column in model.Data.Columns.Where(c => !c.HideHeader))
+                foreach (var column in model.Data.Columns)
                 {
                     var cellStyle = new SpreadsheetCellStyle
                     {
@@ -50,7 +50,7 @@ namespace Audacia.Spreadsheets.Export
                     var styleIndex = GetOrCreateCellFormat(cellStyle, cellFormats, stylesheet).Index;
 
                     WriteCell(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
-                        OpenXmlDataType.OpenXmlStringDataType, column.Name);
+                        OpenXmlDataType.OpenXmlStringDataType, column.Name, column.HideHeader);
 
                     //Update column reference for next iteration
                     cellReferenceColumnIndex = (cellReferenceColumnIndex.GetColumnNumber() + 1)
@@ -113,7 +113,7 @@ namespace Audacia.Spreadsheets.Export
         }
 
         private static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex, 
-            string reference, string dataType, string value)
+            string reference, string dataType, string value, bool hideValue = false)
         {
             var attributes = new List<OpenXmlAttribute>
             {
@@ -124,7 +124,7 @@ namespace Audacia.Spreadsheets.Export
 
             writer.WriteStartElement(new Cell(), attributes);
 
-            if (!string.IsNullOrWhiteSpace(value))
+            if (!string.IsNullOrWhiteSpace(value) && !hideValue)
             {
                 writer.WriteElement(new CellValue(value));
             }
