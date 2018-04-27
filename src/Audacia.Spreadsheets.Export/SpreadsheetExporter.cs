@@ -18,11 +18,23 @@ namespace Audacia.Spreadsheets.Export
             {
                 var cellFormats = new List<SpreadsheetCellStyle>();
 
-                var distinctBackgroundColours = model.Worksheets.SelectMany(w => w.Tables)
+                var allTables = model.Worksheets.SelectMany(w => w.Tables).ToList();
+
+                var distinctHeaderStyles =
+                    allTables
+                        .Where(t => t.HeaderStyle != null)
+                        .Select(t => t.HeaderStyle)
+                        .Distinct();
+
+                var distinctBackgroundColours =
+                    allTables
                     .SelectMany(dt => dt.Data.Rows)
                     .SelectMany(r => r.Cells.Select(c => c.FillColour)).Where(c => !string.IsNullOrWhiteSpace(c))
                     .Distinct();
-                var distinctTextColours = model.Worksheets.SelectMany(w => w.Tables).SelectMany(dt => dt.Data.Rows)
+
+                var distinctTextColours =
+                    allTables
+                    .SelectMany(dt => dt.Data.Rows)
                     .SelectMany(r => r.Cells.Select(c => c.TextColour)).Where(c => !string.IsNullOrWhiteSpace(c))
                     .Distinct();
 
@@ -38,8 +50,8 @@ namespace Audacia.Spreadsheets.Export
 
                 // Stylesheet
                 var workbookStylesPart = workbookPart.AddNewPart<WorkbookStylesPart>();
-                workbookStylesPart.Stylesheet = GetDefaultStyles(distinctBackgroundColours, distinctTextColours,
-                    out var fillColours, out var textColours);
+                workbookStylesPart.Stylesheet = GetDefaultStyles(distinctBackgroundColours, distinctTextColours, distinctHeaderStyles,
+                    out var fillColours, out var textColours, out var fonts);
                 workbookStylesPart.Stylesheet.Save();
 
                 foreach (var worksheetModel in model.Worksheets.OrderBy(w => w.SheetIndex))
@@ -74,8 +86,7 @@ namespace Audacia.Spreadsheets.Export
                         writer.WriteStartElement(new SheetData());
 
                         SpreadsheetBuilderHelper.Insert(table, workbookStylesPart.Stylesheet, cellFormats, fillColours,
-                            textColours, worksheetPart, writer);
-
+                            textColours, fonts, worksheetPart, writer);
 
                         writer.WriteEndElement();
                         writer.WriteEndElement();
@@ -89,8 +100,8 @@ namespace Audacia.Spreadsheets.Export
             }
         }
 
-        private static Stylesheet GetDefaultStyles(IEnumerable<string> backgroundColours, IEnumerable<string> textColours,
-            out Dictionary<string, uint> backgroundColoursDictionary, out Dictionary<string, uint> textColoursDictionary)
+        private static Stylesheet GetDefaultStyles(IEnumerable<string> backgroundColours, IEnumerable<string> textColours, IEnumerable<SpreadsheetHeaderStyle> headerStyles,
+            out Dictionary<string, uint> backgroundColoursDictionary, out Dictionary<string, uint> textColoursDictionary, out Dictionary<string, uint> fontsDictionary)
         {
             var stylesheet = new Stylesheet();
 
@@ -122,9 +133,12 @@ namespace Audacia.Spreadsheets.Export
                 FontName = new FontName { Val = "Calibri" }
             });
 
+
             textColoursDictionary = new Dictionary<string, uint>();
+            fontsDictionary = new Dictionary<string, uint>();
 
             var index = 0;
+
             foreach (var colour in textColours)
             {
                 fonts.Append(new Font
@@ -141,13 +155,24 @@ namespace Audacia.Spreadsheets.Export
                 index++;
             }
 
-            stylesheet.Append(fonts);
+            foreach (var headerStyle in headerStyles)
+            {
+                fonts.Append(new Font
+                {
+                    Bold = new Bold { Val = headerStyle.IsBold },
+                    Italic = new Italic { Val = headerStyle.IsItalic },
+                    Strike = new Strike { Val = headerStyle.HasStrike },
+                    Underline = new Underline { Val = UnderlineValues.None },
+                    FontSize = new FontSize { Val = headerStyle.FontSize },
+                    Color = new Color { Rgb = "FF" + headerStyle.TextColour },
+                    FontName = new FontName { Val = headerStyle.FontName }
+                });
+                fontsDictionary.Add($"{headerStyle.FontName}:{headerStyle.TextColour}", 2U + (uint)index++);
+            }
 
             // Add fills
-            var fills = new Fills { Count = 3 };
-
+            var fills = new Fills();
             var fill = new Fill();
-
             var patternFill = new PatternFill { PatternType = PatternValues.Solid };
             var foregroundColor = new ForegroundColor { Rgb = "FF79A7E3" };
 
@@ -158,8 +183,8 @@ namespace Audacia.Spreadsheets.Export
             fills.Append(new Fill { PatternFill = new PatternFill { PatternType = PatternValues.Gray125 } });   // grey
             fills.Append(fill);                                                                                 // header
 
-            backgroundColoursDictionary = new Dictionary<string, uint>();
 
+            backgroundColoursDictionary = new Dictionary<string, uint>();
             index = 0;
             foreach (var colour in backgroundColours)
             {
@@ -175,6 +200,22 @@ namespace Audacia.Spreadsheets.Export
                 index++;
             }
 
+            foreach (var headerStyle in headerStyles)
+            {
+                if (backgroundColoursDictionary.ContainsKey(headerStyle.FillColour)) continue;
+
+                fills.Append(new Fill
+                {
+                    PatternFill = new PatternFill()
+                    {
+                        PatternType = PatternValues.Solid,
+                        ForegroundColor = new ForegroundColor { Rgb = "FF" + headerStyle.FillColour }
+                    }
+                });
+                backgroundColoursDictionary.Add(headerStyle.FillColour, 3U + (uint)index++);
+            }
+
+            stylesheet.Append(fonts);
             stylesheet.Append(fills);
 
             // Add borders

@@ -19,7 +19,7 @@ namespace Audacia.Spreadsheets.Export
 
         public static void Insert(TableModel model, Stylesheet stylesheet,
             List<SpreadsheetCellStyle> cellFormats, Dictionary<string, uint> fillColours,
-            Dictionary<string, uint> textColours, WorksheetPart worksheet,
+            Dictionary<string, uint> textColours, Dictionary<string, uint> fonts, WorksheetPart worksheet,
             OpenXmlWriter writer)
         {
             var startCellReference = !string.IsNullOrWhiteSpace(model.StartingCellRef)
@@ -35,10 +35,20 @@ namespace Audacia.Spreadsheets.Export
 
                 foreach (var column in model.Data.Columns)
                 {
+                    if (!fonts.TryGetValue($"{model.HeaderStyle.FontName}:{model.HeaderStyle.TextColour}", out var font))
+                    {
+                        font = 1u;
+                    }
+
+                    if (!fillColours.TryGetValue(model.HeaderStyle.FillColour, out var fillColour))
+                    {
+                        fillColour = 2u;
+                    }
+
                     var cellStyle = new SpreadsheetCellStyle
                     {
-                        TextColour = 1U,
-                        BackgroundColour = 2U,
+                        TextColour = font,
+                        BackgroundColour = fillColour,
                         BorderBottom = true,
                         BorderTop = true,
                         BorderLeft = column == model.Data.Columns.ElementAt(0),
