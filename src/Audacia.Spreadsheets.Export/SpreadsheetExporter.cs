@@ -1,4 +1,6 @@
 ﻿// ReSharper disable PossiblyMistakenUseOfParamsMethod
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,11 +20,23 @@ namespace Audacia.Spreadsheets.Export
             {
                 var cellFormats = new List<SpreadsheetCellStyle>();
 
-                var distinctBackgroundColours = model.Worksheets.SelectMany(w => w.Tables)
+                var allTables = model.Worksheets.SelectMany(w => w.Tables).ToList();
+
+                var distinctHeaderStyles =
+                    allTables
+                        .Where(t => t.HeaderStyle != null)
+                        .Select(t => t.HeaderStyle)
+                        .Distinct();
+
+                var distinctBackgroundColours =
+                    allTables
                     .SelectMany(dt => dt.Data.Rows)
                     .SelectMany(r => r.Cells.Select(c => c.FillColour)).Where(c => !string.IsNullOrWhiteSpace(c))
                     .Distinct();
-                var distinctTextColours = model.Worksheets.SelectMany(w => w.Tables).SelectMany(dt => dt.Data.Rows)
+
+                var distinctTextColours =
+                    allTables
+                    .SelectMany(dt => dt.Data.Rows)
                     .SelectMany(r => r.Cells.Select(c => c.TextColour)).Where(c => !string.IsNullOrWhiteSpace(c))
                     .Distinct();
 
@@ -38,8 +52,8 @@ namespace Audacia.Spreadsheets.Export
 
                 // Stylesheet
                 var workbookStylesPart = workbookPart.AddNewPart<WorkbookStylesPart>();
-                workbookStylesPart.Stylesheet = GetDefaultStyles(distinctBackgroundColours, distinctTextColours,
-                    out var fillColours, out var textColours);
+                workbookStylesPart.Stylesheet = GetDefaultStyles(distinctBackgroundColours, distinctTextColours, distinctHeaderStyles,
+                    out var fillColours, out var textColours, out var fonts);
                 workbookStylesPart.Stylesheet.Save();
 
                 foreach (var worksheetModel in model.Worksheets.OrderBy(w => w.SheetIndex))
@@ -74,8 +88,7 @@ namespace Audacia.Spreadsheets.Export
                         writer.WriteStartElement(new SheetData());
 
                         SpreadsheetBuilderHelper.Insert(table, workbookStylesPart.Stylesheet, cellFormats, fillColours,
-                            textColours, worksheetPart, writer);
-
+                            textColours, fonts, worksheetPart, writer);
 
                         writer.WriteEndElement();
                         writer.WriteEndElement();
@@ -89,20 +102,11 @@ namespace Audacia.Spreadsheets.Export
             }
         }
 
-        private static Stylesheet GetDefaultStyles(IEnumerable<string> backgroundColours, IEnumerable<string> textColours,
-            out Dictionary<string, uint> backgroundColoursDictionary, out Dictionary<string, uint> textColoursDictionary)
+        private static Dictionary<string, uint> GetTextColours(IEnumerable<string> textColours, Fonts fonts)
         {
-            var stylesheet = new Stylesheet();
+            var textColourDictionary = new Dictionary<string, uint>();
 
-            var numberingFormats1 = new NumberingFormats { Count = 1U };
-            var numberingFormat1 = new NumberingFormat { NumberFormatId = 165U, FormatCode = "\"£\"#,##0.00" };
-
-            numberingFormats1.Append(numberingFormat1);
-            stylesheet.Append(numberingFormats1);
-
-            // Add fonts
-            // Standard
-            var fonts = new Fonts(new Font
+            fonts.Append(new Font
             {
                 Bold = new Bold { Val = false },
                 Italic = new Italic { Val = false },
@@ -111,7 +115,8 @@ namespace Audacia.Spreadsheets.Export
                 FontSize = new FontSize { Val = 10D },
                 Color = new Color { Rgb = "00000000" },
                 FontName = new FontName { Val = "Calibri" }
-            }, new Font
+            });
+            fonts.Append(new Font
             {
                 Bold = new Bold { Val = true },
                 Italic = new Italic { Val = false },
@@ -122,11 +127,11 @@ namespace Audacia.Spreadsheets.Export
                 FontName = new FontName { Val = "Calibri" }
             });
 
-            textColoursDictionary = new Dictionary<string, uint>();
-
-            var index = 0;
+            var index = 2;
             foreach (var colour in textColours)
             {
+                if (textColourDictionary.ContainsKey(colour)) continue;
+
                 fonts.Append(new Font
                 {
                     Bold = new Bold { Val = false },
@@ -137,17 +142,16 @@ namespace Audacia.Spreadsheets.Export
                     Color = new Color { Rgb = "FF" + colour },
                     FontName = new FontName { Val = "Calibri" }
                 });
-                textColoursDictionary.Add(colour, 2U + (uint)index);
-                index++;
+                textColourDictionary.Add(colour, (uint)index++);
             }
 
-            stylesheet.Append(fonts);
+            return textColourDictionary;
+        }
 
-            // Add fills
-            var fills = new Fills { Count = 3 };
-
+        private static Dictionary<string, uint> GetFillColours(IEnumerable<string> backgroundColours, Fills fills)
+        {
+            var backgroundColoursDictionary = new Dictionary<string, uint>();
             var fill = new Fill();
-
             var patternFill = new PatternFill { PatternType = PatternValues.Solid };
             var foregroundColor = new ForegroundColor { Rgb = "FF79A7E3" };
 
@@ -156,25 +160,88 @@ namespace Audacia.Spreadsheets.Export
 
             fills.Append(new Fill { PatternFill = new PatternFill { PatternType = PatternValues.None } });      // none
             fills.Append(new Fill { PatternFill = new PatternFill { PatternType = PatternValues.Gray125 } });   // grey
-            fills.Append(fill);                                                                                 // header
+            fills.Append(fill);                                                                                 // default header
 
-            backgroundColoursDictionary = new Dictionary<string, uint>();
-
-            index = 0;
+            var index = 3;
             foreach (var colour in backgroundColours)
             {
+                if (backgroundColoursDictionary.ContainsKey(colour)) continue;
                 fills.Append(new Fill
                 {
-                    PatternFill = new PatternFill()
+                    PatternFill = new PatternFill
                     {
                         PatternType = PatternValues.Solid,
                         ForegroundColor = new ForegroundColor { Rgb = "FF" + colour }
                     }
                 });
-                backgroundColoursDictionary.Add(colour, 3U + (uint)index);
-                index++;
+                backgroundColoursDictionary.Add(colour, (uint)index++);
             }
 
+            return backgroundColoursDictionary;
+        }
+
+        private static Dictionary<string, uint> GetHeaderStyles(IEnumerable<SpreadsheetHeaderStyle> headerStyles, Dictionary<string, uint> backgroundColoursDictionary,
+            Fonts fonts, Fills fills)
+        {
+            var fontsDictionary = new Dictionary<string, uint>();
+            var headerFontsIndex = fonts.ChildElements.Count;
+            var backgroundFillsIndex = fills.ChildElements.Count;
+
+            foreach (var headerStyle in headerStyles)
+            {
+                var headerStyleKey = $"{ headerStyle.FontName }:{ headerStyle.TextColour}";
+
+                if (!fontsDictionary.ContainsKey(headerStyleKey))
+                {
+                    fonts.Append(new Font
+                    {
+                        Bold = new Bold {Val = headerStyle.IsBold},
+                        Italic = new Italic {Val = headerStyle.IsItalic},
+                        Strike = new Strike {Val = headerStyle.HasStrike},
+                        Underline = new Underline {Val = UnderlineValues.None},
+                        FontSize = new FontSize {Val = headerStyle.FontSize},
+                        Color = new Color {Rgb = "FF" + headerStyle.TextColour},
+                        FontName = new FontName {Val = headerStyle.FontName}
+                    });
+                    fontsDictionary.Add(headerStyleKey, (uint)headerFontsIndex++);
+                }
+
+                if (backgroundColoursDictionary.ContainsKey(headerStyle.FillColour)) continue;
+
+                fills.Append(new Fill
+                {
+                    PatternFill = new PatternFill
+                    {
+                        PatternType = PatternValues.Solid,
+                        ForegroundColor = new ForegroundColor {Rgb = "FF" + headerStyle.FillColour}
+                    }
+                });
+                backgroundColoursDictionary.Add(headerStyle.FillColour, (uint)backgroundFillsIndex++);
+            }
+
+            return fontsDictionary;
+        }
+
+        private static Stylesheet GetDefaultStyles(IEnumerable<string> backgroundColours, IEnumerable<string> textColours, IEnumerable<SpreadsheetHeaderStyle> headerStyles,
+            out Dictionary<string, uint> backgroundColoursDictionary, out Dictionary<string, uint> textColoursDictionary, out Dictionary<string, uint> headerFontsDictionary)
+        {
+            var stylesheet = new Stylesheet();
+
+            var numberingFormats1 = new NumberingFormats { Count = 1U };
+            var numberingFormat1 = new NumberingFormat { NumberFormatId = 165U, FormatCode = "\"£\"#,##0.00" };
+
+            numberingFormats1.Append(numberingFormat1);
+            stylesheet.Append(numberingFormats1);
+
+            // Add fonts
+            var fonts = new Fonts();
+            var fills = new Fills();
+
+            textColoursDictionary = GetTextColours(textColours, fonts);
+            backgroundColoursDictionary = GetFillColours(backgroundColours, fills);
+            headerFontsDictionary = GetHeaderStyles(headerStyles, backgroundColoursDictionary, fonts, fills);
+
+            stylesheet.Append(fonts);
             stylesheet.Append(fills);
 
             // Add borders

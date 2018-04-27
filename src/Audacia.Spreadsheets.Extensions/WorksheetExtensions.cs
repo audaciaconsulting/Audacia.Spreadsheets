@@ -68,7 +68,6 @@ namespace Audacia.Spreadsheets.Extensions
                 var column = new TableColumnModel
                 {
                     Name = item.GetDataAnnotationDisplayName(),
-
                     IsIdColumn = ((IdColumnAttribute[])item
                             .GetCustomAttributes(typeof(IdColumnAttribute), false))
                             .FirstOrDefault() != null,
@@ -88,6 +87,14 @@ namespace Audacia.Spreadsheets.Extensions
                 if (cellFormatAttribute.Any())
                 {
                     column.Format = cellFormatAttribute.First().CellFormatType;
+                }
+
+                var hideHeaderAttribute =
+                    (HideHeaderAttribute[])item.GetCustomAttributes(typeof(HideHeaderAttribute), false);
+
+                if (hideHeaderAttribute.Any())
+                {
+                    column.HideHeader = true;
                 }
 
                 columns.Add(column);
@@ -178,7 +185,7 @@ namespace Audacia.Spreadsheets.Extensions
         /// Creates a Worksheet from an enumerable
         /// </summary>
         public static WorksheetModel ToWorkSheet<T>(this IEnumerable<T> data, int sheetIndex, string sheetName, bool includeHeaders,
-            params string[] ignoreProperties)
+            SpreadsheetHeaderStyle headerStyle = null, params string[] ignoreProperties)
         {
             return new WorksheetModel
             {
@@ -188,6 +195,7 @@ namespace Audacia.Spreadsheets.Extensions
                 {
                     new TableModel
                     {
+                        HeaderStyle = headerStyle,
                         IncludeHeaders = includeHeaders,
                         Data = data.ToDataTableModel(ignoreProperties)
                     }
