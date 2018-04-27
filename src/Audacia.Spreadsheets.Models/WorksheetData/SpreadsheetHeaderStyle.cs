@@ -6,8 +6,8 @@ namespace Audacia.Spreadsheets.Models.WorksheetData
 {
     public class SpreadsheetHeaderStyle
     {
-        public string TextColour { get; set; }
-        public string FillColour { get; set; }
+        public string TextColour { get; set; } = "000000";
+        public string FillColour { get; set; } = "FFFFFF";
         public bool IsBold { get; set; }
         public bool IsItalic { get; set; }
         public bool HasStrike { get; set; }

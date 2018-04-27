@@ -133,7 +133,6 @@ namespace Audacia.Spreadsheets.Export
                 FontName = new FontName { Val = "Calibri" }
             });
 
-
             textColoursDictionary = new Dictionary<string, uint>();
             fontsDictionary = new Dictionary<string, uint>();
 
@@ -157,6 +156,10 @@ namespace Audacia.Spreadsheets.Export
 
             foreach (var headerStyle in headerStyles)
             {
+                var headerStyleKey = $"{ headerStyle.FontName }:{ headerStyle.TextColour}";
+
+                if (fontsDictionary.ContainsKey(headerStyleKey)) continue;
+
                 fonts.Append(new Font
                 {
                     Bold = new Bold { Val = headerStyle.IsBold },
@@ -167,7 +170,7 @@ namespace Audacia.Spreadsheets.Export
                     Color = new Color { Rgb = "FF" + headerStyle.TextColour },
                     FontName = new FontName { Val = headerStyle.FontName }
                 });
-                fontsDictionary.Add($"{headerStyle.FontName}:{headerStyle.TextColour}", 2U + (uint)index++);
+                fontsDictionary.Add(headerStyleKey, 2U + (uint)index++);
             }
 
             // Add fills
