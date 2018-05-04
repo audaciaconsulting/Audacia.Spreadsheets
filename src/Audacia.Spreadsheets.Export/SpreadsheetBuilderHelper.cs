@@ -35,12 +35,12 @@ namespace Audacia.Spreadsheets.Export
 
                 foreach (var column in model.Data.Columns)
                 {
-                    if (!fonts.TryGetValue($"{model.HeaderStyle.FontName}:{model.HeaderStyle.TextColour}", out var font))
+                    if (!fonts.TryGetValue($"{model.HeaderStyle?.FontName}:{model.HeaderStyle?.TextColour}", out var font))
                     {
                         font = 1u;
                     }
 
-                    if (!fillColours.TryGetValue(model.HeaderStyle.FillColour, out var fillColour))
+                    if (!fillColours.TryGetValue(model.HeaderStyle?.FillColour, out var fillColour))
                     {
                         fillColour = 2u;
                     }
