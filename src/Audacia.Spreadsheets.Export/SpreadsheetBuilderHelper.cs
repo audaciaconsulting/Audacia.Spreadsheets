@@ -238,6 +238,11 @@ namespace Audacia.Spreadsheets.Export
 
         private static string FormatDate(DateTime value)
         {
+            if (value.Equals(DateTime.MinValue))
+            {
+                return string.Empty;
+            }
+
             return value.ToOADatePrecise().ToString(new CultureInfo("en-US"));
         }
 
