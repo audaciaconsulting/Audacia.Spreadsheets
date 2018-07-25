@@ -195,7 +195,7 @@ namespace Audacia.Spreadsheets.Extensions
                 {
                     new TableModel
                     {
-                        HeaderStyle = headerStyle,
+                        HeaderStyle = headerStyle ?? new SpreadsheetHeaderStyle(),
                         IncludeHeaders = includeHeaders,
                         Data = data.ToDataTableModel(ignoreProperties)
                     }
