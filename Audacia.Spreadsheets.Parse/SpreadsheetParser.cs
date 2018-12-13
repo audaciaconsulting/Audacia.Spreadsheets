@@ -143,16 +143,15 @@ namespace Audacia.Spreadsheets.Parse
                     }
                 }
 
-                if (cellData.Any(c => c.Value != null)) // todo ss
-                {
-                    yield return new TableRowModel
-                    {
-                        Cells = cellData,
-                        Id = rowNumber
-                    };
+                if (cellData.All(c => c.Value == null || (c.Value is string s && string.IsNullOrWhiteSpace(s)))) continue;
 
-                    rowNumber++;
-                }
+                yield return new TableRowModel
+                {
+                    Cells = cellData,
+                    Id = rowNumber
+                };
+
+                rowNumber++;
             }
         }
 
@@ -172,30 +171,25 @@ namespace Audacia.Spreadsheets.Parse
                             StringComparison.OrdinalIgnoreCase) == 0)
                 .OrderBy(r => GetRowIndex(r.CellReference));
 
-            if (!cells.Any())
+            // Get the first cell in the column.
+            var headCell = cells.FirstOrDefault();
+
+            if (headCell == default(Cell))
             {
                 // The specified column does not exist.
                 return null;
             }
 
-            // Get the first cell in the column.
-            var headCell = cells.First();
-
             // If the content of the first cell is stored as a shared string, get the text of the first cell
             // from the SharedStringTablePart and return it. Otherwise, return the string value of the cell.
-            if (headCell.DataType != null && headCell.DataType.Value == CellValues.SharedString)
+            if (headCell.DataType == null || headCell.DataType.Value != CellValues.SharedString)
             {
-                var shareStringPart = document.WorkbookPart.GetPartsOfType<SharedStringTablePart>().First();
-                var items = shareStringPart.SharedStringTable.Elements<SharedStringItem>().ToArray();
-                return items[int.Parse(headCell.CellValue.Text)].InnerText;
+                return headCell.CellValue == null ? string.Empty : headCell.CellValue.Text;
             }
 
-            if (headCell.CellValue == null)
-            {
-                return string.Empty;
-            }
-
-            return headCell.CellValue.Text;
+            var shareStringPart = document.WorkbookPart.GetPartsOfType<SharedStringTablePart>().First();
+            var items = shareStringPart.SharedStringTable.Elements<SharedStringItem>().ToArray();
+            return items[int.Parse(headCell.CellValue.Text)].InnerText;
         }
 
         // Given a cell name, parses the specified cell to get the column name.
@@ -249,12 +243,7 @@ namespace Audacia.Spreadsheets.Parse
             }
 
             // Then check if it contains date formatting or year formatting
-            if (formatCode != null && (formatCode.Contains("mmm") || formatCode.Contains("yy")))
-            {
-                return true;
-            }
-
-            return false;
+            return formatCode != null && (formatCode.Contains("mmm") || formatCode.Contains("yy"));
         }
 
         private static int GetMaxRowWidth(WorksheetPart worksheetPart)
