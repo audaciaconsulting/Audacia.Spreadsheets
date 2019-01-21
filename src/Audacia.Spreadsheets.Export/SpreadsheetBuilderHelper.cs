@@ -60,7 +60,7 @@ namespace Audacia.Spreadsheets.Export
                     var styleIndex = GetOrCreateCellFormat(cellStyle, cellFormats, stylesheet).Index;
 
                     WriteCell(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
-                        OpenXmlDataType.OpenXmlStringDataType, column.Name, column.HideHeader);
+                        OpenXmlDataType.OpenXmlStringDataType, column.HideHeader ? string.Empty : column.Name);
 
                     //Update column reference for next iteration
                     cellReferenceColumnIndex = (cellReferenceColumnIndex.GetColumnNumber() + 1)
@@ -109,7 +109,7 @@ namespace Audacia.Spreadsheets.Export
                     var dataTypeAndValue = GetDataTypeAndFormattedValue(value);
 
                     WriteCell(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
-                        dataTypeAndValue.Item1, dataTypeAndValue.Item2);
+                        dataTypeAndValue.Item1, dataTypeAndValue.Item2, cellModel.IsFormula);
 
                     cellReferenceColumnIndex = (cellReferenceColumnIndex.GetColumnNumber() + 1)
                         .GetExcelColumnName();
@@ -122,8 +122,8 @@ namespace Audacia.Spreadsheets.Export
             }
         }
 
-        private static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex, 
-            string reference, string dataType, string value, bool hideValue = false)
+        private static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex,
+            string reference, string dataType, string value, bool isFormula = false)
         {
             var attributes = new List<OpenXmlAttribute>
             {
@@ -134,9 +134,16 @@ namespace Audacia.Spreadsheets.Export
 
             writer.WriteStartElement(new Cell(), attributes);
 
-            if (!string.IsNullOrWhiteSpace(value) && !hideValue)
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                writer.WriteElement(new CellValue(value));
+                if (isFormula)
+                {
+                    writer.WriteElement(new CellFormula(value));
+                }
+                else
+                {
+                    writer.WriteElement(new CellValue(value));
+                }
             }
 
             writer.WriteEndElement();
