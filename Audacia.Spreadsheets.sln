@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Export
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Extensions", "src\Audacia.Spreadsheets.Extensions\Audacia.Spreadsheets.Extensions.csproj", "{8F49D4C7-F973-40C4-A29E-239BB6319483}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audacia.Spreadsheets.Parse", "Audacia.Spreadsheets.Parse\Audacia.Spreadsheets.Parse.csproj", "{32B45BEF-B89E-462D-9C17-BF54C308DB78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Parse", "src\Audacia.Spreadsheets.Parse\Audacia.Spreadsheets.Parse.csproj", "{454C4849-E381-48E8-BA73-BB9B20AA32DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{8F49D4C7-F973-40C4-A29E-239BB6319483}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F49D4C7-F973-40C4-A29E-239BB6319483}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F49D4C7-F973-40C4-A29E-239BB6319483}.Release|Any CPU.Build.0 = Release|Any CPU
-		{32B45BEF-B89E-462D-9C17-BF54C308DB78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32B45BEF-B89E-462D-9C17-BF54C308DB78}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{32B45BEF-B89E-462D-9C17-BF54C308DB78}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{32B45BEF-B89E-462D-9C17-BF54C308DB78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{454C4849-E381-48E8-BA73-BB9B20AA32DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{454C4849-E381-48E8-BA73-BB9B20AA32DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{454C4849-E381-48E8-BA73-BB9B20AA32DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{454C4849-E381-48E8-BA73-BB9B20AA32DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
