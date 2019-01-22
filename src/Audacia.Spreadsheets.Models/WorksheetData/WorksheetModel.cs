@@ -7,5 +7,6 @@ namespace Audacia.Spreadsheets.Models.WorksheetData
         public int SheetIndex { get; set; }
         public string SheetName { get; set; }
         public IEnumerable<TableModel> Tables { get; set; }
+        public WorksheetProtection WorksheetProtection { get; set; }
     }
 }

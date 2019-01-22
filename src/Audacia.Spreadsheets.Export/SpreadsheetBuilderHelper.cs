@@ -60,7 +60,7 @@ namespace Audacia.Spreadsheets.Export
                     var styleIndex = GetOrCreateCellFormat(cellStyle, cellFormats, stylesheet).Index;
 
                     WriteCell(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
-                        OpenXmlDataType.OpenXmlStringDataType, column.Name, column.HideHeader);
+                        OpenXmlDataType.OpenXmlStringDataType, column.HideHeader ? string.Empty : column.Name);
 
                     //Update column reference for next iteration
                     cellReferenceColumnIndex = (cellReferenceColumnIndex.GetColumnNumber() + 1)
@@ -109,7 +109,7 @@ namespace Audacia.Spreadsheets.Export
                     var dataTypeAndValue = GetDataTypeAndFormattedValue(value);
 
                     WriteCell(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
-                        dataTypeAndValue.Item1, dataTypeAndValue.Item2);
+                        dataTypeAndValue.Item1, dataTypeAndValue.Item2, cellModel.IsFormula);
 
                     cellReferenceColumnIndex = (cellReferenceColumnIndex.GetColumnNumber() + 1)
                         .GetExcelColumnName();
@@ -122,8 +122,47 @@ namespace Audacia.Spreadsheets.Export
             }
         }
 
-        private static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex, 
-            string reference, string dataType, string value, bool hideValue = false)
+        internal static void AddProtection(WorksheetPart worksheetPart, WorksheetProtection worksheetProtection)
+        {
+            var sheetProtection = new SheetProtection
+            {
+                Objects = true,
+                Scenarios = true,
+                Sheet = true,
+                InsertColumns = !worksheetProtection.CanAddOrDeleteColumns,
+                DeleteColumns = !worksheetProtection.CanAddOrDeleteColumns,
+                InsertRows = !worksheetProtection.CanAddOrDeleteRows,
+                DeleteRows = !worksheetProtection.CanAddOrDeleteRows,
+            };
+
+            if (!string.IsNullOrWhiteSpace(worksheetProtection.Password))
+            {
+                // NOTE: We cannot use Workbook protection, as the resulting OpenXML file is marked as corrupted
+                // by OpenXML when attempting to open it - the Productivity tool does the same thing.
+                // So we'll just do worksheet protection
+                sheetProtection.Password = HexPasswordConversion(worksheetProtection.Password);
+            }
+
+            var pRanges = new ProtectedRanges();
+
+            foreach (var protectedRange in worksheetProtection.EditableCellRanges)
+            {
+                var pRange = new ProtectedRange();
+                var lValue = new ListValue<StringValue> { InnerText = protectedRange };
+
+                pRange.SequenceOfReferences = lValue;
+                pRange.Name = "not allow editing";
+                pRanges.Append(pRange);
+            }
+
+            //These are the cells that are editable
+            var pageM = worksheetPart.Worksheet.GetFirstChild<PageMargins>();
+            worksheetPart.Worksheet.InsertBefore(sheetProtection, pageM);
+            worksheetPart.Worksheet.InsertBefore(pRanges, pageM);
+        }
+
+        private static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex,
+            string reference, string dataType, string value, bool isFormula = false)
         {
             var attributes = new List<OpenXmlAttribute>
             {
@@ -134,9 +173,16 @@ namespace Audacia.Spreadsheets.Export
 
             writer.WriteStartElement(new Cell(), attributes);
 
-            if (!string.IsNullOrWhiteSpace(value) && !hideValue)
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                writer.WriteElement(new CellValue(value));
+                if (isFormula)
+                {
+                    writer.WriteElement(new CellFormula(value));
+                }
+                else
+                {
+                    writer.WriteElement(new CellValue(value));
+                }
             }
 
             writer.WriteEndElement();
@@ -335,6 +381,33 @@ namespace Audacia.Spreadsheets.Export
             }
 
             return maxColWidth;
+        }
+
+        private static HexBinaryValue HexPasswordConversion(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                throw new ArgumentException("Cannot convert an empty password");
+            }
+
+            byte[] passwordCharacters = System.Text.Encoding.ASCII.GetBytes(password);
+            int hash = 0;
+            if (passwordCharacters.Length > 0)
+            {
+                int charIndex = passwordCharacters.Length;
+
+                while (charIndex-- > 0)
+                {
+                    hash = ((hash >> 14) & 0x01) | ((hash << 1) & 0x7fff);
+                    hash ^= passwordCharacters[charIndex];
+                }
+                // Main difference from spec, also hash with charcount
+                hash = ((hash >> 14) & 0x01) | ((hash << 1) & 0x7fff);
+                hash ^= passwordCharacters.Length;
+                hash ^= (0x8000 | ('N' << 8) | 'K');
+            }
+
+            return Convert.ToString(hash, 16).ToUpperInvariant();
         }
     }
 }
