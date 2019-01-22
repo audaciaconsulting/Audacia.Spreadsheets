@@ -122,6 +122,45 @@ namespace Audacia.Spreadsheets.Export
             }
         }
 
+        internal static void AddProtection(WorksheetPart worksheetPart, WorksheetProtection worksheetProtection)
+        {
+            var sheetProtection = new SheetProtection
+            {
+                Objects = true,
+                Scenarios = true,
+                Sheet = true,
+                InsertColumns = !worksheetProtection.CanAddOrDeleteColumns,
+                DeleteColumns = !worksheetProtection.CanAddOrDeleteColumns,
+                InsertRows = !worksheetProtection.CanAddOrDeleteRows,
+                DeleteRows = !worksheetProtection.CanAddOrDeleteRows,
+            };
+
+            if (!string.IsNullOrWhiteSpace(worksheetProtection.Password))
+            {
+                // NOTE: We cannot use Workbook protection, as the resulting OpenXML file is marked as corrupted
+                // by OpenXML when attempting to open it - the Productivity tool does the same thing.
+                // So we'll just do worksheet protection
+                sheetProtection.Password = HexPasswordConversion(worksheetProtection.Password);
+            }
+
+            var pRanges = new ProtectedRanges();
+
+            foreach (var protectedRange in worksheetProtection.EditableCellRanges)
+            {
+                var pRange = new ProtectedRange();
+                var lValue = new ListValue<StringValue> { InnerText = protectedRange };
+
+                pRange.SequenceOfReferences = lValue;
+                pRange.Name = "not allow editing";
+                pRanges.Append(pRange);
+            }
+
+            //These are the cells that are editable
+            var pageM = worksheetPart.Worksheet.GetFirstChild<PageMargins>();
+            worksheetPart.Worksheet.InsertBefore(sheetProtection, pageM);
+            worksheetPart.Worksheet.InsertBefore(pRanges, pageM);
+        }
+
         private static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex,
             string reference, string dataType, string value, bool isFormula = false)
         {
@@ -342,6 +381,33 @@ namespace Audacia.Spreadsheets.Export
             }
 
             return maxColWidth;
+        }
+
+        private static HexBinaryValue HexPasswordConversion(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                throw new ArgumentException("Cannot convert an empty password");
+            }
+
+            byte[] passwordCharacters = System.Text.Encoding.ASCII.GetBytes(password);
+            int hash = 0;
+            if (passwordCharacters.Length > 0)
+            {
+                int charIndex = passwordCharacters.Length;
+
+                while (charIndex-- > 0)
+                {
+                    hash = ((hash >> 14) & 0x01) | ((hash << 1) & 0x7fff);
+                    hash ^= passwordCharacters[charIndex];
+                }
+                // Main difference from spec, also hash with charcount
+                hash = ((hash >> 14) & 0x01) | ((hash << 1) & 0x7fff);
+                hash ^= passwordCharacters.Length;
+                hash ^= (0x8000 | ('N' << 8) | 'K');
+            }
+
+            return Convert.ToString(hash, 16).ToUpperInvariant();
         }
     }
 }

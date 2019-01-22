@@ -68,13 +68,14 @@ namespace Audacia.Spreadsheets.Export
                         ? sheets.Elements<Sheet>().Select(s => s.SheetId.Value).Max() + 1
                         : 1;
 
-                    sheets.Append(new Sheet
+                    var sheet = new Sheet
                     {
                         Id = workbookPart.GetIdOfPart(worksheetPart),
                         SheetId = sheetId,
                         Name = sheetName,
                         State = SheetStateValues.Visible
-                    });
+                    };
+                    sheets.Append(sheet);
 
                     var writer = OpenXmlWriter.Create(worksheetPart);
 
@@ -95,6 +96,11 @@ namespace Audacia.Spreadsheets.Export
                     }
 
                     writer.Close();
+
+                    if (worksheetModel.WorksheetProtection != null)
+                    {
+                        SpreadsheetBuilderHelper.AddProtection(worksheetPart, worksheetModel.WorksheetProtection);
+                    }
                 }
 
                 document.Close();
