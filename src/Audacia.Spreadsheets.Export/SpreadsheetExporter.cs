@@ -4,16 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Audacia.Spreadsheets.Models.WorksheetData;
+using Audacia.Spreadsheets.Models;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Worksheet = DocumentFormat.OpenXml.Spreadsheet.Worksheet;
 
 namespace Audacia.Spreadsheets.Export
 {
     public class SpreadsheetExporter : ISpreadsheetExporter
     {
-        public byte[] ExportSpreadsheetBytes(SpreadsheetModel model)
+        public byte[] ExportSpreadsheetBytes(Spreadsheet model)
         {
             using (var stream = new MemoryStream())
             using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
@@ -30,13 +31,13 @@ namespace Audacia.Spreadsheets.Export
 
                 var distinctBackgroundColours =
                     allTables
-                    .SelectMany(dt => dt.Data.Rows)
+                    .SelectMany(dt => dt.Rows)
                     .SelectMany(r => r.Cells.Select(c => c.FillColour)).Where(c => !string.IsNullOrWhiteSpace(c))
                     .Distinct();
 
                 var distinctTextColours =
                     allTables
-                    .SelectMany(dt => dt.Data.Rows)
+                    .SelectMany(dt => dt.Rows)
                     .SelectMany(r => r.Cells.Select(c => c.TextColour)).Where(c => !string.IsNullOrWhiteSpace(c))
                     .Distinct();
 
@@ -186,7 +187,7 @@ namespace Audacia.Spreadsheets.Export
             return backgroundColoursDictionary;
         }
 
-        private static Dictionary<string, uint> GetHeaderStyles(IEnumerable<SpreadsheetHeaderStyle> headerStyles, Dictionary<string, uint> backgroundColoursDictionary,
+        private static Dictionary<string, uint> GetHeaderStyles(IEnumerable<WorksheetHeaderStyle> headerStyles, Dictionary<string, uint> backgroundColoursDictionary,
             Fonts fonts, Fills fills)
         {
             var fontsDictionary = new Dictionary<string, uint>();
@@ -228,7 +229,7 @@ namespace Audacia.Spreadsheets.Export
             return fontsDictionary;
         }
 
-        private static Stylesheet GetDefaultStyles(IEnumerable<string> backgroundColours, IEnumerable<string> textColours, IEnumerable<SpreadsheetHeaderStyle> headerStyles,
+        private static Stylesheet GetDefaultStyles(IEnumerable<string> backgroundColours, IEnumerable<string> textColours, IEnumerable<WorksheetHeaderStyle> headerStyles,
             out Dictionary<string, uint> backgroundColoursDictionary, out Dictionary<string, uint> textColoursDictionary, out Dictionary<string, uint> headerFontsDictionary)
         {
             var stylesheet = new Stylesheet();

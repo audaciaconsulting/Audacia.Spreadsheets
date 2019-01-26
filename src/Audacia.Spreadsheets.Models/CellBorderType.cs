@@ -1,4 +1,4 @@
-﻿namespace Audacia.Spreadsheets.Models.Enums
+﻿namespace Audacia.Spreadsheets.Models
 {
     public enum CellBorderType
     {

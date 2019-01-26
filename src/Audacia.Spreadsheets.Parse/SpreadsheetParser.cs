@@ -1,5 +1,4 @@
 ﻿using Audacia.Spreadsheets.Extensions;
-using Audacia.Spreadsheets.Models.WorksheetData;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System;
@@ -8,53 +7,57 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Audacia.Spreadsheets.Models;
+using Worksheet = Audacia.Spreadsheets.Models.Worksheet;
 
 namespace Audacia.Spreadsheets.Parse
 {
+    // TODO JP: come back and optimise this
     public class SpreadsheetParser : ISpreadsheetParser
     {
-        public SpreadsheetModel GetSpreadsheetFromExcelFile(Stream stream, bool includeHeaders = true)
+        public Spreadsheet GetSpreadsheetFromExcelFile(Stream stream, bool includeHeaders = true)
         {
             using (var spreadSheet = SpreadsheetDocument.Open(stream, false))
             {
-                return new SpreadsheetModel
-                {
-                    Worksheets = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>().Select((sheet, index) =>
-                        ReturnDataModel(sheet, spreadSheet, index, includeHeaders)).ToList()
-                };
+                var worksheets = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>()
+                    .Select((sheet, index) => ReturnDataModel(sheet, spreadSheet, index, includeHeaders))
+                    .ToList();
+                return Spreadsheet.FromWorksheets(worksheets);
             }
         }
 
-        private static WorksheetModel ReturnDataModel(Sheet worksheet, SpreadsheetDocument spreadSheet, int index,
+        private static Worksheet ReturnDataModel(Sheet worksheet, SpreadsheetDocument spreadSheet, int index,
             bool includeHeaders)
         {
             var worksheetPart = (WorksheetPart) spreadSheet.WorkbookPart.GetPartById(worksheet.Id);
 
-            var table = new TableModel()
+            var table = new WorksheetTable
             {
                 StartingCellRef = "A1",
                 IncludeHeaders = includeHeaders,
-                HeaderStyle = null,
-                Data = new TableWrapperModel()
+                HeaderStyle = null
             };
 
             if (includeHeaders)
             {
-                table.Data.Columns = GetColumnModels(worksheetPart, spreadSheet).ToList();
+                var columns = GetColumnModels(worksheetPart, spreadSheet);
+                table.Columns.AddRange(columns);
             }
 
-            var maxRowWidth = includeHeaders ? table.Data.Columns.Count() : GetMaxRowWidth(worksheetPart);
-            table.Data.Rows = GetRowModels(worksheetPart, spreadSheet, maxRowWidth, includeHeaders).ToList();
+            var maxRowWidth = includeHeaders ? table.Columns.Count : GetMaxRowWidth(worksheetPart);
 
-            return new WorksheetModel()
+            var rows = GetRowModels(worksheetPart, spreadSheet, maxRowWidth, includeHeaders);
+            table.Rows.AddRange(rows);
+
+            return new Worksheet
             {
                 SheetName = worksheet.Name,
                 SheetIndex = index,
-                Tables = new List<TableModel> { table }
+                Tables = new List<WorksheetTable> { table }
             };
         }
 
-        private static IEnumerable<TableColumnModel> GetColumnModels(WorksheetPart worksheetPart, 
+        private static IEnumerable<WorksheetTableColumn> GetColumnModels(WorksheetPart worksheetPart, 
             SpreadsheetDocument spreadSheet)
         {
             // Get column headers
@@ -66,13 +69,13 @@ namespace Audacia.Spreadsheets.Parse
                 newHeader = GetColumnHeading(spreadSheet, worksheetPart, columnName + "1");
                 if (!string.IsNullOrWhiteSpace(newHeader))
                 {
-                    yield return new TableColumnModel { Name = newHeader };
+                    yield return new WorksheetTableColumn { Name = newHeader };
                 }
                 i++;
             } while (!string.IsNullOrWhiteSpace(newHeader));
         }
 
-        private static IEnumerable<TableRowModel> GetRowModels(WorksheetPart worksheetPart, 
+        private static IEnumerable<WorksheetTableRow> GetRowModels(WorksheetPart worksheetPart, 
             SpreadsheetDocument spreadSheet, int columnsCount, bool includeHeaders)
         {
             var cellFormats = spreadSheet.WorkbookPart.WorkbookStylesPart.Stylesheet.CellFormats;
@@ -88,7 +91,7 @@ namespace Audacia.Spreadsheets.Parse
             foreach (var row in rows.Skip(includeHeaders ? 1 : 0))
             {
                 var cells = row.Elements<Cell>().ToArray();
-                var cellData = new List<TableCellModel>();
+                var cellData = new List<WorksheetTableCell>();
 
                 for (var j = 0; j < columnsCount; j++)
                 {
@@ -101,14 +104,14 @@ namespace Audacia.Spreadsheets.Parse
 
                     if (!matchedCells.Any() || matchedCells.First().CellValue == null)
                     {
-                        cellData.Add(new TableCellModel { Value = null });
+                        cellData.Add(new WorksheetTableCell { Value = null });
                     }
                     else
                     {
                         var c = matchedCells.First();
                         if (c.DataType != null && c.DataType.HasValue && c.DataType.Value == CellValues.SharedString)
                         {
-                            cellData.Add(new TableCellModel
+                            cellData.Add(new WorksheetTableCell
                             {
                                 Value = stringTable.SharedStringTable.ElementAt(int.Parse(c.CellValue.Text)).InnerText
                             });
@@ -129,7 +132,7 @@ namespace Audacia.Spreadsheets.Parse
                                     {
                                         var date = DateTime.FromOADate(parsedValue);
 
-                                        cellData.Add(new TableCellModel { Value = date });
+                                        cellData.Add(new WorksheetTableCell { Value = date });
                                         valueAdded = true;
                                     }
                                 }
@@ -137,7 +140,7 @@ namespace Audacia.Spreadsheets.Parse
 
                             if (!valueAdded)
                             {
-                                cellData.Add(new TableCellModel { Value = c.CellValue.Text });
+                                cellData.Add(new WorksheetTableCell { Value = c.CellValue.Text });
                             }
                         }
                     }
@@ -145,12 +148,8 @@ namespace Audacia.Spreadsheets.Parse
 
                 if (cellData.All(c => c.Value == null || (c.Value is string s && string.IsNullOrWhiteSpace(s)))) continue;
 
-                yield return new TableRowModel
-                {
-                    Cells = cellData,
-                    Id = rowNumber
-                };
-
+                yield return WorksheetTableRow.FromCells(cellData, rowNumber);
+                
                 rowNumber++;
             }
         }

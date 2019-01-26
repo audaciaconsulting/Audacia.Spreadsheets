@@ -1,10 +1,10 @@
-﻿using Audacia.Spreadsheets.Models.WorksheetData;
-using System.IO;
+﻿using System.IO;
+using Audacia.Spreadsheets.Models;
 
 namespace Audacia.Spreadsheets.Parse
 {
     public interface ISpreadsheetParser
     {
-        SpreadsheetModel GetSpreadsheetFromExcelFile(Stream stream, bool includeHeaders = true);
+        Spreadsheet GetSpreadsheetFromExcelFile(Stream stream, bool includeHeaders = true);
     }
 }

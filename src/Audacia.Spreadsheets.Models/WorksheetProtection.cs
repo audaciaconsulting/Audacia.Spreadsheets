@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace Audacia.Spreadsheets.Models.WorksheetData
+namespace Audacia.Spreadsheets.Models
 {
     public class WorksheetProtection
     {

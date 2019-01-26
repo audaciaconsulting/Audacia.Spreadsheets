@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace Audacia.Spreadsheets.Models.WorksheetData
+namespace Audacia.Spreadsheets.Models
 {
-    public class WorksheetModel
+    public class Worksheet
     {
         public int SheetIndex { get; set; }
         public string SheetName { get; set; }
-        public IEnumerable<TableModel> Tables { get; set; }
+        public IEnumerable<WorksheetTable> Tables { get; set; }
         public WorksheetProtection WorksheetProtection { get; set; }
     }
 }

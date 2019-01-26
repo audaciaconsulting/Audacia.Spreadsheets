@@ -5,12 +5,12 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using Audacia.Core.Extensions;
 using Audacia.Spreadsheets.Models.Attributes;
-using Audacia.Spreadsheets.Models.WorksheetData;
 
 namespace Audacia.Spreadsheets.Extensions
 {
     public static class WorksheetExtensions
     {
+        // TODO JP: optimise later
         private static IEnumerable<PropertyInfo> GetPublicProperties(this Type classType, params string[] ignoreProperties)
         {
             return classType
@@ -47,6 +47,9 @@ namespace Audacia.Spreadsheets.Extensions
                 .ToArray();
         }
         
+        // TODO JP: fix this later
+        /*
+        
         /// <summary>
         /// Creates a Data Table from an enumerable
         /// </summary>
@@ -61,11 +64,11 @@ namespace Audacia.Spreadsheets.Extensions
 
             var propertiesWithTypes = typeof(T).GetPublicProperties(ignoreProperties).ToList();
 
-            var columns = new List<TableColumnModel>();
+            var columns = new List<WorksheetTableColumn>();
 
             foreach (var item in propertiesWithTypes)
             {
-                var column = new TableColumnModel
+                var column = new WorksheetTableColumn
                 {
                     Name = item.GetDataAnnotationDisplayName(),
                     IsIdColumn = ((IdColumnAttribute[])item
@@ -102,7 +105,7 @@ namespace Audacia.Spreadsheets.Extensions
 
             dataTable.Columns = columns.Where(c => !c.IsIdColumn);
 
-            var rows = new List<TableRowModel>();
+            var rows = new List<WorksheetTableRow>();
 
             foreach (var entity in data)
             {
@@ -110,12 +113,12 @@ namespace Audacia.Spreadsheets.Extensions
                 var values = propertiesWithTypes.Select(
                     item => item.GetValue(entity, null)).ToList();
 
-                var cells = new List<TableCellModel>();
+                var cells = new List<WorksheetTableCell>();
 
                 var index = 0;
                 foreach (var v in values)
                 {
-                    var cell = new TableCellModel()
+                    var cell = new WorksheetTableCell()
                     {
                         Value = v ?? string.Empty
                     };
@@ -167,7 +170,7 @@ namespace Audacia.Spreadsheets.Extensions
                     index++;
                 }
 
-                var row = new TableRowModel()
+                var row = new WorksheetTableRow()
                 {
                     Id = id,
                     Cells = cells
@@ -184,16 +187,16 @@ namespace Audacia.Spreadsheets.Extensions
         /// <summary>
         /// Creates a Worksheet from an enumerable
         /// </summary>
-        public static WorksheetModel ToWorkSheet<T>(this IEnumerable<T> data, int sheetIndex, string sheetName, bool includeHeaders,
+        public static Worksheet ToWorkSheet<T>(this IEnumerable<T> data, int sheetIndex, string sheetName, bool includeHeaders,
             SpreadsheetHeaderStyle headerStyle = null, params string[] ignoreProperties)
         {
-            return new WorksheetModel
+            return new Worksheet
             {
                 SheetIndex = sheetIndex,
                 SheetName = sheetName,
-                Tables = new List<TableModel>
+                Tables = new List<WorksheetTable>
                 {
-                    new TableModel
+                    new WorksheetTable
                     {
                         HeaderStyle = headerStyle ?? new SpreadsheetHeaderStyle(),
                         IncludeHeaders = includeHeaders,
@@ -201,6 +204,6 @@ namespace Audacia.Spreadsheets.Extensions
                     }
                 }
             };
-        }
+        } */
     }
 }

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Audacia.Spreadsheets.Extensions;
-using Audacia.Spreadsheets.Models.Constants;
-using Audacia.Spreadsheets.Models.Enums;
-using Audacia.Spreadsheets.Models.WorksheetData;
+using Audacia.Spreadsheets.Models;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -17,7 +15,7 @@ namespace Audacia.Spreadsheets.Export
         public const string DefaultStartingCellRef = "A1";
         public static int MaxColumnWidth = 75;
 
-        public static void Insert(TableModel model, Stylesheet stylesheet,
+        public static void Insert(WorksheetTable model, Stylesheet stylesheet,
             List<SpreadsheetCellStyle> cellFormats, Dictionary<string, uint> fillColours,
             Dictionary<string, uint> textColours, Dictionary<string, uint> fonts, WorksheetPart worksheet,
             OpenXmlWriter writer)
@@ -33,7 +31,7 @@ namespace Audacia.Spreadsheets.Export
             {
                 writer.WriteStartElement(new Row());
 
-                foreach (var column in model.Data.Columns)
+                foreach (var column in model.Columns)
                 {
                     if (!fonts.TryGetValue($"{model.HeaderStyle?.FontName}:{model.HeaderStyle?.TextColour}", out var font))
                     {
@@ -51,8 +49,8 @@ namespace Audacia.Spreadsheets.Export
                         BackgroundColour = fillColour,
                         BorderBottom = true,
                         BorderTop = true,
-                        BorderLeft = column == model.Data.Columns.ElementAt(0),
-                        BorderRight = column == model.Data.Columns.ElementAt(model.Data.Columns.Count() - 1),
+                        BorderLeft = column == model.Columns.ElementAt(0),
+                        BorderRight = column == model.Columns.ElementAt(model.Columns.Count() - 1),
                         Format = CellFormatType.Text,
                         HasWordWrap = false
                     };
@@ -60,7 +58,7 @@ namespace Audacia.Spreadsheets.Export
                     var styleIndex = GetOrCreateCellFormat(cellStyle, cellFormats, stylesheet).Index;
 
                     WriteCell(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
-                        OpenXmlDataType.OpenXmlStringDataType, column.HideHeader ? string.Empty : column.Name);
+                        DataType.String, column.Name);
 
                     //Update column reference for next iteration
                     cellReferenceColumnIndex = (cellReferenceColumnIndex.GetColumnNumber() + 1)
@@ -73,11 +71,11 @@ namespace Audacia.Spreadsheets.Export
                 writer.WriteEndElement();
             }
 
-            foreach (var row in model.Data.Rows)
+            foreach (var row in model.Rows)
             {
                 writer.WriteStartElement(new Row());
                 var columnIndex = 0;
-                foreach (var column in model.Data.Columns)
+                foreach (var column in model.Columns)
                 {
                     var cellModel = row.Cells.ElementAt(columnIndex);
                     var value = cellModel.Value;
@@ -194,19 +192,19 @@ namespace Audacia.Spreadsheets.Export
             {
                 case DateTime time:
                     return new Tuple<string, string>(
-                        OpenXmlDataType.OpenXmlDateDataType, FormatDate(time));
+                        DataType.Date, FormatDate(time));
                 case decimal @decimal:
                     return new Tuple<string, string>(
-                        OpenXmlDataType.OpenXmlNumericDataType, @decimal.ToString(CultureInfo.CurrentCulture));
+                        DataType.Numeric, @decimal.ToString(CultureInfo.CurrentCulture));
                 case double d:
                     return new Tuple<string, string>(
-                        OpenXmlDataType.OpenXmlNumericDataType, d.ToString(CultureInfo.CurrentCulture));
+                        DataType.Numeric, d.ToString(CultureInfo.CurrentCulture));
                 case int i:
                     return new Tuple<string, string>(
-                        OpenXmlDataType.OpenXmlNumericDataType, i.ToString(CultureInfo.CurrentCulture));
+                        DataType.Numeric, i.ToString(CultureInfo.CurrentCulture));
                 default:
                     return new Tuple<string, string>(
-                                    OpenXmlDataType.OpenXmlStringDataType, cellValue.ToString());
+                                    DataType.String, cellValue.ToString());
             }
         }
 
@@ -303,11 +301,11 @@ namespace Audacia.Spreadsheets.Export
             writer.WriteEndElement();
         }
 
-        public static void AddColumns(OpenXmlWriter writer, TableModel tableModel)
+        public static void AddColumns(OpenXmlWriter writer, WorksheetTable worksheetTable)
         {
             writer.WriteStartElement(new Columns());
 
-            var maxColWidth = GetMaxCharacterWidth(tableModel.Data);
+            var maxColWidth = GetMaxCharacterWidth(worksheetTable);
             double maxWidth = 11;
 
             for (var i = 0; i < maxColWidth.Count; i++)
@@ -337,22 +335,17 @@ namespace Audacia.Spreadsheets.Export
             writer.WriteEndElement();
         }
 
-        private static Dictionary<int, int> GetMaxCharacterWidth(TableWrapperModel model)
+        private static Dictionary<int, int> GetMaxCharacterWidth(WorksheetTable model)
         {
             //iterate over all cells getting a max char value for each column
             var maxColWidth = new Dictionary<int, int>();
 
             var columnHeaderWithData = model.Rows.ToList();
 
-            columnHeaderWithData.Add(
-                new TableRowModel
-                {
-                    Cells = model.Columns.Select(c =>
-                        new TableCellModel
-                        {
-                            Value = c.Name
-                        })
-                });
+            var rowCells = model.Columns.Select(c => new WorksheetTableCell(c.Name));
+            var row = WorksheetTableRow.FromCells(rowCells, 0);
+            
+            columnHeaderWithData.Add(row);
 
             foreach (var r in columnHeaderWithData)
             {

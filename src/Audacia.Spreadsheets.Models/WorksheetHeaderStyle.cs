@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Audacia.Spreadsheets.Models.WorksheetData
+﻿namespace Audacia.Spreadsheets.Models
 {
-    public class SpreadsheetHeaderStyle
+    public class WorksheetHeaderStyle
     {
         public string TextColour { get; set; } = "000000";
         public string FillColour { get; set; } = "FFFFFF";

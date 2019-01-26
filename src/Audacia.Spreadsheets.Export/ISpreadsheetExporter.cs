@@ -1,9 +1,9 @@
-﻿using Audacia.Spreadsheets.Models.WorksheetData;
+﻿using Audacia.Spreadsheets.Models;
 
 namespace Audacia.Spreadsheets.Export
 {
     public interface ISpreadsheetExporter
     {
-        byte[] ExportSpreadsheetBytes(SpreadsheetModel model);
+        byte[] ExportSpreadsheetBytes(Spreadsheet model);
     }
 }

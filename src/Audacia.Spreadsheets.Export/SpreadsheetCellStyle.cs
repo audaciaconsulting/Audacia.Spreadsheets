@@ -1,4 +1,4 @@
-﻿using Audacia.Spreadsheets.Models.Enums;
+﻿using Audacia.Spreadsheets.Models;
 using DocumentFormat.OpenXml;
 
 namespace Audacia.Spreadsheets.Export
