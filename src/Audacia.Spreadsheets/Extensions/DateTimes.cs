@@ -3,7 +3,7 @@ using System;
 
 namespace Audacia.Spreadsheets.Extensions
 {
-    public static class DateTimeExtensions
+    public static class DateTimes
     {
         private static readonly DateTime OaDateEpoch = new DateTime(1899, 12, 30);
         

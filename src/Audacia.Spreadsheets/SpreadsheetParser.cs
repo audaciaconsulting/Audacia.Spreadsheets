@@ -1,19 +1,17 @@
-﻿using Audacia.Spreadsheets.Extensions;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Audacia.Spreadsheets.Models;
-using Worksheet = Audacia.Spreadsheets.Models.Worksheet;
+using Audacia.Spreadsheets.Extensions;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 
-namespace Audacia.Spreadsheets.Parse
+namespace Audacia.Spreadsheets
 {
     // TODO JP: come back and optimise this
-    public class SpreadsheetParser : ISpreadsheetParser
+    public class SpreadsheetParser
     {
         public Spreadsheet GetSpreadsheetFromExcelFile(Stream stream, bool includeHeaders = true)
         {
@@ -31,7 +29,7 @@ namespace Audacia.Spreadsheets.Parse
         {
             var worksheetPart = (WorksheetPart) spreadSheet.WorkbookPart.GetPartById(worksheet.Id);
 
-            var table = new WorksheetTable
+            var table = new Table
             {
                 StartingCellRef = "A1",
                 IncludeHeaders = includeHeaders,
@@ -53,7 +51,7 @@ namespace Audacia.Spreadsheets.Parse
             {
                 SheetName = worksheet.Name,
                 SheetIndex = index,
-                Tables = new List<WorksheetTable> { table }
+                Tables = new List<Table> { table }
             };
         }
 

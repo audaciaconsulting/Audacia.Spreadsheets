@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Audacia.Spreadsheets.Models.Attributes
+namespace Audacia.Spreadsheets.Attributes
 {
     public class IdColumnAttribute : Attribute
     {

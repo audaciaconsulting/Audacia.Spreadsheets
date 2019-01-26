@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Audacia.Spreadsheets.Models
+namespace Audacia.Spreadsheets
 {
     public class WorksheetTableRow
     {

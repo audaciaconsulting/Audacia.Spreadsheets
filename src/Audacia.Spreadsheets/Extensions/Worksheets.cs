@@ -4,11 +4,10 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Audacia.Core.Extensions;
-using Audacia.Spreadsheets.Models.Attributes;
 
 namespace Audacia.Spreadsheets.Extensions
 {
-    public static class WorksheetExtensions
+    public static class Worksheets
     {
         // TODO JP: optimise later
         private static IEnumerable<PropertyInfo> GetPublicProperties(this Type classType, params string[] ignoreProperties)

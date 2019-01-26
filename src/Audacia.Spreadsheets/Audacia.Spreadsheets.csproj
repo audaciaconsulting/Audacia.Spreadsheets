@@ -11,4 +11,9 @@
     <Description>Utitlies for importing and generating spreadsheets</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Audacia.Core" Version="0.1.19025.30885" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.9.0" />
+  </ItemGroup>
+
 </Project>

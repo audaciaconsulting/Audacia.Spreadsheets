@@ -1,4 +1,4 @@
-﻿namespace Audacia.Spreadsheets.Models
+﻿namespace Audacia.Spreadsheets
 {
     public static class DataType
     {

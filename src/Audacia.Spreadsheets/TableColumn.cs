@@ -1,6 +1,6 @@
-﻿using Audacia.Spreadsheets.Models.Attributes;
+﻿using Audacia.Spreadsheets.Attributes;
 
-namespace Audacia.Spreadsheets.Models
+namespace Audacia.Spreadsheets
 {
     public class WorksheetTableColumn
     {

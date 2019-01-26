@@ -3,20 +3,19 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Audacia.Spreadsheets.Extensions;
-using Audacia.Spreadsheets.Models;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 
-namespace Audacia.Spreadsheets.Export
+namespace Audacia.Spreadsheets
 {
     public static class SpreadsheetBuilderHelper
     {
         public const string DefaultStartingCellRef = "A1";
         public static int MaxColumnWidth = 75;
 
-        public static void Insert(WorksheetTable model, Stylesheet stylesheet,
-            List<SpreadsheetCellStyle> cellFormats, Dictionary<string, uint> fillColours,
+        public static void Insert(Table model, Stylesheet stylesheet,
+            List<CellStyle> cellFormats, Dictionary<string, uint> fillColours,
             Dictionary<string, uint> textColours, Dictionary<string, uint> fonts, WorksheetPart worksheet,
             OpenXmlWriter writer)
         {
@@ -43,7 +42,7 @@ namespace Audacia.Spreadsheets.Export
                         fillColour = 2u;
                     }
 
-                    var cellStyle = new SpreadsheetCellStyle
+                    var cellStyle = new CellStyle
                     {
                         TextColour = font,
                         BackgroundColour = fillColour,
@@ -80,7 +79,7 @@ namespace Audacia.Spreadsheets.Export
                     var cellModel = row.Cells.ElementAt(columnIndex);
                     var value = cellModel.Value;
 
-                    var cellStyle = new SpreadsheetCellStyle
+                    var cellStyle = new CellStyle
                     {
                         TextColour = 0U,
                         BackgroundColour = 0U,
@@ -208,8 +207,8 @@ namespace Audacia.Spreadsheets.Export
             }
         }
 
-        private static SpreadsheetCellStyle GetOrCreateCellFormat(SpreadsheetCellStyle cellStyle,
-            ICollection<SpreadsheetCellStyle> cellFormats, Stylesheet stylesheet)
+        private static CellStyle GetOrCreateCellFormat(CellStyle cellStyle,
+            ICollection<CellStyle> cellFormats, Stylesheet stylesheet)
         {
             var matchingStyle = cellFormats.SingleOrDefault(cf => cf.TextColour == cellStyle.TextColour &&
                                                                   cf.BackgroundColour == cellStyle.BackgroundColour &&
@@ -220,7 +219,7 @@ namespace Audacia.Spreadsheets.Export
                                                                   cf.Format == cellStyle.Format &&
                                                                   cf.HasWordWrap == cellStyle.HasWordWrap);
 
-            if (matchingStyle != default(SpreadsheetCellStyle))
+            if (matchingStyle != default(CellStyle))
             {
                 return matchingStyle;
             }
@@ -301,11 +300,11 @@ namespace Audacia.Spreadsheets.Export
             writer.WriteEndElement();
         }
 
-        public static void AddColumns(OpenXmlWriter writer, WorksheetTable worksheetTable)
+        public static void AddColumns(OpenXmlWriter writer, Table table)
         {
             writer.WriteStartElement(new Columns());
 
-            var maxColWidth = GetMaxCharacterWidth(worksheetTable);
+            var maxColWidth = GetMaxCharacterWidth(table);
             double maxWidth = 11;
 
             for (var i = 0; i < maxColWidth.Count; i++)
@@ -335,7 +334,7 @@ namespace Audacia.Spreadsheets.Export
             writer.WriteEndElement();
         }
 
-        private static Dictionary<int, int> GetMaxCharacterWidth(WorksheetTable model)
+        private static Dictionary<int, int> GetMaxCharacterWidth(Table model)
         {
             //iterate over all cells getting a max char value for each column
             var maxColWidth = new Dictionary<int, int>();

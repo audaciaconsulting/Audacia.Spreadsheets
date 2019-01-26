@@ -1,9 +1,8 @@
-﻿using Audacia.Spreadsheets.Models;
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
 
-namespace Audacia.Spreadsheets.Export
+namespace Audacia.Spreadsheets
 {
-    public class SpreadsheetCellStyle
+    public class CellStyle
     {
         public UInt32Value Index { get; set; }
         

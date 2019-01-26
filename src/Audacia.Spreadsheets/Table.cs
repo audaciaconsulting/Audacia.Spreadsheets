@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace Audacia.Spreadsheets.Models
+namespace Audacia.Spreadsheets
 {
-    public class WorksheetTable
+    public class Table
     {
         public string StartingCellRef { get; set; }
         
-        public WorksheetHeaderStyle HeaderStyle { get; set; }
+        public TableHeaderStyle HeaderStyle { get; set; }
 
         public bool IncludeHeaders { get; set; }
 

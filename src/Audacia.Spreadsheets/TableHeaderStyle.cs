@@ -1,6 +1,6 @@
-﻿namespace Audacia.Spreadsheets.Models
+﻿namespace Audacia.Spreadsheets
 {
-    public class WorksheetHeaderStyle
+    public class TableHeaderStyle
     {
         public string TextColour { get; set; } = "000000";
         public string FillColour { get; set; } = "FFFFFF";
