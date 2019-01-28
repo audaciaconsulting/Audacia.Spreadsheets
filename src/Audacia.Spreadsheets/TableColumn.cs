@@ -12,7 +12,7 @@ namespace Audacia.Spreadsheets
 
         public string Name { get; set; }
 
-        public bool IsIdColumn { get; set; }
+        public bool ColumnRollup { get; set; }
 
         public CellFormatType Format { get; set; } = CellFormatType.Text;
 

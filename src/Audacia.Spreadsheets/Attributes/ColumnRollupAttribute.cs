@@ -2,7 +2,7 @@
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class IdColumnAttribute : Attribute
+    public class ColumnRollupAttribute : Attribute
     {
     }
 }

@@ -26,6 +26,59 @@ namespace Audacia.Spreadsheets
             var cellReferenceRowIndex = startCellReference.GetReferenceRowIndex();
             var cellReferenceColumnIndex = startCellReference.GetReferenceColumnIndex();
 
+            if (model.IncludeHeaders && model.Columns.Any(c => c.ColumnRollup))
+            {
+                writer.WriteStartElement(new Row());
+
+                foreach (var column in model.Columns)
+                {
+                    var cellStyle = new CellStyle
+                    {
+                        TextColour = 1U,
+                        BackgroundColour = 0U,
+                        BorderBottom = true,
+                        BorderTop = true,
+                        BorderLeft = column == model.Columns.ElementAt(0),
+                        BorderRight = column == model.Columns.ElementAt(model.Columns.Count - 1),
+                        Format = column.Format,
+                        HasWordWrap = false
+                    };
+
+                    var styleIndex = GetOrCreateCellFormat(cellStyle, cellFormats, stylesheet).Index;
+
+                    // FYI we needed the value of SumTotal for GetMaxCharacterWidth earlier
+                    if (column.ColumnRollup)
+                    {
+                        var c = cellReferenceColumnIndex;
+                        var firstRow = cellReferenceRowIndex + 2; // 2 is to start after the header & rollup row
+                        var totalRows = model.Rows.Count;
+                        var lastRow = firstRow + (totalRows > 0 ? totalRows - 1 : 0);
+
+                        // If we use SUBTOTAL(9,XX:XX) then it recalculates as the filter changes...
+                        var formula = $"SUBTOTAL(9,{c}{firstRow}:{c}{lastRow})";
+
+                        // Here is a formula so excel can calculate the SumTotal again itself
+                        WriteFormula(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
+                            DataType.Numeric, formula);
+                    }
+                    else
+                    {
+                        // Here is a blank cell my ROW - Excel needs blank cells where no rollup values
+                        WriteCell(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
+                            DataType.String, string.Empty);
+                    }
+
+                    //Update column reference for next iteration
+                    cellReferenceColumnIndex = (cellReferenceColumnIndex.GetColumnNumber() + 1)
+                        .GetExcelColumnName();
+                }
+
+                cellReferenceColumnIndex = startCellReference.GetReferenceColumnIndex();
+                startCellReference = $"{cellReferenceColumnIndex}{cellReferenceRowIndex++}";
+
+                writer.WriteEndElement();
+            }
+
             if (model.IncludeHeaders)
             {
                 writer.WriteStartElement(new Row());
@@ -49,7 +102,7 @@ namespace Audacia.Spreadsheets
                         BorderBottom = true,
                         BorderTop = true,
                         BorderLeft = column == model.Columns.ElementAt(0),
-                        BorderRight = column == model.Columns.ElementAt(model.Columns.Count() - 1),
+                        BorderRight = column == model.Columns.ElementAt(model.Columns.Count - 1),
                         Format = CellFormatType.Text,
                         HasWordWrap = false
                     };
@@ -184,6 +237,26 @@ namespace Audacia.Spreadsheets
 
             writer.WriteEndElement();
         }
+        
+        private static void WriteFormula(OpenXmlWriter writer, UInt32Value styleIndex,
+            string reference, string dataType, string formula)
+        {
+            var attributes = new List<OpenXmlAttribute>
+            {
+                new OpenXmlAttribute("r", null, reference),
+                new OpenXmlAttribute("s", null, styleIndex),
+                new OpenXmlAttribute("t", null, dataType)
+            };
+
+            writer.WriteStartElement(new Cell(), attributes);
+
+            if (!string.IsNullOrWhiteSpace(formula))
+            {
+                writer.WriteElement(new CellFormula(formula));
+            }
+
+            writer.WriteEndElement();
+        }
 
         private static Tuple<string, string> GetDataTypeAndFormattedValue(object cellValue)
         {
@@ -289,13 +362,30 @@ namespace Audacia.Spreadsheets
             return value.ToOADatePrecise().ToString(new CultureInfo("en-US"));
         }
 
-        public static void AddSheetView(OpenXmlWriter writer)
+        private static Pane GetFrozenPane(int frozenRowCount)
+        {
+            if (frozenRowCount > 0)
+            {
+                return new Pane
+                {
+                    VerticalSplit = frozenRowCount, // Size of frozen Pane
+                    TopLeftCell = $"A{(1 + frozenRowCount)}", // First cell after frozen Pane
+                    ActivePane = PaneValues.BottomLeft,
+                    State = PaneStateValues.Frozen
+                };
+            }
+
+            return null;
+        }
+
+        public static void AddSheetView(OpenXmlWriter writer, int frozenRowCount)
         {
             writer.WriteStartElement(new SheetViews());
             writer.WriteElement(new SheetView
             {
                 ShowGridLines = false,
-                WorkbookViewId = 0U
+                WorkbookViewId = 0U,
+                Pane = GetFrozenPane(frozenRowCount)
             });
             writer.WriteEndElement();
         }
@@ -334,18 +424,55 @@ namespace Audacia.Spreadsheets
             writer.WriteEndElement();
         }
 
+        public static bool IsNumeric(this string input)
+        {
+            return !string.IsNullOrWhiteSpace(input) &&
+                   input.ToCharArray().All(e => char.IsDigit(e) || e == '.' || e == '-');
+        }
+        
         private static Dictionary<int, int> GetMaxCharacterWidth(Table model)
         {
             //iterate over all cells getting a max char value for each column
             var maxColWidth = new Dictionary<int, int>();
 
+            // Create Cells for Data
             var columnHeaderWithData = model.Rows.ToList();
 
+            // Create Cells for Headers
             var rowCells = model.Columns.Select(c => new WorksheetTableCell(c.Name));
             var row = WorksheetTableRow.FromCells(rowCells, 0);
             
             columnHeaderWithData.Add(row);
+            
+            // Create Cells for Rollups
+            if (model.Columns.Any(c => c.ColumnRollup))
+            {
+                var rollupCells = model.Columns
+                    .Select((col, index) => new {col, index})
+                    .Where(t => t.col.ColumnRollup)
+                    .Select(t => model.Rows
+                        .Where(r => r.Cells.Count > t.index)
+                        .Select(r =>
+                        {
+                            var value = r.Cells.ElementAt(t.index).Value;
+                            // TODO JP: do this properly later
+                            var isNumeric = value.ToString().IsNumeric();
+                            return (decimal)(isNumeric ? value : 0);
+                        })
+                        .DefaultIfEmpty(0)
+                        .Sum(v => v))
+                    .Select(value => new WorksheetTableCell
+                    {
+                        // Format as currency because the number value alone just isn't long enough
+                        Value = $"{value:C}"
+                    });
+                
+                var rollupRow = WorksheetTableRow.FromCells(rollupCells, 0);
+                columnHeaderWithData.Add(rollupRow);
 
+            }
+
+            // Find the max cell width of each column
             foreach (var r in columnHeaderWithData)
             {
                 var cells = r.Cells.ToArray();
@@ -375,6 +502,50 @@ namespace Audacia.Spreadsheets
             return maxColWidth;
         }
 
+        public static bool TryGetAutoFilter(string sheetName, Table table, DefinedNames definedNames, out AutoFilter filter)
+        {
+            filter = null;
+            if (table.IncludeHeaders && table.Rows.Any())
+            {
+                // 'A1'
+                var initialCellRef = !string.IsNullOrWhiteSpace(table.StartingCellRef)
+                    ? table.StartingCellRef
+                    : DefaultStartingCellRef;
+
+                // 'A'
+                var firstColumnRef = initialCellRef.GetReferenceColumnIndex();
+
+                // '1' or '2' - Handles Rollups above Cell Headers
+                var firstRowRef = initialCellRef.GetReferenceRowIndex() +
+                                  (table.Columns.Any(h => h.ColumnRollup) ? 1 : 0);
+
+                var lastColumnRef =
+                    (firstColumnRef.GetColumnNumber() +
+                     table.Columns.Count() - 1)
+                    .GetExcelColumnName();
+
+                var lastRowRef = firstRowRef + table.Rows.Count;
+
+                // Selects All Column Headers & Data
+                var cellReference = $"{firstColumnRef}{firstRowRef}:{lastColumnRef}{lastRowRef}";
+
+                filter = new AutoFilter {Reference = cellReference};
+
+                // Excel 2013 Requires a Defined Name to be able to sort using the AutoFilter
+                var dn = new DefinedName
+                {
+                    Text = $"'{sheetName}'!${firstColumnRef}${firstRowRef}:${lastColumnRef}${lastRowRef}",
+                    Name = $"_xlnm._FilterDatabase", // Don't rename this or else Excel 2013 will crash
+                    LocalSheetId = (uint) 0,
+                    Hidden = true,
+                };
+                definedNames.Append(dn);
+
+                return true;
+            }
+
+            return false;
+        }
         private static HexBinaryValue HexPasswordConversion(string password)
         {
             if (string.IsNullOrWhiteSpace(password))
