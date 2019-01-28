@@ -6,35 +6,73 @@ namespace Audacia.Spreadsheets
 {
     public class StylesheetBuilder
     {
-        private ICollection<TableHeaderStyle> DistinctHeaderStyles;
-        private ICollection<string> DistinctBackgroundColours;
-        private ICollection<string> DistinctTextColours;
+        private readonly ICollection<TableHeaderStyle> _distinctHeaderStyles;
+        private readonly ICollection<string> _distinctBackgroundColours;
+        private readonly ICollection<string> _distinctTextColours;
 
-        public StylesheetBuilder(ICollection<Worksheet> worksheets)
+        public StylesheetBuilder(IEnumerable<Worksheet> worksheets)
         {
             var allTables = worksheets
                 .SelectMany(w => w.Tables)
                 .ToArray();
 
-            DistinctHeaderStyles = allTables
+            _distinctHeaderStyles = allTables
                 .Where(t => t.HeaderStyle != null)
                 .Select(t => t.HeaderStyle)
                 .Distinct()
                 .ToArray();
 
-            DistinctBackgroundColours = allTables
+            _distinctBackgroundColours = allTables
                 .SelectMany(dt => dt.Rows)
                 .SelectMany(r => r.Cells.Select(c => c.FillColour))
                 .Where(c => !string.IsNullOrWhiteSpace(c))
                 .Distinct()
                 .ToArray();
 
-            DistinctTextColours = allTables
+            _distinctTextColours = allTables
                 .SelectMany(dt => dt.Rows)
                 .SelectMany(r => r.Cells.Select(c => c.TextColour))
                 .Where(c => !string.IsNullOrWhiteSpace(c))
                 .Distinct()
                 .ToArray();
+        }
+        
+        public Stylesheet GetDefaultStyles(out Dictionary<string, uint> backgroundColoursDictionary, 
+            out Dictionary<string, uint> textColoursDictionary,
+            out Dictionary<string, uint> headerFontsDictionary)
+        {
+            var stylesheet = new Stylesheet();
+
+            var numberingFormats1 = new NumberingFormats { Count = 1U };
+            var numberingFormat1 = new NumberingFormat { NumberFormatId = 165U, FormatCode = "\"£\"#,##0.00" };
+
+            numberingFormats1.Append(numberingFormat1);
+            stylesheet.Append(numberingFormats1);
+
+            // Add fonts
+            var fonts = new Fonts();
+            var fills = new Fills();
+
+            textColoursDictionary = GetTextColours(fonts);
+            backgroundColoursDictionary = GetFillColours(fills);
+            headerFontsDictionary = GetHeaderStyles(backgroundColoursDictionary, fonts, fills);
+
+            stylesheet.Append(fonts);
+            stylesheet.Append(fills);
+
+            // Add borders
+            var borders = CreateBorders();
+            stylesheet.Append(borders);
+
+            // blank cell format list
+            stylesheet.CellStyleFormats = new CellStyleFormats { Count = 1 };
+            stylesheet.CellStyleFormats.AppendChild(new CellFormat());
+
+            // Add formats
+            var cellFormats = new CellFormats(new CellFormat());
+            stylesheet.Append(cellFormats);
+
+            return stylesheet;
         }
         
         private Dictionary<string, uint> GetTextColours(Fonts fonts)
@@ -67,7 +105,7 @@ namespace Audacia.Spreadsheets
             fonts.Append(defaultFonts);
 
             var index = 2;
-            foreach (var colour in DistinctTextColours)
+            foreach (var colour in _distinctTextColours)
             {
                 if (textColourDictionary.ContainsKey(colour)) { continue; }
 
@@ -101,7 +139,7 @@ namespace Audacia.Spreadsheets
             fills.Append(defaultFills);
             
             var index = 3;
-            foreach (var colour in DistinctBackgroundColours)
+            foreach (var colour in _distinctBackgroundColours)
             {
                 if (backgroundColoursDictionary.ContainsKey(colour)) { continue; }
 
@@ -127,7 +165,7 @@ namespace Audacia.Spreadsheets
             var headerFontsIndex = fonts.ChildElements.Count;
             var backgroundFillsIndex = fills.ChildElements.Count;
 
-            foreach (var headerStyle in DistinctHeaderStyles)
+            foreach (var headerStyle in _distinctHeaderStyles)
             {
                 var headerStyleKey = $"{headerStyle.FontName}:{headerStyle.TextColour}";
 
@@ -188,44 +226,6 @@ namespace Audacia.Spreadsheets
             };
             borders.Append(borderArray);
             return borders;
-        }
-
-        public Stylesheet GetDefaultStyles(out Dictionary<string, uint> backgroundColoursDictionary, 
-            out Dictionary<string, uint> textColoursDictionary,
-            out Dictionary<string, uint> headerFontsDictionary)
-        {
-            var stylesheet = new Stylesheet();
-
-            var numberingFormats1 = new NumberingFormats { Count = 1U };
-            var numberingFormat1 = new NumberingFormat { NumberFormatId = 165U, FormatCode = "\"£\"#,##0.00" };
-
-            numberingFormats1.Append(numberingFormat1);
-            stylesheet.Append(numberingFormats1);
-
-            // Add fonts
-            var fonts = new Fonts();
-            var fills = new Fills();
-
-            textColoursDictionary = GetTextColours(fonts);
-            backgroundColoursDictionary = GetFillColours(fills);
-            headerFontsDictionary = GetHeaderStyles(backgroundColoursDictionary, fonts, fills);
-
-            stylesheet.Append(fonts);
-            stylesheet.Append(fills);
-
-            // Add borders
-            var borders = CreateBorders();
-            stylesheet.Append(borders);
-
-            // blank cell format list
-            stylesheet.CellStyleFormats = new CellStyleFormats { Count = 1 };
-            stylesheet.CellStyleFormats.AppendChild(new CellFormat());
-
-            // Add formats
-            var cellFormats = new CellFormats(new CellFormat());
-            stylesheet.Append(cellFormats);
-
-            return stylesheet;
         }
     }
 }
