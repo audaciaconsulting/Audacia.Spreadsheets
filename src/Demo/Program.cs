@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Audacia.Spreadsheets;
+using Audacia.Spreadsheets.Extensions;
 using Demo.Entities;
 using Demo.Reports;
 
@@ -34,6 +35,12 @@ namespace Demo
             using (var fileStream = new FileStream(@".\Books.xlsx", FileMode.OpenOrCreate))
             {
                 spreadsheet.Write(fileStream);
+                fileStream.Close();
+            }
+
+            using (var fileStream = new FileStream(@".\NaughtyBooks.xlsx", FileMode.OpenOrCreate))
+            {
+                Spreadsheet.FromWorksheets(books.ToWorksheet()).Write(fileStream);
                 fileStream.Close();
             }
         }

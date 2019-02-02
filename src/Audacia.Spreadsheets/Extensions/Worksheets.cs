@@ -137,8 +137,11 @@ namespace Audacia.Spreadsheets.Extensions
         /// <summary>
         /// Creates a Worksheet from an enumerable
         /// </summary>
-        public static Worksheet ToWorksheet<T>(this ICollection<T> data, string sheetName, bool includeHeaders,
-            TableHeaderStyle headerStyle = null, params string[] ignoreProperties)
+        public static Worksheet ToWorksheet<T>(this ICollection<T> data, 
+            string sheetName = null, 
+            bool includeHeaders = true,
+            TableHeaderStyle headerStyle = null,
+            params string[] ignoreProperties)
         {
             var table = data.ToTable(includeHeaders, headerStyle, ignoreProperties);
 

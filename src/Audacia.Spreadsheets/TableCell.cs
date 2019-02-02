@@ -41,6 +41,8 @@ namespace Audacia.Spreadsheets
                     return new Tuple<string, string>(DataType.Numeric, d.ToString(CultureInfo.CurrentCulture));
                 case int i:
                     return new Tuple<string, string>(DataType.Numeric, i.ToString(CultureInfo.CurrentCulture));
+                case bool b:
+                    return new Tuple<string, string>(DataType.String, b ? "Yes" : "No");
                 default:
                     return new Tuple<string, string>(DataType.String, Value.ToString());
             }
