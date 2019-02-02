@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Audacia.Core.Extensions;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -14,6 +13,7 @@ namespace Audacia.Spreadsheets
     {
         public string SheetName { get; set; }
         public IEnumerable<Table> Tables { get; set; }
+        public FreezePane FreezePane { get; set; }
         public WorksheetProtection WorksheetProtection { get; set; }
 
         public void Write(WorksheetPart worksheetPart, SharedData sharedData)
@@ -22,26 +22,20 @@ namespace Audacia.Spreadsheets
 
             foreach (var table in Tables)
             {
+                // TODO JP: why is there a new worksheet for each data table?
                 writer.WriteStartElement(new OpenXmlWorksheet());
 
-                SpreadsheetBuilderHelper.AddSheetView(writer, table.FreezeTopRows);
-                SpreadsheetBuilderHelper.AddColumns(writer, table);
+                AddSheetView(writer);
+                AddColumns(table, writer);
 
                 writer.WriteStartElement(new SheetData());
 
-                SpreadsheetBuilderHelper.Insert(table,
-                    sharedData.Stylesheet,
-                    sharedData.CellFormats,
-                    sharedData.FillColours,
-                    sharedData.TextColours,
-                    sharedData.Fonts,
-                    worksheetPart,
-                    writer);
+                table.Write(sharedData, writer);
 
                 writer.WriteEndElement(); // Sheet Data
 
                 // Auto Filter for a single table on the worksheet
-                AddAutoFilter(writer, table, sharedData.DefinedNames);
+                AddAutoFilter(table, sharedData.DefinedNames, writer);
 
                 writer.WriteEndElement(); // Worksheet
             }
@@ -51,7 +45,7 @@ namespace Audacia.Spreadsheets
             AddProtection(worksheetPart);
         }
 
-        private void AddAutoFilter(OpenXmlWriter writer, Table table, DefinedNames definedNames)
+        private void AddAutoFilter(Table table, DefinedNames definedNames, OpenXmlWriter writer)
         {
             // TODO JP: make this more efficient, only add filters to the first table that requests it
             if (table.IncludeHeaders && table.Rows.Any())
@@ -66,7 +60,7 @@ namespace Audacia.Spreadsheets
 
                 // '1' or '2' - Handles Rollups above Cell Headers
                 var firstRowRef = initialCellRef.GetReferenceRowIndex() +
-                                  (table.Columns.Any(h => h.ColumnRollup) ? 1 : 0);
+                                  (table.Columns.Any(h => h.DisplaySubtotal) ? 1 : 0);
 
                 var lastColumnRef =
                     (firstColumnRef.GetColumnNumber() +
@@ -94,6 +88,40 @@ namespace Audacia.Spreadsheets
             }
         }
         
+        private void AddColumns(Table table, OpenXmlWriter writer)
+        {
+            writer.WriteStartElement(new Columns());
+
+            var maxColWidth = Table.GetMaxCharacterWidth(table);
+            const double maxWidth = 11D;
+
+            for (var i = 0; i < maxColWidth.Count; i++)
+            {
+                var item = maxColWidth[i];
+
+                //width = Truncate([{Number of Characters} * {Maximum Digit Width} + {20 pixel padding}]/{Maximum Digit Width}*256)/256
+                var width = Math.Truncate((item * maxWidth + 20) / maxWidth * 256) / 256;
+
+                if (width > 75)
+                {
+                    width = 75;
+                }
+
+                var colWidth = (DoubleValue)width;
+
+                writer.WriteElement(new Column
+                {
+                    Min = Convert.ToUInt32(i + 1),
+                    Max = Convert.ToUInt32(i + 1),
+                    CustomWidth = true,
+                    BestFit = true,
+                    Width = colWidth
+                });
+            }
+
+            writer.WriteEndElement();
+        }
+        
         private void AddProtection(WorksheetPart worksheetPart)
         {
             if (WorksheetProtection == null)
@@ -109,7 +137,7 @@ namespace Audacia.Spreadsheets
                 InsertColumns = !WorksheetProtection.CanAddOrDeleteColumns,
                 DeleteColumns = !WorksheetProtection.CanAddOrDeleteColumns,
                 InsertRows = !WorksheetProtection.CanAddOrDeleteRows,
-                DeleteRows = !WorksheetProtection.CanAddOrDeleteRows,
+                DeleteRows = !WorksheetProtection.CanAddOrDeleteRows
             };
 
             if (!string.IsNullOrWhiteSpace(WorksheetProtection.Password))
@@ -136,6 +164,22 @@ namespace Audacia.Spreadsheets
             var pageM = worksheetPart.Worksheet.GetFirstChild<PageMargins>();
             worksheetPart.Worksheet.InsertBefore(sheetProtection, pageM);
             worksheetPart.Worksheet.InsertBefore(pRanges, pageM);
+        }
+
+        private void AddSheetView(OpenXmlWriter writer)
+        {
+            writer.WriteStartElement(new SheetViews());
+            var sheetView = new SheetView
+            {
+                ShowGridLines = false,
+                WorkbookViewId = 0U
+            };
+            
+            // TODO JP: figure out which sheet view gets the freeze pane if multiple tables
+            FreezePane?.Write(sheetView);
+
+            writer.WriteElement(sheetView);
+            writer.WriteEndElement();
         }
 
         private static HexBinaryValue HexPasswordConversion(string password)
