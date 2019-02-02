@@ -10,7 +10,7 @@ namespace Audacia.Spreadsheets
 
         public bool IncludeHeaders { get; set; }
 
-        // TODO JP: move logic for freeze rows into library
+        // TODO JP: move logic for freeze rows into library, you can only have one freeze pane per worksheet
         /// <summary>Number of rows to freeze starting from the top row</summary>
         public int FreezeTopRows { get; set; }
         

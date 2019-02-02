@@ -18,13 +18,13 @@ namespace Audacia.Spreadsheets
             using (var spreadSheet = SpreadsheetDocument.Open(stream, false))
             {
                 var worksheets = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>()
-                    .Select((sheet, index) => ReturnDataModel(sheet, spreadSheet, index, includeHeaders))
+                    .Select(sheet => ReturnDataModel(sheet, spreadSheet, includeHeaders))
                     .ToList();
                 return Spreadsheet.FromWorksheets(worksheets);
             }
         }
 
-        private static Worksheet ReturnDataModel(Sheet worksheet, SpreadsheetDocument spreadSheet, int index,
+        private static Worksheet ReturnDataModel(Sheet worksheet, SpreadsheetDocument spreadSheet,
             bool includeHeaders)
         {
             var worksheetPart = (WorksheetPart) spreadSheet.WorkbookPart.GetPartById(worksheet.Id);
@@ -50,7 +50,6 @@ namespace Audacia.Spreadsheets
             return new Worksheet
             {
                 SheetName = worksheet.Name,
-                SheetIndex = index,
                 Tables = new List<Table> { table }
             };
         }

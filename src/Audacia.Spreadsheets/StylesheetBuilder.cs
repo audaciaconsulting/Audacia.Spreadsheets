@@ -37,10 +37,12 @@ namespace Audacia.Spreadsheets
                 .ToArray();
         }
         
-        public Stylesheet GetDefaultStyles(out Dictionary<string, uint> backgroundColoursDictionary, 
-            out Dictionary<string, uint> textColoursDictionary,
-            out Dictionary<string, uint> headerFontsDictionary)
+        /// <summary>
+        /// Generates a global stylesheet with dictionaries referencing common colours and fonts.
+        /// </summary>
+        public SharedData Build()
         {
+            var sharedData = new SharedData();
             var stylesheet = new Stylesheet();
 
             var numberingFormats1 = new NumberingFormats { Count = 1U };
@@ -53,9 +55,9 @@ namespace Audacia.Spreadsheets
             var fonts = new Fonts();
             var fills = new Fills();
 
-            textColoursDictionary = GetTextColours(fonts);
-            backgroundColoursDictionary = GetFillColours(fills);
-            headerFontsDictionary = GetHeaderStyles(backgroundColoursDictionary, fonts, fills);
+            sharedData.TextColours = GetTextColours(fonts);
+            sharedData.FillColours = GetFillColours(fills);
+            sharedData.Fonts = GetHeaderStyles(sharedData.FillColours, fonts, fills);
 
             stylesheet.Append(fonts);
             stylesheet.Append(fills);
@@ -72,7 +74,8 @@ namespace Audacia.Spreadsheets
             var cellFormats = new CellFormats(new CellFormat());
             stylesheet.Append(cellFormats);
 
-            return stylesheet;
+            sharedData.Stylesheet = stylesheet;
+            return sharedData;
         }
         
         private Dictionary<string, uint> GetTextColours(Fonts fonts)

@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Audacia.Core.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using OpenXmlWorksheet = DocumentFormat.OpenXml.Spreadsheet.Worksheet;
 
 namespace Audacia.Spreadsheets
 {
@@ -24,16 +22,19 @@ namespace Audacia.Spreadsheets
             return spreadsheet;
         }
 
-        public byte[] Export()
+        /// <summary>
+        /// Writes the spreadsheet to a stream as an Excel Workbook (*.xlsx).
+        /// </summary>
+        public void Write(Stream stream)
         {
-            using (var stream = new MemoryStream())
             using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
             {
-                var cellFormats = new List<CellStyle>();
+                var sharedData = new StylesheetBuilder(Worksheets).Build();
+                
                 var workbookPart = document.AddWorkbookPart();
                 var workbook = workbookPart.Workbook = new Workbook();
                 var sheets = workbook.AppendChild(new Sheets());
-                var definedNames = workbook.AppendChild(new DefinedNames());
+                workbook.AppendChild(sharedData.DefinedNames);
                 workbook.CalculationProperties = new CalculationProperties();
 
                 // Shared string table
@@ -43,65 +44,50 @@ namespace Audacia.Spreadsheets
 
                 // Stylesheet
                 var workbookStylesPart = workbookPart.AddNewPart<WorkbookStylesPart>();
-                workbookStylesPart.Stylesheet = new StylesheetBuilder(Worksheets)
-                    .GetDefaultStyles(out var fillColours, out var textColours, out var fonts);
+                workbookStylesPart.Stylesheet = sharedData.Stylesheet;
                 workbookStylesPart.Stylesheet.Save();
 
-                foreach (var worksheet in Worksheets)
+                for (var index = 0; index < Worksheets.Count; index++)
                 {
+                    var sheetNumber = index + 1;
+                    var worksheet = Worksheets[index];
                     var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
 
-                    var sheetName = !string.IsNullOrWhiteSpace(worksheet.SheetName)
-                        ? worksheet.SheetName
-                        : Worksheets.IndexOf(worksheet).ToString();
-
-                    var sheetId = sheets.Elements<Sheet>().Any()
-                        ? sheets.Elements<Sheet>().Select(s => s.SheetId.Value).Max() + 1
-                        : 1;
+                    // Sanitize worksheet name
+                    const int maxSheetNameLength = 30;
+                    if (string.IsNullOrWhiteSpace(worksheet.SheetName))
+                    {
+                        worksheet.SheetName = $"Sheet {sheetNumber}";
+                    }
+                    else if (worksheet.SheetName.Length > maxSheetNameLength)
+                    {
+                        worksheet.SheetName = worksheet.SheetName.Substring(0, maxSheetNameLength).Trim();
+                    }
 
                     var sheet = new Sheet
                     {
                         Id = workbookPart.GetIdOfPart(worksheetPart),
-                        SheetId = sheetId,
-                        Name = sheetName.Truncate(30, string.Empty),
-                        State = SheetStateValues.Visible
+                        SheetId = Convert.ToUInt32(sheetNumber),
+                        State = SheetStateValues.Visible,
+                        Name = worksheet.SheetName
                     };
+                    
                     sheets.Append(sheet);
-
-                    var writer = OpenXmlWriter.Create(worksheetPart);
-
-                    foreach (var table in worksheet.Tables)
-                    {
-                        writer.WriteStartElement(new OpenXmlWorksheet());
-
-                        SpreadsheetBuilderHelper.AddSheetView(writer, table.FreezeTopRows);
-                        SpreadsheetBuilderHelper.AddColumns(writer, table);
-
-                        writer.WriteStartElement(new SheetData());
-
-                        SpreadsheetBuilderHelper.Insert(table, workbookStylesPart.Stylesheet, cellFormats, fillColours,
-                            textColours, fonts, worksheetPart, writer);
-
-                        writer.WriteEndElement(); // Sheet Data
-
-                        // Auto Filter all data on worksheet
-                        if (SpreadsheetBuilderHelper.TryGetAutoFilter(sheetName, table, definedNames, out var filter))
-                        {
-                            writer.WriteElement(filter);
-                        }
-
-                        writer.WriteEndElement(); // Worksheet
-                    }
-
-                    writer.Close();
-
-                    if (worksheet.WorksheetProtection != null)
-                    {
-                        SpreadsheetBuilderHelper.AddProtection(worksheetPart, worksheet.WorksheetProtection);
-                    }
+                    worksheet.Write(worksheetPart, sharedData);
                 }
 
                 document.Close();
+            }
+        }
+
+        /// <summary>
+        /// Writes the spreadsheet to a byte array as an Excel Workbook (*.xlsx).
+        /// </summary>
+        public byte[] Export()
+        {
+            using (var stream = new MemoryStream())
+            {
+                Write(stream);
                 return stream.ToArray();
             }
         }
