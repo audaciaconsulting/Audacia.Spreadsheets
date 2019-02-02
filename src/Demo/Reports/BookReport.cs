@@ -24,8 +24,8 @@ namespace Demo.Reports
         {
             new TableColumn("Name"),
             new TableColumn("Author"),
-            new TableColumn("Published"),
-            new TableColumn("Price (£)"),
+            new TableColumn("Published", CellFormatType.Date),
+            new TableColumn("Price (£)", CellFormatType.Currency, true),
             new TableColumn("ISBN Number")
         };
         
