@@ -5,7 +5,11 @@ namespace Audacia.Spreadsheets
 {
     public class CellReference
     {
-        public CellReference() { }
+        public CellReference()
+        {
+            RowNumber = 1;
+            ColumnLetter = "A";
+        }
         
         public CellReference(string cellRef)
         {
