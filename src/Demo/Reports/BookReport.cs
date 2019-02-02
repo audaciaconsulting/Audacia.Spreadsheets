@@ -17,6 +17,7 @@ namespace Demo.Reports
             
             table.Columns.AddRange(Columns);
             table.Rows.AddRange(rows);
+            Tables = new[] { table };
         }
 
         private static IEnumerable<TableColumn> Columns => new[]
