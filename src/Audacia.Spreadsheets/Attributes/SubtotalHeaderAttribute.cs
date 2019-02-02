@@ -2,7 +2,7 @@
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class ColumnRollupAttribute : Attribute
+    public class SubtotalHeaderAttribute : Attribute
     {
     }
 }

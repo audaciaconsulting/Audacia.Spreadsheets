@@ -4,205 +4,152 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Audacia.Core.Extensions;
+using Audacia.Spreadsheets.Attributes;
 
 namespace Audacia.Spreadsheets.Extensions
 {
     public static class Worksheets
     {
-        // TODO JP: optimise later
-        private static IEnumerable<PropertyInfo> GetPublicProperties(this Type classType, params string[] ignoreProperties)
+        private static IEnumerable<PropertyInfo> GetProps(this Type classType, params string[] ignoreProperties)
         {
             return classType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Select(prop => new
+                .Where(p => !ignoreProperties.Contains(p.Name))
+                .Where(p =>
                 {
-                    Property = prop,
-                    Type = prop.PropertyType,
-                    UnderlyingType = prop.PropertyType.GetUnderlyingTypeIfNullable()
+                    var underlyingType = p.PropertyType.GetUnderlyingTypeIfNullable();
+                    return underlyingType.IsValueType || underlyingType == typeof(string);
                 })
-                .Where(item =>
-                {
-                    if (ignoreProperties.Contains(item.Property.Name))
-                    {
-                        return false;
-                    }
-
-                    var ignoreDataMemberAttribute = item.Property.GetCustomAttributes<IgnoreDataMemberAttribute>(false);
-
-                    if (ignoreDataMemberAttribute.Any())
-                    {
-                        return false;
-                    }
-                    
-                    // Ignore any properties which are not value types or strings
-                    if (!item.UnderlyingType.IsValueType && item.UnderlyingType != typeof(string))
-                    {
-                        return false;
-                    }
-
-                    return true;
-                })
-                .Select(a => a.Property)
                 .ToArray();
         }
-        
-        // TODO JP: fix this later
-        /*
-        
-        /// <summary>
-        /// Creates a Data Table from an enumerable
-        /// </summary>
-        public static TableWrapperModel ToDataTableModel<T>(this IEnumerable<T> data, params string[] ignoreProperties)
+
+        private static IEnumerable<PropertyInfo> GetBaseProps(this Type classType, params string[] ignoreProperties)
         {
-            if (ignoreProperties == null)
+            var baseType = classType.BaseType;
+            if (baseType != null && baseType.IsClass)
             {
-                ignoreProperties = new string[0];
+                var parentProperties = GetBaseProps(baseType, ignoreProperties).ToArray();
+                var parentPropertyNames = parentProperties.Select(p => p.Name).ToArray();
+                var childProperties = GetProps(classType, ignoreProperties)
+                    .Where(p => !parentPropertyNames.Contains(p.Name)).ToArray();
+
+                return parentProperties.Union(childProperties);
             }
 
-            var dataTable = new TableWrapperModel();
-
-            var propertiesWithTypes = typeof(T).GetPublicProperties(ignoreProperties).ToList();
-
-            var columns = new List<WorksheetTableColumn>();
-
-            foreach (var item in propertiesWithTypes)
-            {
-                var column = new WorksheetTableColumn
-                {
-                    Name = item.GetDataAnnotationDisplayName(),
-                    IsIdColumn = ((IdColumnAttribute[])item
-                            .GetCustomAttributes(typeof(IdColumnAttribute), false))
-                            .FirstOrDefault() != null,
-
-                    CellBackgroundFormat = ((CellBackgroundColourAttribute[])item
-                        .GetCustomAttributes(typeof(CellBackgroundColourAttribute), false))
-                        .FirstOrDefault(),
-
-                    CellTextFormat = ((CellTextColourAttribute[])item
-                        .GetCustomAttributes(typeof(CellTextColourAttribute), false))
-                        .FirstOrDefault()
-                };
-
-                var cellFormatAttribute = (CellFormatAttribute[])item
-                    .GetCustomAttributes(typeof(CellFormatAttribute), false);
-
-                if (cellFormatAttribute.Any())
-                {
-                    column.Format = cellFormatAttribute.First().CellFormatType;
-                }
-
-                var hideHeaderAttribute =
-                    (HideHeaderAttribute[])item.GetCustomAttributes(typeof(HideHeaderAttribute), false);
-
-                if (hideHeaderAttribute.Any())
-                {
-                    column.HideHeader = true;
-                }
-
-                columns.Add(column);
-            }
-
-            dataTable.Columns = columns.Where(c => !c.IsIdColumn);
-
-            var rows = new List<WorksheetTableRow>();
-
-            foreach (var entity in data)
-            {
-                int? id = null;
-                var values = propertiesWithTypes.Select(
-                    item => item.GetValue(entity, null)).ToList();
-
-                var cells = new List<WorksheetTableCell>();
-
-                var index = 0;
-                foreach (var v in values)
-                {
-                    var cell = new WorksheetTableCell()
-                    {
-                        Value = v ?? string.Empty
-                    };
-
-                    if (columns.ElementAt(index).CellBackgroundFormat != null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(columns.ElementAt(index).CellBackgroundFormat.Colour))
-                        {
-                            cell.FillColour = columns.ElementAt(index).CellBackgroundFormat.Colour;
-                        }
-                        else if (!string.IsNullOrWhiteSpace(columns.ElementAt(index).CellBackgroundFormat.ReferenceField))
-                        {
-                            var property =
-                                typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(
-                                    prop => prop.Name == columns.ElementAt(index).CellBackgroundFormat.ReferenceField);
-
-                            var propValue = property?.GetValue(entity, null) as string;
-                            cell.FillColour = propValue;
-                        }
-                    }
-
-                    if (columns.ElementAt(index).CellTextFormat != null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(columns.ElementAt(index).CellTextFormat.Colour))
-                        {
-                            cell.TextColour = columns.ElementAt(index).CellTextFormat.Colour;
-                        }
-                        else if (!string.IsNullOrWhiteSpace(columns.ElementAt(index).CellTextFormat.ReferenceField))
-                        {
-                            var property =
-                                typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(
-                                    prop => prop.Name == columns.ElementAt(index).CellTextFormat.ReferenceField);
-
-                            var propValue = property?.GetValue(entity, null) as string;
-                            cell.TextColour = propValue;
-                        }
-                    }
-
-                    // Don't add ID column, just add it to our model
-                    if (columns.ElementAt(index).IsIdColumn)
-                    {
-                        id = v as int?;
-                    }
-                    else
-                    {
-                        cells.Add(cell);
-                    }
-
-                    index++;
-                }
-
-                var row = new WorksheetTableRow()
-                {
-                    Id = id,
-                    Cells = cells
-                };
-
-                rows.Add(row);
-            }
-
-            dataTable.Rows = rows;
-
-            return dataTable;
+            return GetProps(classType, ignoreProperties);
         }
         
         /// <summary>
         /// Creates a Worksheet from an enumerable
         /// </summary>
-        public static Worksheet ToWorkSheet<T>(this IEnumerable<T> data, int sheetIndex, string sheetName, bool includeHeaders,
-            SpreadsheetHeaderStyle headerStyle = null, params string[] ignoreProperties)
+        [Obsolete("Worksheets should be built by inheriting from the provided models.")]
+        public static Worksheet ToWorksheet<T>(this ICollection<T> data, string sheetName, bool includeHeaders,
+            TableHeaderStyle headerStyle = null, params string[] ignoreProperties)
         {
+            var table = new Table
+            {
+                IncludeHeaders = includeHeaders,
+                HeaderStyle = headerStyle ?? new TableHeaderStyle()
+            };
+            
+            var properties = typeof(T).GetBaseProps(ignoreProperties).ToArray();
+            
+            foreach (var prop in properties)
+            {
+                var hideColumn = prop.GetCustomAttributes<IgnoreDataMemberAttribute>().Any()
+                                || prop.GetCustomAttributes<IdColumnAttribute>().Any();
+                
+                if (hideColumn) { continue; }
+
+                var hideHeader = prop.GetCustomAttributes<HideHeaderAttribute>(false).Any();
+                var displaySubtotal = prop.GetCustomAttributes<SubtotalHeaderAttribute>(false).Any() 
+                                   && prop.PropertyType.IsNumeric();
+                var backgroundColour = prop.GetCustomAttributes<CellBackgroundColourAttribute>(false).FirstOrDefault();
+                var textColour = prop.GetCustomAttributes<CellTextColourAttribute>(false).FirstOrDefault();
+                var format = prop.GetCustomAttributes<CellFormatAttribute>(false).FirstOrDefault();
+                
+                var column = new TableColumn
+                {
+                    Name = hideHeader ? string.Empty : prop.GetDataAnnotationDisplayName(),
+                    DisplaySubtotal = displaySubtotal,
+                    CellBackgroundFormat = backgroundColour,
+                    CellTextFormat = textColour
+                };
+
+                if (format != default(CellFormatAttribute))
+                {
+                    column.Format = format.CellFormatType;
+                }
+
+                table.Columns.Add(column);
+            }
+
+            foreach (var item in data)
+            {
+                var row = new TableRow();
+                var values = properties.Select(p => p.GetValue(item, null)).ToList();
+
+                for (var index = 0; index < values.Count; index++)
+                {
+                    var column = table.Columns[index];
+                    var cellValue = values[index];
+
+                    var cell = new TableCell
+                    {
+                        Value = cellValue ?? string.Empty,
+                        FillColour = column.CellBackgroundFormat?.Colour,
+                        TextColour = column.CellTextFormat?.Colour,
+                        
+                    };
+
+                    // Get FillColour from property
+                    if (!string.IsNullOrEmpty(column.CellBackgroundFormat?.ReferenceField))
+                    {
+                        var valueOfMatchingProperty = typeof(T)
+                            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                            .Where(prop => string.Equals(prop.Name, column.CellBackgroundFormat.ReferenceField))
+                            .Select(prop => prop.GetValue(item, null) as string)
+                            .FirstOrDefault();
+
+                        cell.FillColour = valueOfMatchingProperty;
+                    }
+                    
+                    // Get TextColour from property
+                    if (!string.IsNullOrEmpty(column.CellTextFormat?.ReferenceField))
+                    {
+                        var valueOfMatchingProperty = typeof(T)
+                            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                            .Where(prop => string.Equals(prop.Name, column.CellTextFormat.ReferenceField))
+                            .Select(prop => prop.GetValue(item, null) as string)
+                            .FirstOrDefault();
+
+                        cell.TextColour = valueOfMatchingProperty;
+                    }
+
+
+                    row.Cells.Add(cell);
+                }
+
+                table.Rows.Add(row);
+            }
+
+            var freezePane = default(FreezePane);
+            if (includeHeaders)
+            {
+                freezePane = new FreezePane();
+                if (table.Columns.Any(c => c.DisplaySubtotal))
+                {
+                    freezePane.StartingCell = "A3";
+                    freezePane.FrozenRows = 2;
+                }
+            }
+
             return new Worksheet
             {
-                SheetIndex = sheetIndex,
                 SheetName = sheetName,
-                Tables = new List<WorksheetTable>
-                {
-                    new WorksheetTable
-                    {
-                        HeaderStyle = headerStyle ?? new SpreadsheetHeaderStyle(),
-                        IncludeHeaders = includeHeaders,
-                        Data = data.ToDataTableModel(ignoreProperties)
-                    }
-                }
+                FreezePane = freezePane,
+                Tables = new List<Table> { table }
             };
-        } */
+        }
     }
 }
