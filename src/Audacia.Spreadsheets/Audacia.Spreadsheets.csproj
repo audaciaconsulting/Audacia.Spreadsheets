@@ -16,8 +16,4 @@
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.9.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Audacia.Spreadsheets\Audacia.Spreadsheets.csproj" />
-  </ItemGroup>
-
 </Project>
