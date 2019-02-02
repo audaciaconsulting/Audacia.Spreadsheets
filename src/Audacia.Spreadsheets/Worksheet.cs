@@ -173,6 +173,56 @@ namespace Audacia.Spreadsheets
             writer.WriteEndElement();
         }
 
+        public static Worksheet FromOpenXml(Sheet worksheet, SpreadsheetDocument spreadSheet, bool includeHeaders)
+        {
+            var worksheetPart = (WorksheetPart) spreadSheet.WorkbookPart.GetPartById(worksheet.Id);
+
+            var table = new Table
+            {
+                StartingCellRef = "A1",
+                IncludeHeaders = includeHeaders,
+                HeaderStyle = null
+            };
+
+            if (includeHeaders)
+            {
+                var columns = TableColumn.FromOpenXml(worksheetPart, spreadSheet);
+                table.Columns.AddRange(columns);
+            }
+
+            var maxRowWidth = includeHeaders ? table.Columns.Count : GetMaxRowWidth(worksheetPart);
+
+            var rows = TableRow.FromOpenXml(worksheetPart, spreadSheet, maxRowWidth, includeHeaders);
+            table.Rows.AddRange(rows);
+
+            return new Worksheet
+            {
+                SheetName = worksheet.Name,
+                Tables = new List<Table> { table }
+            };
+        }
+        
+        private static int GetMaxRowWidth(WorksheetPart worksheetPart)
+        {
+            var maxWidth = 0;
+            var rows = worksheetPart.Worksheet.Elements<SheetData>().First().Elements<Row>().ToList();
+
+            for (var i = 1; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                var lastCell = row.Elements<Cell>().LastOrDefault();
+                if (lastCell == default(Cell)) continue;
+
+                var rowIndex = lastCell.CellReference.Value.GetRowNumber();
+                if (rowIndex > maxWidth)
+                {
+                    maxWidth = (int)rowIndex;
+                }
+            }
+
+            return maxWidth;
+        }
+        
         private static HexBinaryValue HexPasswordConversion(string password)
         {
             if (string.IsNullOrWhiteSpace(password))

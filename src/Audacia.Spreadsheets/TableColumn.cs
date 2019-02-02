@@ -1,6 +1,11 @@
-﻿using Audacia.Spreadsheets.Attributes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Audacia.Spreadsheets.Attributes;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Audacia.Spreadsheets
 {
@@ -106,6 +111,61 @@ namespace Audacia.Spreadsheets
             var styleIndex = sharedData.GetOrCreateCellFormat(cellStyle).Index;
 
             TableCell.WriteCell(writer, styleIndex, cellReference, DataType.String, Name, false);
+        }
+        
+        public static IEnumerable<TableColumn> FromOpenXml(WorksheetPart worksheetPart, SpreadsheetDocument spreadSheet)
+        {
+            // Get column headers
+            var i = 1;
+            string newHeader;
+            do
+            {
+                var columnName = i.ToColumnLetter();
+                newHeader = GetColumnHeading(spreadSheet, worksheetPart, columnName + "1");
+                if (!string.IsNullOrWhiteSpace(newHeader))
+                {
+                    yield return new TableColumn { Name = newHeader };
+                }
+                i++;
+            } while (!string.IsNullOrWhiteSpace(newHeader));
+        }
+        
+        // Given a document name, a worksheet name, and a cell name, gets the column of the cell and returns
+        // the content of the first cell in that column.
+        private static string GetColumnHeading(SpreadsheetDocument document, WorksheetPart worksheetPart,
+            string cellName)
+        {
+            // Get the column name for the specified cell.
+            var columnName = cellName.GetColumnLetter();
+
+            // Get the cells in the specified column and order them by row.
+            var cells = worksheetPart.Worksheet.Descendants<Cell>()
+                .Where(c =>
+                {
+                    var columnLetter = c.CellReference.Value.GetColumnLetter();
+                    return string.Compare(columnLetter, columnName, StringComparison.OrdinalIgnoreCase) == 0;
+                })
+                .OrderBy(r => r.CellReference.Value.GetRowNumber());
+
+            // Get the first cell in the column.
+            var headCell = cells.FirstOrDefault();
+
+            if (headCell == default(Cell))
+            {
+                // The specified column does not exist.
+                return null;
+            }
+
+            // If the content of the first cell is stored as a shared string, get the text of the first cell
+            // from the SharedStringTablePart and return it. Otherwise, return the string value of the cell.
+            if (headCell.DataType == null || headCell.DataType.Value != CellValues.SharedString)
+            {
+                return headCell.CellValue == null ? string.Empty : headCell.CellValue.Text;
+            }
+
+            var shareStringPart = document.WorkbookPart.GetPartsOfType<SharedStringTablePart>().First();
+            var items = shareStringPart.SharedStringTable.Elements<SharedStringItem>().ToArray();
+            return items[int.Parse(headCell.CellValue.Text)].InnerText;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -10,17 +11,6 @@ namespace Audacia.Spreadsheets
     public class Spreadsheet
     {
         public IList<Worksheet> Worksheets { get; } = new List<Worksheet>();
-
-        public static Spreadsheet FromWorksheets(IEnumerable<Worksheet> worksheets)
-        {
-            var spreadsheet = new Spreadsheet();
-            foreach (var worksheet in worksheets)
-            {
-                spreadsheet.Worksheets.Add(worksheet);
-            }
-
-            return spreadsheet;
-        }
 
         /// <summary>
         /// Writes the spreadsheet to a stream as an Excel Workbook (*.xlsx).
@@ -89,6 +79,29 @@ namespace Audacia.Spreadsheets
             {
                 Write(stream);
                 return stream.ToArray();
+            }
+        }
+        
+        public static Spreadsheet FromWorksheets(IEnumerable<Worksheet> worksheets)
+        {
+            var spreadsheet = new Spreadsheet();
+            foreach (var worksheet in worksheets)
+            {
+                spreadsheet.Worksheets.Add(worksheet);
+            }
+
+            return spreadsheet;
+        }
+
+        public static Spreadsheet FromStream(Stream stream, bool includeHeaders = true)
+        {
+            using (var spreadSheet = SpreadsheetDocument.Open(stream, false))
+            {
+                var worksheets = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>()
+                    .Select(sheet => Worksheet.FromOpenXml(sheet, spreadSheet, includeHeaders))
+                    .ToList();
+
+                return FromWorksheets(worksheets);
             }
         }
     }
