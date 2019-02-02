@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
@@ -15,26 +14,18 @@ namespace Audacia.Spreadsheets
 
         public bool IncludeHeaders { get; set; }
         
-        public IList<WorksheetTableColumn> Columns { get; } = new List<WorksheetTableColumn>();
+        public IList<TableColumn> Columns { get; } = new List<TableColumn>();
 
-        public IList<WorksheetTableRow> Rows { get; } = new List<WorksheetTableRow>();
+        public IList<TableRow> Rows { get; } = new List<TableRow>();
         
-        public void Write(SharedData sharedData, OpenXmlWriter writer)
+        public void Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
-            var stylesheet = sharedData.Stylesheet;
-            var cellFormats = sharedData.CellFormats;
-            var fillColours = sharedData.FillColours;
-            var textColours = sharedData.TextColours;
-            var fonts = sharedData.Fonts;
-
-            var cellReference = new CellReference(StartingCellRef);
-            var cellReferenceRowIndex = StartingCellRef.GetReferenceRowIndex();
-            var cellReferenceColumnIndex = StartingCellRef.GetReferenceColumnIndex();
+            var rowReference = new CellReference(StartingCellRef);
 
             // Write Subtotals above headers
             if (IncludeHeaders && Columns.Any(c => c.DisplaySubtotal))
             {
-                var subtotalCellRef = cellReference.Clone();
+                var subtotalCellRef = rowReference.Clone();
                 writer.WriteStartElement(new Row());
 
                 foreach (var column in Columns)
@@ -46,13 +37,13 @@ namespace Audacia.Spreadsheets
                 }
 
                 writer.WriteEndElement();
-                cellReference.NextRow();
+                rowReference.NextRow();
             }
 
             // Write headers above data
             if (IncludeHeaders)
             {
-                var headerCellRef = cellReference.Clone();
+                var headerCellRef = rowReference.Clone();
                 writer.WriteStartElement(new Row());
 
                 foreach (var column in Columns)
@@ -64,56 +55,14 @@ namespace Audacia.Spreadsheets
                 }
 
                 writer.WriteEndElement();
-                cellReference.NextRow();
+                rowReference.NextRow();
             }
 
             // Write data
             foreach (var row in Rows)
             {
-                writer.WriteStartElement(new Row());
-                var columnIndex = 0;
-                foreach (var column in Columns)
-                {
-                    var cellModel = row.Cells.ElementAt(columnIndex);
-                    var value = cellModel.Value;
-
-                    var cellStyle = new CellStyle
-                    {
-                        TextColour = 0U,
-                        BackgroundColour = 0U,
-                        BorderBottom = true,
-                        BorderTop = true,
-                        BorderLeft = true,
-                        BorderRight = true,
-                        Format = value is DateTime ? CellFormatType.Date : column.Format,
-                        HasWordWrap = value is string
-                    };
-
-                    if (!string.IsNullOrWhiteSpace(cellModel.FillColour))
-                    {
-                        cellStyle.BackgroundColour = fillColours[cellModel.FillColour];
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(cellModel.TextColour))
-                    {
-                        cellStyle.TextColour = textColours[cellModel.TextColour];
-                    }
-
-                    var styleIndex = GetOrCreateCellFormat(cellStyle, cellFormats, stylesheet).Index;
-
-                    var dataTypeAndValue = GetDataTypeAndFormattedValue(value);
-
-                    WriteCell(writer, styleIndex, $"{cellReferenceColumnIndex}{cellReferenceRowIndex}",
-                        dataTypeAndValue.Item1, dataTypeAndValue.Item2, cellModel.IsFormula);
-
-                    cellReferenceColumnIndex = (cellReferenceColumnIndex.GetColumnNumber() + 1)
-                        .GetExcelColumnName();
-
-                    columnIndex++;
-                }
-                cellReferenceColumnIndex = StartingCellRef.GetReferenceColumnIndex();
-                cellReferenceRowIndex++;
-                writer.WriteEndElement();
+                row.Write(rowReference.Clone(), Columns, sharedData, writer);
+                rowReference.NextRow();
             }
         }
 
@@ -128,7 +77,7 @@ namespace Audacia.Spreadsheets
 
             // Create Cells for Headers
             var rowCells = model.Columns.Select(c => new TableCell(c.Name));
-            var row = WorksheetTableRow.FromCells(rowCells, 0);
+            var row = TableRow.FromCells(rowCells, 0);
             
             columnHeaderWithData.Add(row);
             
@@ -155,7 +104,7 @@ namespace Audacia.Spreadsheets
                         Value = $"{value:C}"
                     });
                 
-                var rollupRow = WorksheetTableRow.FromCells(rollupCells, 0);
+                var rollupRow = TableRow.FromCells(rollupCells, 0);
                 columnHeaderWithData.Add(rollupRow);
 
             }

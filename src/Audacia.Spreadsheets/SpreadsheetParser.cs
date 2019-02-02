@@ -54,7 +54,7 @@ namespace Audacia.Spreadsheets
             };
         }
 
-        private static IEnumerable<WorksheetTableColumn> GetColumnModels(WorksheetPart worksheetPart, 
+        private static IEnumerable<TableColumn> GetColumnModels(WorksheetPart worksheetPart, 
             SpreadsheetDocument spreadSheet)
         {
             // Get column headers
@@ -62,17 +62,17 @@ namespace Audacia.Spreadsheets
             string newHeader;
             do
             {
-                var columnName = i.GetExcelColumnName();
+                var columnName = i.ToColumnLetter();
                 newHeader = GetColumnHeading(spreadSheet, worksheetPart, columnName + "1");
                 if (!string.IsNullOrWhiteSpace(newHeader))
                 {
-                    yield return new WorksheetTableColumn { Name = newHeader };
+                    yield return new TableColumn { Name = newHeader };
                 }
                 i++;
             } while (!string.IsNullOrWhiteSpace(newHeader));
         }
 
-        private static IEnumerable<WorksheetTableRow> GetRowModels(WorksheetPart worksheetPart, 
+        private static IEnumerable<TableRow> GetRowModels(WorksheetPart worksheetPart, 
             SpreadsheetDocument spreadSheet, int columnsCount, bool includeHeaders)
         {
             var cellFormats = spreadSheet.WorkbookPart.WorkbookStylesPart.Stylesheet.CellFormats;
@@ -92,7 +92,7 @@ namespace Audacia.Spreadsheets
 
                 for (var j = 0; j < columnsCount; j++)
                 {
-                    var cellReference = (j + 1).GetExcelColumnName() + row.RowIndex;
+                    var cellReference = (j + 1).ToColumnLetter() + row.RowIndex;
                     var matchedCells =
                         cells.Where(
                             c =>
@@ -145,7 +145,7 @@ namespace Audacia.Spreadsheets
 
                 if (cellData.All(c => c.Value == null || (c.Value is string s && string.IsNullOrWhiteSpace(s)))) continue;
 
-                yield return WorksheetTableRow.FromCells(cellData, rowNumber);
+                yield return TableRow.FromCells(cellData, rowNumber);
                 
                 rowNumber++;
             }

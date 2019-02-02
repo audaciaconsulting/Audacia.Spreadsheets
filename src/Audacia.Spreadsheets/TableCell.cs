@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Spreadsheet;
 
@@ -18,9 +21,35 @@ namespace Audacia.Spreadsheets
         
         public bool IsFormula { get; set; }
 
-        public void Write(UInt32Value styleIndex, string reference, string dataType, OpenXmlWriter writer)
+        private Tuple<string, string> GetDataTypeAndFormattedValue()
         {
-            WriteCell(writer, styleIndex, reference, dataType, Value.ToString(), IsFormula);
+            switch (Value)
+            {
+                case DateTime date:
+                {
+                    var dateString = string.Empty;
+                    if (!date.Equals(DateTime.MinValue))
+                    {
+                        dateString = date.ToOADatePrecise().ToString(new CultureInfo("en-US"));
+                    }
+
+                    return new Tuple<string, string>(DataType.Date, dateString);
+                }
+                case decimal dec:
+                    return new Tuple<string, string>(DataType.Numeric, dec.ToString(CultureInfo.CurrentCulture));
+                case double d:
+                    return new Tuple<string, string>(DataType.Numeric, d.ToString(CultureInfo.CurrentCulture));
+                case int i:
+                    return new Tuple<string, string>(DataType.Numeric, i.ToString(CultureInfo.CurrentCulture));
+                default:
+                    return new Tuple<string, string>(DataType.String, Value.ToString());
+            }
+        }
+        
+        public void Write(UInt32Value styleIndex, string reference, OpenXmlWriter writer)
+        {
+            (string dataType, string value) = GetDataTypeAndFormattedValue();
+            WriteCell(writer, styleIndex, reference, dataType, value, IsFormula);
         }
 
         public static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex,

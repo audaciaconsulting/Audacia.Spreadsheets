@@ -40,9 +40,9 @@ namespace Audacia.Spreadsheets
         /// <summary>
         /// Generates a global stylesheet with dictionaries referencing common colours and fonts.
         /// </summary>
-        public SharedData Build()
+        public SharedDataTable Build()
         {
-            var sharedData = new SharedData();
+            var sharedData = new SharedDataTable();
             var stylesheet = new Stylesheet();
 
             var numberingFormats1 = new NumberingFormats { Count = 1U };

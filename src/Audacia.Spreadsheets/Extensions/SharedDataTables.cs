@@ -5,9 +5,9 @@ using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Audacia.Spreadsheets.Extensions
 {
-    public static class SharedDataExtensions
+    public static class SharedDataTables
     {
-        public static CellStyle GetOrCreateCellFormat(this SharedData sharedData, CellStyle cellStyle)
+        public static CellStyle GetOrCreateCellFormat(this SharedDataTable sharedData, CellStyle cellStyle)
         {
             var matchingStyle = sharedData.CellFormats.SingleOrDefault(cf =>
                 cf.TextColour == cellStyle.TextColour &&

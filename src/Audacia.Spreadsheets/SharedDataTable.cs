@@ -6,7 +6,7 @@ namespace Audacia.Spreadsheets
     /// <summary>
     /// Global data object that can be used by any worksheet.
     /// </summary>
-    public class SharedData
+    public class SharedDataTable
     {
         public List<CellStyle> CellFormats { get; set; } = new List<CellStyle>();
 

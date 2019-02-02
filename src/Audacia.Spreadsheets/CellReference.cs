@@ -9,8 +9,8 @@ namespace Audacia.Spreadsheets
         
         public CellReference(string cellRef)
         {
-            RowIndex = cellRef.GetReferenceRowIndex();
-            ColumnIndex = cellRef.GetReferenceColumnIndex();
+            RowIndex = cellRef.GetRowNumber();
+            ColumnIndex = cellRef.GetColumnLetter();
         }
 
         public CellReference(uint rowIndex, string columnIndex)
@@ -43,12 +43,21 @@ namespace Audacia.Spreadsheets
         }
         
         /// <summary>
-        /// Returns a new object with the rows incremented by the given value.
+        /// Returns a new object modified by the given values.
         /// </summary>
-        public CellReference MutateRowsBy(int value)
+        public CellReference MutateBy(int rows, int columns)
         {
-            var uintValue = Convert.ToUInt32(value);
-            return new CellReference(RowIndex + uintValue, ColumnIndex);
+            var uintValue = Convert.ToUInt32(rows);
+            var nextRowIndex = RowIndex + uintValue;
+
+            if (columns != 0)
+            {
+                var nextColumnNumber = ColumnIndex.ToColumnNumber() + columns;
+                var nextColumnIndex = nextColumnNumber.ToColumnLetter();
+                return new CellReference(nextRowIndex, nextColumnIndex);
+            }
+
+            return new CellReference(nextRowIndex, ColumnIndex);
         }
         
         /// <summary>
@@ -56,8 +65,8 @@ namespace Audacia.Spreadsheets
         /// </summary>
         public void NextColumn()
         {
-            var nextColumnNumber = ColumnIndex.GetColumnNumber() + 1;
-            ColumnIndex = nextColumnNumber.GetExcelColumnName();
+            var nextColumnNumber = ColumnIndex.ToColumnNumber() + 1;
+            ColumnIndex = nextColumnNumber.ToColumnLetter();
         }
         
         /// <summary>

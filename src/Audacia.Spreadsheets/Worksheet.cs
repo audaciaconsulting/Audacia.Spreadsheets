@@ -16,7 +16,7 @@ namespace Audacia.Spreadsheets
         public FreezePane FreezePane { get; set; }
         public WorksheetProtection WorksheetProtection { get; set; }
 
-        public void Write(WorksheetPart worksheetPart, SharedData sharedData)
+        public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
             var writer = OpenXmlWriter.Create(worksheetPart);
 
@@ -50,34 +50,25 @@ namespace Audacia.Spreadsheets
             // TODO JP: make this more efficient, only add filters to the first table that requests it
             if (table.IncludeHeaders && table.Rows.Any())
             {
-                // 'A1'
-                var initialCellRef = !string.IsNullOrWhiteSpace(table.StartingCellRef)
-                    ? table.StartingCellRef
-                    : "A1";
+                var firstCell = new CellReference(table.StartingCellRef);
 
-                // 'A'
-                var firstColumnRef = initialCellRef.GetReferenceColumnIndex();
+                // Step over the subtotal row, onto the header row
+                if (table.Columns.Any(h => h.DisplaySubtotal))
+                {
+                    firstCell.NextRow();
+                }
 
-                // '1' or '2' - Handles Rollups above Cell Headers
-                var firstRowRef = initialCellRef.GetReferenceRowIndex() +
-                                  (table.Columns.Any(h => h.DisplaySubtotal) ? 1 : 0);
-
-                var lastColumnRef =
-                    (firstColumnRef.GetColumnNumber() +
-                     table.Columns.Count - 1)
-                    .GetExcelColumnName();
-
-                var lastRowRef = firstRowRef + table.Rows.Count;
+                var lastCell = firstCell.MutateBy(table.Rows.Count, table.Columns.Count - 1);
 
                 // Selects All Column Headers & Data
-                var cellReference = $"{firstColumnRef}{firstRowRef}:{lastColumnRef}{lastRowRef}";
+                var cellReference = $"{firstCell}:{lastCell}";
 
-                var filter = new AutoFilter {Reference = cellReference};
+                var filter = new AutoFilter { Reference = cellReference };
 
                 // Excel 2013 Requires a Defined Name to be able to sort using the AutoFilter
                 var dn = new DefinedName
                 {
-                    Text = $"'{SheetName}'!${firstColumnRef}${firstRowRef}:${lastColumnRef}${lastRowRef}",
+                    Text = $"'{SheetName}'!${cellReference}",
                     Name = "_xlnm._FilterDatabase", // Don't rename this or else Excel 2013 will crash
                     LocalSheetId = (uint) 0,
                     Hidden = true

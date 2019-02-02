@@ -3,9 +3,13 @@ using System.Text.RegularExpressions;
 
 namespace Audacia.Spreadsheets.Extensions
 {
-    public static class CellReferenceHelper
+    public static class CellReferences
     {
-        public static uint GetReferenceRowIndex(this string cellReference)
+        /// <summary>
+        /// Returns the row number from a cell reference string.
+        /// ie; "A1" would be "1"
+        /// </summary>
+        public static uint GetRowNumber(this string cellReference)
         {
             var regex = new Regex(@"^(?<ColumnIndex>[A-Z]+)(?<RowIndex>\d+)");
             var match = regex.Match(cellReference);
@@ -14,7 +18,11 @@ namespace Audacia.Spreadsheets.Extensions
             return uint.Parse(match.Groups["RowIndex"].Value);
         }
 
-        public static string GetReferenceColumnIndex(this string cellReference)
+        /// <summary>
+        /// Returns the column letter from a cell reference string.
+        /// ie; "A1" would be "A"
+        /// </summary>
+        public static string GetColumnLetter(this string cellReference)
         {
             var regex = new Regex(@"^(?<ColumnIndex>[A-Z]+)(?<RowIndex>\d+)");
             var match = regex.Match(cellReference);
@@ -23,7 +31,14 @@ namespace Audacia.Spreadsheets.Extensions
             return match.Groups["ColumnIndex"].Value;
         }
 
-        public static int GetColumnNumber(this string columnName)
+        /// <summary>
+        /// Returns the column number from the given column letter.
+        /// ie; "A" would be "1"
+        ///
+        /// Do not use on a cell reference string.
+        /// Should be chained from .GetColumnLetter()
+        /// </summary>
+        public static int ToColumnNumber(this string columnName)
         {
             if (string.IsNullOrEmpty(columnName))
                 throw new ArgumentNullException(nameof(columnName));
@@ -41,7 +56,11 @@ namespace Audacia.Spreadsheets.Extensions
             return sum;
         }
 
-        public static string GetExcelColumnName(this int columnNumber)
+        /// <summary>
+        /// Returns the column letter from a column number.
+        /// ie; "1" would be "A"
+        /// </summary>
+        public static string ToColumnLetter(this int columnNumber)
         {
             var dividend = columnNumber;
             var columnName = string.Empty;
