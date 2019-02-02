@@ -9,6 +9,10 @@ namespace Audacia.Spreadsheets
 {
     public class Table
     {
+        public Table() { }
+
+        public Table(bool includeHeaders) => IncludeHeaders = includeHeaders;
+        
         public string StartingCellRef { get; set; } = "A1";
         
         public TableHeaderStyle HeaderStyle { get; set; }

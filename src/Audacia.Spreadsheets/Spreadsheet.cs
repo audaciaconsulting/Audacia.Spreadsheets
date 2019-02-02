@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -82,14 +83,14 @@ namespace Audacia.Spreadsheets
             }
         }
         
-        public static Spreadsheet FromWorksheets(IEnumerable<Worksheet> worksheets)
+        public static Spreadsheet FromWorksheets(params Worksheet[] worksheets)
         {
             var spreadsheet = new Spreadsheet();
-            foreach (var worksheet in worksheets)
+            if (worksheets != null)
             {
-                spreadsheet.Worksheets.Add(worksheet);
+                spreadsheet.Worksheets.AddRange(worksheets);
             }
-
+            
             return spreadsheet;
         }
 
@@ -99,7 +100,7 @@ namespace Audacia.Spreadsheets
             {
                 var worksheets = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>()
                     .Select(sheet => Worksheet.FromOpenXml(sheet, spreadSheet, includeHeaders))
-                    .ToList();
+                    .ToArray();
 
                 return FromWorksheets(worksheets);
             }
