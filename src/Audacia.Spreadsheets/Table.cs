@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
@@ -92,9 +93,8 @@ namespace Audacia.Spreadsheets
                         .Select(r =>
                         {
                             var value = r.Cells.ElementAt(t.index).Value;
-                            // TODO JP: do this properly later
-                            var isNumeric = value.ToString().IsNumeric();
-                            return (decimal)(isNumeric ? value : 0);
+                            var isNumeric = value.GetType().IsNumeric();
+                            return isNumeric ? Convert.ToDecimal(value) : 0;
                         })
                         .DefaultIfEmpty(0)
                         .Sum(v => v))
@@ -106,7 +106,6 @@ namespace Audacia.Spreadsheets
                 
                 var rollupRow = TableRow.FromCells(rollupCells, 0);
                 columnHeaderWithData.Add(rollupRow);
-
             }
 
             // Find the max cell width of each column

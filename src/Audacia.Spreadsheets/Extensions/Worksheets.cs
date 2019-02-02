@@ -38,12 +38,11 @@ namespace Audacia.Spreadsheets.Extensions
 
             return GetProps(classType, ignoreProperties);
         }
-        
+
         /// <summary>
-        /// Creates a Worksheet from an enumerable
+        /// Creates a Table from an enumerable
         /// </summary>
-        [Obsolete("Worksheets should be built by inheriting from the provided models.")]
-        public static Worksheet ToWorksheet<T>(this ICollection<T> data, string sheetName, bool includeHeaders,
+        public static Table ToTable<T>(this ICollection<T> data, bool includeHeaders,
             TableHeaderStyle headerStyle = null, params string[] ignoreProperties)
         {
             var table = new Table
@@ -98,8 +97,7 @@ namespace Audacia.Spreadsheets.Extensions
                     {
                         Value = cellValue ?? string.Empty,
                         FillColour = column.CellBackgroundFormat?.Colour,
-                        TextColour = column.CellTextFormat?.Colour,
-                        
+                        TextColour = column.CellTextFormat?.Colour
                     };
 
                     // Get FillColour from property
@@ -132,6 +130,17 @@ namespace Audacia.Spreadsheets.Extensions
 
                 table.Rows.Add(row);
             }
+
+            return table;
+        }
+
+        /// <summary>
+        /// Creates a Worksheet from an enumerable
+        /// </summary>
+        public static Worksheet ToWorksheet<T>(this ICollection<T> data, string sheetName, bool includeHeaders,
+            TableHeaderStyle headerStyle = null, params string[] ignoreProperties)
+        {
+            var table = data.ToTable(includeHeaders, headerStyle, ignoreProperties);
 
             var freezePane = default(FreezePane);
             if (includeHeaders)
