@@ -88,7 +88,7 @@ namespace Audacia.Spreadsheets
             foreach (var row in rows.Skip(includeHeaders ? 1 : 0))
             {
                 var cells = row.Elements<Cell>().ToArray();
-                var cellData = new List<WorksheetTableCell>();
+                var cellData = new List<TableCell>();
 
                 for (var j = 0; j < columnsCount; j++)
                 {
@@ -101,14 +101,14 @@ namespace Audacia.Spreadsheets
 
                     if (!matchedCells.Any() || matchedCells.First().CellValue == null)
                     {
-                        cellData.Add(new WorksheetTableCell { Value = null });
+                        cellData.Add(new TableCell { Value = null });
                     }
                     else
                     {
                         var c = matchedCells.First();
                         if (c.DataType != null && c.DataType.HasValue && c.DataType.Value == CellValues.SharedString)
                         {
-                            cellData.Add(new WorksheetTableCell
+                            cellData.Add(new TableCell
                             {
                                 Value = stringTable.SharedStringTable.ElementAt(int.Parse(c.CellValue.Text)).InnerText
                             });
@@ -129,7 +129,7 @@ namespace Audacia.Spreadsheets
                                     {
                                         var date = DateTime.FromOADate(parsedValue);
 
-                                        cellData.Add(new WorksheetTableCell { Value = date });
+                                        cellData.Add(new TableCell { Value = date });
                                         valueAdded = true;
                                     }
                                 }
@@ -137,7 +137,7 @@ namespace Audacia.Spreadsheets
 
                             if (!valueAdded)
                             {
-                                cellData.Add(new WorksheetTableCell { Value = c.CellValue.Text });
+                                cellData.Add(new TableCell { Value = c.CellValue.Text });
                             }
                         }
                     }

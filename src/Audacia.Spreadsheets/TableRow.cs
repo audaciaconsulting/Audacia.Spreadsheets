@@ -5,9 +5,9 @@ namespace Audacia.Spreadsheets
     public class WorksheetTableRow
     {
         public int? Id { get; set; }
-        public IList<WorksheetTableCell> Cells { get; } = new List<WorksheetTableCell>();
+        public IList<TableCell> Cells { get; } = new List<TableCell>();
         
-        public static WorksheetTableRow FromCells(IEnumerable<WorksheetTableCell> cells, int? id)
+        public static WorksheetTableRow FromCells(IEnumerable<TableCell> cells, int? id)
         {
             var row = new WorksheetTableRow
             {
