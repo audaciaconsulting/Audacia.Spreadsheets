@@ -30,17 +30,17 @@ namespace Audacia.Spreadsheets
                     var dateString = string.Empty;
                     if (!date.Equals(DateTime.MinValue))
                     {
-                        dateString = date.ToOADatePrecise().ToString(new CultureInfo("en-US"));
+                        dateString = date.ToOADatePrecise().ToString(CultureInfo.CurrentCulture);
                     }
 
-                    return new Tuple<string, string>(DataType.Date, dateString);
+                    return new Tuple<string, string>(DataType.Number, dateString);
                 }
                 case decimal dec:
-                    return new Tuple<string, string>(DataType.Numeric, dec.ToString(CultureInfo.CurrentCulture));
+                    return new Tuple<string, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
                 case double d:
-                    return new Tuple<string, string>(DataType.Numeric, d.ToString(CultureInfo.CurrentCulture));
+                    return new Tuple<string, string>(DataType.Number, d.ToString(CultureInfo.CurrentCulture));
                 case int i:
-                    return new Tuple<string, string>(DataType.Numeric, i.ToString(CultureInfo.CurrentCulture));
+                    return new Tuple<string, string>(DataType.Number, i.ToString(CultureInfo.CurrentCulture));
                 case bool b:
                     return new Tuple<string, string>(DataType.String, b ? "Yes" : "No");
                 default:
