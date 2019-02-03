@@ -7,49 +7,49 @@ namespace Audacia.Spreadsheets
     {
         public CellReference()
         {
-            RowNumber = 1;
             ColumnLetter = "A";
+            RowNumber = 1;
         }
         
         public CellReference(string cellRef)
         {
-            RowNumber = cellRef.GetRowNumber();
             ColumnLetter = cellRef.GetColumnLetter();
+            RowNumber = cellRef.GetRowNumber();
         }
 
-        public CellReference(uint rowNumber, string columnLetter)
+        public CellReference(string columnLetter, uint rowNumber)
         {
-            RowNumber = rowNumber;
             ColumnLetter = columnLetter;
+            RowNumber = rowNumber;
         }
         
         public static implicit operator string(CellReference source)
         {
             return source.ToString();
         }
+                
+        /// <summary>
+        /// The Column Letter ie; A, B, C, D.
+        /// </summary>
+        public string ColumnLetter { get; set; }
         
         /// <summary>
         /// The row number ie; 1, 2, 3, 4.
         /// </summary>
         public uint RowNumber { get; set; }
-        
-        /// <summary>
-        /// The Column Letter ie; A, B, C, D.
-        /// </summary>
-        public string ColumnLetter { get; set; }
 
         /// <summary>
         /// Returns a new Object with the same values.
         /// </summary>
         public CellReference Clone()
         {
-            return new CellReference(RowNumber, ColumnLetter);
+            return new CellReference(ColumnLetter, RowNumber);
         }
         
         /// <summary>
         /// Returns a new object modified by the given values.
         /// </summary>
-        public CellReference MutateBy(int rows, int columns)
+        public CellReference MutateBy(int columns, int rows)
         {
             var uintValue = Convert.ToUInt32(rows);
             var nextRowNumber = RowNumber + uintValue;
@@ -58,10 +58,10 @@ namespace Audacia.Spreadsheets
             {
                 var nextColumnNumber = ColumnLetter.ToColumnNumber() + columns;
                 var nextColumnLetter = nextColumnNumber.ToColumnLetter();
-                return new CellReference(nextRowNumber, nextColumnLetter);
+                return new CellReference(nextColumnLetter, nextRowNumber);
             }
 
-            return new CellReference(nextRowNumber, ColumnLetter);
+            return new CellReference(ColumnLetter, nextRowNumber);
         }
         
         /// <summary>
@@ -83,7 +83,7 @@ namespace Audacia.Spreadsheets
         
         public override string ToString()
         {
-            return $"{RowNumber}{ColumnLetter}";
+            return $"{ColumnLetter}{RowNumber}";
         }
     }
 }

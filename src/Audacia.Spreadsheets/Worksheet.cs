@@ -58,7 +58,7 @@ namespace Audacia.Spreadsheets
                     firstCell.NextRow();
                 }
 
-                var lastCell = firstCell.MutateBy(table.Rows.Count, table.Columns.Count - 1);
+                var lastCell = firstCell.MutateBy(table.Columns.Count - 1, table.Rows.Count);
 
                 // Selects All Column Headers & Data
                 var cellReference = $"{firstCell}:{lastCell}";

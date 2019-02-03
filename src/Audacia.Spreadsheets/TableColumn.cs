@@ -64,16 +64,16 @@ namespace Audacia.Spreadsheets
             if (DisplaySubtotal)
             {
                 // Increment by 2 so that the formula starts after the header row & the current row
-                var firstRow = cellReference.MutateBy(2, 0);
+                var firstRow = cellReference.MutateBy(0, 2);
 
                 // Doesn't need to include first row
                 // because the formulae starts on the first row of data
                 var totalRowsAfterFirst = totalRows == 0 ? 0 : totalRows - 1;
-                var lastRow = firstRow.MutateBy(totalRowsAfterFirst, 0);
+                var lastRow = firstRow.MutateBy(0, totalRowsAfterFirst);
 
                 // If we use SUBTOTAL(9,XX:XX) then it recalculates as the filter changes...
                 formula = $"SUBTOTAL(9,{firstRow}:{lastRow})";
-                dataType = DataType.Numeric;
+                dataType = DataType.Number;
             }
             
             TableCell.WriteCell(writer, styleIndex, cellReference, dataType, formula, DisplaySubtotal);
