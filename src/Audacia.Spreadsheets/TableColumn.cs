@@ -113,39 +113,44 @@ namespace Audacia.Spreadsheets
             TableCell.WriteCell(writer, styleIndex, cellReference, DataType.String, Name, false);
         }
         
-        public static IEnumerable<TableColumn> FromOpenXml(WorksheetPart worksheetPart, SpreadsheetDocument spreadSheet)
+        public static IEnumerable<TableColumn> FromOpenXml(WorksheetPart worksheetPart, SpreadsheetDocument spreadSheet, bool hasSubtotals)
         {
             // Get column headers
-            var i = 1;
+            var cellReference = new CellReference("A1");
+            
+            if (hasSubtotals) cellReference.NextRow();
+            
             string newHeader;
             do
             {
-                var columnName = i.ToColumnLetter();
-                newHeader = GetColumnHeading(spreadSheet, worksheetPart, columnName + "1");
+                newHeader = GetColumnHeading(spreadSheet, worksheetPart, cellReference);
                 if (!string.IsNullOrWhiteSpace(newHeader))
                 {
-                    yield return new TableColumn { Name = newHeader };
+                    yield return new TableColumn(newHeader.Trim());
                 }
-                i++;
+                cellReference.NextColumn();
             } while (!string.IsNullOrWhiteSpace(newHeader));
         }
         
         // Given a document name, a worksheet name, and a cell name, gets the column of the cell and returns
         // the content of the first cell in that column.
         private static string GetColumnHeading(SpreadsheetDocument document, WorksheetPart worksheetPart,
-            string cellName)
+            CellReference cellReference)
         {
             // Get the column name for the specified cell.
-            var columnName = cellName.GetColumnLetter();
+            var columnName = cellReference.ColumnLetter;
 
             // Get the cells in the specified column and order them by row.
             var cells = worksheetPart.Worksheet.Descendants<Cell>()
+                .Select(cell => (new CellReference(cell.CellReference.Value), cell))
                 .Where(c =>
                 {
-                    var columnLetter = c.CellReference.Value.GetColumnLetter();
-                    return string.Compare(columnLetter, columnName, StringComparison.OrdinalIgnoreCase) == 0;
+                    var columnLetter = c.Item1.ColumnLetter;
+                    var isInColumn = string.Compare(columnLetter, columnName, StringComparison.OrdinalIgnoreCase) == 0;
+                    var isInRow = c.Item1.RowNumber == cellReference.RowNumber;
+                    return isInColumn && isInRow;
                 })
-                .OrderBy(r => r.CellReference.Value.GetRowNumber());
+                .Select(c => c.Item2);
 
             // Get the first cell in the column.
             var headCell = cells.FirstOrDefault();

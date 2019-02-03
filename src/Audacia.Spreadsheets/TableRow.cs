@@ -72,7 +72,7 @@ namespace Audacia.Spreadsheets
         }
         
         public static IEnumerable<TableRow> FromOpenXml(WorksheetPart worksheetPart, 
-            SpreadsheetDocument spreadSheet, int columnsCount, bool includeHeaders)
+            SpreadsheetDocument spreadSheet, int columnsCount, int startingRowIndex = 0)
         {
             var cellFormats = spreadSheet.WorkbookPart.WorkbookStylesPart.Stylesheet.CellFormats;
             var dateFormatIds = GetDateFormatsInFile(spreadSheet.WorkbookPart.WorkbookStylesPart);
@@ -81,22 +81,20 @@ namespace Audacia.Spreadsheets
             var rows = worksheetPart.Worksheet.Elements<SheetData>().First().Elements<Row>().ToList();
             var stringTable = spreadSheet.WorkbookPart.GetPartsOfType<SharedStringTablePart>().First();
 
-            var rowNumber = 1;
-
-            // Starts at i = 1 to skip header row IF headers are included
-            foreach (var row in rows.Skip(includeHeaders ? 1 : 0))
+            var rowPointer = new CellReference("A1").MutateBy(0, startingRowIndex);
+            
+            foreach (var row in rows.Skip(startingRowIndex))
             {
+                var cellRef = rowPointer.Clone();
                 var cells = row.Elements<Cell>().ToArray();
                 var cellData = new List<TableCell>();
-
+                
                 for (var j = 0; j < columnsCount; j++)
                 {
-                    var cellReference = (j + 1).ToColumnLetter() + row.RowIndex;
-                    var matchedCells =
-                        cells.Where(
-                            c =>
-                                string.Compare(c.CellReference.Value, cellReference,
-                                    StringComparison.OrdinalIgnoreCase) == 0).ToList();
+                    var cellReference = cellRef.ToString();
+                    var matchedCells = cells.Where(c =>
+                        string.Compare(cellReference, c.CellReference.Value, StringComparison.OrdinalIgnoreCase) == 0)
+                        .ToList();
 
                     if (!matchedCells.Any() || matchedCells.First().CellValue == null)
                     {
@@ -140,13 +138,16 @@ namespace Audacia.Spreadsheets
                             }
                         }
                     }
+                    
+                    cellRef.NextColumn();
                 }
 
                 if (cellData.All(c => c.Value == null || (c.Value is string s && string.IsNullOrWhiteSpace(s)))) continue;
 
-                yield return TableRow.FromCells(cellData, rowNumber);
+                var rowId = Convert.ToInt32(rowPointer.RowNumber);
+                yield return FromCells(cellData, rowId);
                 
-                rowNumber++;
+                rowPointer.NextRow();
             }
         }
 

@@ -94,12 +94,12 @@ namespace Audacia.Spreadsheets
             return spreadsheet;
         }
 
-        public static Spreadsheet FromStream(Stream stream, bool includeHeaders = true)
+        public static Spreadsheet FromStream(Stream stream, bool includeHeaders = true, bool hasSubtotals = false)
         {
             using (var spreadSheet = SpreadsheetDocument.Open(stream, false))
             {
                 var worksheets = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>()
-                    .Select(sheet => Worksheet.FromOpenXml(sheet, spreadSheet, includeHeaders))
+                    .Select(sheet => Worksheet.FromOpenXml(sheet, spreadSheet, includeHeaders, hasSubtotals))
                     .ToArray();
 
                 return FromWorksheets(worksheets);

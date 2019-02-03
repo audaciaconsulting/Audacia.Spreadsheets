@@ -21,6 +21,12 @@ namespace Demo
                 new Book { IsbnNumber = "0552152617", Author = "Terry Pratchet", Price = 20m,   Published = DateTime.Now, Name = "Mort" },
                 new Book { IsbnNumber = "0575042176", Author = "Terry Pratchet", Price = 5m, Published = DateTime.Now, Name = "Sourcery" }
             };
+            
+            // Printing books for proof later
+            foreach (var b in books)
+            {
+                Console.WriteLine(b);  
+            }
 
             // Create an exportable worksheet
             Console.WriteLine("Creating an exportable worksheet.");
@@ -52,7 +58,7 @@ namespace Demo
             var spreadsheet2 = default(Spreadsheet);
             using (var fileStream = new FileStream(@".\Books.xlsx", FileMode.Open, FileAccess.Read))
             {
-                spreadsheet2 = Spreadsheet.FromStream(fileStream, includeHeaders: true);
+                spreadsheet2 = Spreadsheet.FromStream(fileStream, includeHeaders: true, hasSubtotals: true);
                 fileStream.Close();
             }
 
