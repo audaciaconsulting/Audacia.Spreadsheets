@@ -8,11 +8,10 @@ namespace Demo.Reports
 {
     public class BookReport : Worksheet
     {
-        public BookReport() { }
-
         public BookReport(ICollection<Book> source)
         {
-            var table = new Table(true);
+            SheetName = "Good Books";
+            var table = new Table(includeHeaders: true);
             var rows = source.Select(FromBook);
             
             table.Columns.AddRange(Columns);

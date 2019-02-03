@@ -18,5 +18,10 @@ namespace Demo.Entities
         
         [CellFormat(CellFormatType.Currency)]
         public decimal Price { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Name}, {Author}, {Published:d}, {Price:C}, {IsbnNumber}";
+        }
     }
 }
