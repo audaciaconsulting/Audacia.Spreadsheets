@@ -42,6 +42,7 @@ namespace Audacia.Spreadsheets.Extensions
         /// <summary>
         /// Creates a Table from an enumerable
         /// </summary>
+        [Obsolete("For legacy project use only. Please create a report model by inheriting from Worksheet or Table instead.")]
         public static Table ToTable<T>(this ICollection<T> data, bool includeHeaders,
             TableHeaderStyle headerStyle = null, params string[] ignoreProperties)
         {
@@ -137,6 +138,7 @@ namespace Audacia.Spreadsheets.Extensions
         /// <summary>
         /// Creates a Worksheet from an enumerable
         /// </summary>
+        [Obsolete("For legacy project use only. Please create a report model by inheriting from Worksheet or Table instead.")]
         public static Worksheet ToWorksheet<T>(this ICollection<T> data, 
             string sheetName = null, 
             bool includeHeaders = true,
