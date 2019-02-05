@@ -55,9 +55,9 @@ namespace Audacia.Spreadsheets
             var fonts = new Fonts();
             var fills = new Fills();
 
-            sharedData.TextColours = GetTextColours(fonts);
-            sharedData.FillColours = GetFillColours(fills);
-            sharedData.Fonts = GetHeaderStyles(sharedData.FillColours, fonts, fills);
+            GetTextColours(fonts, sharedData.TextColours);
+            GetFillColours(fills, sharedData.FillColours);
+            GetHeaderStyles(fonts, fills, sharedData.FillColours, sharedData.Fonts);
 
             stylesheet.Append(fonts);
             stylesheet.Append(fills);
@@ -78,10 +78,8 @@ namespace Audacia.Spreadsheets
             return sharedData;
         }
         
-        private Dictionary<string, uint> GetTextColours(Fonts fonts)
+        private void GetTextColours(Fonts fonts, IDictionary<string, uint> textColourDictionary)
         {
-            var textColourDictionary = new Dictionary<string, uint>();
-
             var defaultFonts = new []
             {
                 new Font
@@ -125,14 +123,10 @@ namespace Audacia.Spreadsheets
                 fonts.Append(newFont);
                 textColourDictionary.Add(colour, (uint)index++);
             }
-
-            return textColourDictionary;
         }
 
-        private Dictionary<string, uint> GetFillColours(Fills fills)
+        private void GetFillColours(Fills fills, IDictionary<string, uint> backgroundColoursDictionary)
         {
-            var backgroundColoursDictionary = new Dictionary<string, uint>();
-
             var defaultFills = new[]
             {
                 new Fill { PatternFill = new PatternFill { PatternType = PatternValues.None } },                             // none
@@ -157,14 +151,12 @@ namespace Audacia.Spreadsheets
                 fills.Append(newFill);
                 backgroundColoursDictionary.Add(colour, (uint)index++);
             }
-
-            return backgroundColoursDictionary;
         }
 
-        private Dictionary<string, uint> GetHeaderStyles(Dictionary<string, uint> backgroundColoursDictionary,
-            Fonts fonts, Fills fills)
+        private void GetHeaderStyles(Fonts fonts, Fills fills,
+            IDictionary<string, uint> backgroundColoursDictionary,
+            IDictionary<string, uint> fontsDictionary)
         {
-            var fontsDictionary = new Dictionary<string, uint>();
             var headerFontsIndex = fonts.ChildElements.Count;
             var backgroundFillsIndex = fills.ChildElements.Count;
 
@@ -201,8 +193,6 @@ namespace Audacia.Spreadsheets
                 fills.Append(newFill);
                 backgroundColoursDictionary.Add(headerStyle.FillColour, (uint)backgroundFillsIndex++);
             }
-
-            return fontsDictionary;
         }
 
         private Borders CreateBorders()

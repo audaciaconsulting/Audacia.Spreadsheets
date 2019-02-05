@@ -8,16 +8,16 @@ namespace Audacia.Spreadsheets
     /// </summary>
     public class SharedDataTable
     {
-        public List<CellStyle> CellFormats { get; set; } = new List<CellStyle>();
+        public IList<CellStyle> CellFormats { get; } = new List<CellStyle>();
 
-        public DefinedNames DefinedNames { get; set; } = new DefinedNames();
+        public DefinedNames DefinedNames { get; } = new DefinedNames();
 
         public Stylesheet Stylesheet { get; set; }
-        
-        public Dictionary<string, uint> FillColours { get; set; }
 
-        public Dictionary<string, uint> TextColours { get; set; } 
+        public IDictionary<string, uint> FillColours { get; } = new Dictionary<string, uint>();
 
-        public Dictionary<string, uint> Fonts { get; set; }
+        public IDictionary<string, uint> TextColours { get; } = new Dictionary<string, uint>();
+
+        public IDictionary<string, uint> Fonts { get; } = new Dictionary<string, uint>();
     }
 }
