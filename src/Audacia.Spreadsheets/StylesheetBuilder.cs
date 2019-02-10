@@ -47,7 +47,7 @@ namespace Audacia.Spreadsheets
             var stylesheet = new Stylesheet();
 
             var numberingFormats1 = new NumberingFormats { Count = 1U };
-            var numberingFormat1 = new NumberingFormat { NumberFormatId = 165U, FormatCode = "\"£\"#,##0.00" };
+            var numberingFormat1 = new NumberingFormat { NumberFormatId = (uint)CellFormat.Currency, FormatCode = "\"£\"#,##0.00" };
 
             numberingFormats1.Append(numberingFormat1);
             stylesheet.Append(numberingFormats1);

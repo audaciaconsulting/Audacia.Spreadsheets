@@ -33,21 +33,10 @@ namespace Audacia.Spreadsheets.Extensions
 
             var borderSum = UInt32Value.FromUInt32((uint) borders.Sum(b => (int) b));
 
-            UInt32Value numberFormat;
-            switch (cellStyle.Format)
-            {
-                case CellFormat.Date:
-                    numberFormat = 14U;
-                    break;
-                case CellFormat.Currency:
-                    numberFormat = 165U;
-                    break;
-                // ReSharper disable once RedundantCaseLabel
-                case CellFormat.Text:
-                default:
-                    numberFormat = 0U;
-                    break;
-            }
+            // Ignore custom boolean formats, see CellFormat.cs
+            UInt32Value numberFormat = (uint) cellStyle.Format > 999U
+                ? UInt32Value.FromUInt32((uint) CellFormat.Text)
+                : UInt32Value.FromUInt32((uint) cellStyle.Format);
 
             var cellFormatsElement = sharedData.Stylesheet.CellFormats;
 
