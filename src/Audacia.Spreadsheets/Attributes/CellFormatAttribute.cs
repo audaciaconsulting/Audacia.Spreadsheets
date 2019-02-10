@@ -4,11 +4,11 @@ namespace Audacia.Spreadsheets.Attributes
 {
     public class CellFormatAttribute : Attribute
     {
-        public CellFormatAttribute(CellFormatType type)
+        public CellFormatAttribute(CellFormat type)
         {
-            CellFormatType = type;
+            CellFormat = type;
         }
         
-        public CellFormatType CellFormatType { get; set; }
+        public CellFormat CellFormat { get; set; }
     }
 }

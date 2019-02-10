@@ -78,7 +78,7 @@ namespace Audacia.Spreadsheets.Extensions
 
                 if (format != default(CellFormatAttribute))
                 {
-                    column.Format = format.CellFormatType;
+                    column.Format = format.CellFormat;
                 }
 
                 table.Columns.Add(column);

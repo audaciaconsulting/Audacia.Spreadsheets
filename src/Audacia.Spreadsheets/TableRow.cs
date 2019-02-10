@@ -6,6 +6,7 @@ using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using OpenXmlCellFormat = DocumentFormat.OpenXml.Spreadsheet.CellFormat;
 
 namespace Audacia.Spreadsheets
 {
@@ -117,7 +118,7 @@ namespace Audacia.Spreadsheets
                             if (c.StyleIndex != null)
                             {
                                 var styleIndex = (int)c.StyleIndex.Value;
-                                var cellFormat = (CellFormat)cellFormats.ElementAt(styleIndex);
+                                var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
 
                                 if (IsDateFormat(cellFormat.NumberFormatId) ||
                                     dateFormatIds.Contains(cellFormat.NumberFormatId))

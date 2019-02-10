@@ -14,7 +14,7 @@ namespace Audacia.Spreadsheets
         public uint BackgroundColour { get; set; }
         public uint TextColour { get; set; }
 
-        public CellFormatType Format { get; set; }
+        public CellFormat Format { get; set; }
         public bool HasWordWrap { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace Demo.Entities
         
         public DateTime Published { get; set; }
         
-        [CellFormat(CellFormatType.Currency)]
+        [CellFormat(CellFormat.Currency)]
         public decimal Price { get; set; }
 
         public override string ToString()

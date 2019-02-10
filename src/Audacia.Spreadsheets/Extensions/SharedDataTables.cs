@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Spreadsheet;
+using OpenXmlCellFormat = DocumentFormat.OpenXml.Spreadsheet.CellFormat;
 
 namespace Audacia.Spreadsheets.Extensions
 {
@@ -35,14 +36,14 @@ namespace Audacia.Spreadsheets.Extensions
             UInt32Value numberFormat;
             switch (cellStyle.Format)
             {
-                case CellFormatType.Date:
+                case CellFormat.Date:
                     numberFormat = 14U;
                     break;
-                case CellFormatType.Currency:
+                case CellFormat.Currency:
                     numberFormat = 165U;
                     break;
                 // ReSharper disable once RedundantCaseLabel
-                case CellFormatType.Text:
+                case CellFormat.Text:
                 default:
                     numberFormat = 0U;
                     break;
@@ -50,7 +51,7 @@ namespace Audacia.Spreadsheets.Extensions
 
             var cellFormatsElement = sharedData.Stylesheet.CellFormats;
 
-            var cellFormat = new CellFormat
+            var cellFormat = new OpenXmlCellFormat
             {
                 FontId = cellStyle.TextColour,
                 FillId = cellStyle.BackgroundColour,

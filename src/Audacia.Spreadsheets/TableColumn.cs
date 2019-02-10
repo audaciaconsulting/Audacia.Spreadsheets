@@ -15,13 +15,13 @@ namespace Audacia.Spreadsheets
 
         public TableColumn(string name) => Name = name;
 
-        public TableColumn(string name, CellFormatType format)
+        public TableColumn(string name, CellFormat format)
         {
             Name = name;
             Format = format;
         }
         
-        public TableColumn(string name, CellFormatType format, bool displaySubtotal)
+        public TableColumn(string name, CellFormat format, bool displaySubtotal)
         {
             Name = name;
             Format = format;
@@ -34,7 +34,7 @@ namespace Audacia.Spreadsheets
 
         public bool DisplaySubtotal { get; set; }
 
-        public CellFormatType Format { get; set; } = CellFormatType.Text;
+        public CellFormat Format { get; set; } = CellFormat.Text;
 
         public CellBackgroundColourAttribute CellBackgroundFormat { get; set; }
 
@@ -53,7 +53,7 @@ namespace Audacia.Spreadsheets
                 BorderTop = true,
                 BorderLeft = isFirstColumn,
                 BorderRight = isLastColumn,
-                Format = DisplaySubtotal ? Format : CellFormatType.Text,
+                Format = DisplaySubtotal ? Format : CellFormat.Text,
                 HasWordWrap = false
             };
 
@@ -104,7 +104,7 @@ namespace Audacia.Spreadsheets
                 BorderTop = true,
                 BorderLeft = isFirstColumn,
                 BorderRight = isLastColumn,
-                Format = CellFormatType.Text,
+                Format = CellFormat.Text,
                 HasWordWrap = false
             };
 

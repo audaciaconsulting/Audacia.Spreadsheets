@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DocumentFormat.OpenXml.Spreadsheet;
+using OpenXmlCellFormat = DocumentFormat.OpenXml.Spreadsheet.CellFormat;
 
 namespace Audacia.Spreadsheets
 {
@@ -68,10 +69,10 @@ namespace Audacia.Spreadsheets
 
             // blank cell format list
             stylesheet.CellStyleFormats = new CellStyleFormats { Count = 1 };
-            stylesheet.CellStyleFormats.AppendChild(new CellFormat());
+            stylesheet.CellStyleFormats.AppendChild(new OpenXmlCellFormat());
 
             // Add formats
-            var cellFormats = new CellFormats(new CellFormat());
+            var cellFormats = new CellFormats(new OpenXmlCellFormat());
             stylesheet.Append(cellFormats);
 
             sharedData.Stylesheet = stylesheet;
