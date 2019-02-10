@@ -100,6 +100,12 @@
         DateTime = 22U,
 
         /// <summary>
+        /// Formats number as GBP.
+        /// Format £ #,##0.00
+        /// </summary>
+        Currency = 44U,
+
+        /// <summary>
         /// Formats timespan to show minutes and seconds.
         /// Format: mm:ss
         /// </summary>
@@ -109,8 +115,21 @@
         /// Formats number as GBP.
         /// Format £ #,##0.00
         /// </summary>
-        Currency = 165U,
+        AccountingGBP = 164U,
         
+        /// <summary>
+        /// Formats number as USD.
+        /// Format $ #,##0.00
+        /// </summary>
+        AccountingUSD = 165U,
+
+        /// <summary>
+        /// Formats number as Euros.
+        /// Format € #,##0.00
+        /// </summary>
+        AccountingEUR = 166U,
+
+
         // Below are custom formats not provided by OpenXml.
         
         /// <summary>

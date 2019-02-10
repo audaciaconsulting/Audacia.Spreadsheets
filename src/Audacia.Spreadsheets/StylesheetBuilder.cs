@@ -46,10 +46,16 @@ namespace Audacia.Spreadsheets
             var sharedData = new SharedDataTable();
             var stylesheet = new Stylesheet();
 
-            var numberingFormats1 = new NumberingFormats { Count = 1U };
-            var numberingFormat1 = new NumberingFormat { NumberFormatId = (uint)CellFormat.Currency, FormatCode = "\"£\"#,##0.00" };
+            var numberingFormats1 = new NumberingFormats{ Count = 4U };
+            var numberFormats = new []
+            {
+                new NumberingFormat{ NumberFormatId = (uint)CellFormat.Currency, FormatCode = "\"£\"#,##0.00" },
+                new NumberingFormat{ NumberFormatId = (uint)CellFormat.AccountingGBP, FormatCode = "_-[$£-809]* #,##0.00_-;\\-[$£-809]* #,##0.00_-;_-[$£-809]* \"-\"??_-;_-@_-" },
+                new NumberingFormat{ NumberFormatId = (uint)CellFormat.AccountingUSD, FormatCode = "_-[$$-409]* #,##0.00_ ;_-[$$-409]* \\-#,##0.00\\ ;_-[$$-409]* \"-\"??_ ;_-@_ " },
+                new NumberingFormat{ NumberFormatId = (uint)CellFormat.AccountingEUR, FormatCode = "_-[$€-2]\\ * #,##0.00_-;\\-[$€-2]\\ * #,##0.00_-;_-[$€-2]\\ * \"-\"??_-;_-@_-" }
+            };
 
-            numberingFormats1.Append(numberingFormat1);
+            numberingFormats1.Append(numberFormats);
             stylesheet.Append(numberingFormats1);
 
             // Add fonts
