@@ -82,20 +82,20 @@
         Date = 14U,
         
         /// <summary>
+        /// Formats timespan to show hours and minutes.
+        /// Format: H:mm
+        /// </summary>
+        TimeSpanHours = 20U,
+
+        /// <summary>
         /// Formats cell as timespan.
         /// Format: H:mm:ss
         /// </summary>
         TimeSpanFull = 21U,
 
         /// <summary>
-        /// Formats timespan to show hours and minutes.
-        /// Format: H:mm
-        /// </summary>
-        TimeSpanHours = 20U,
-        
-        /// <summary>
         /// Formats number/date as a DateTime.
-        /// Format: m/d/yyyy H:mm
+        /// Format: d/mm/yyyy H:mm
         /// </summary>
         DateTime = 22U,
 

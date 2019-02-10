@@ -5,7 +5,7 @@ using System.Text;
 namespace Audacia.Spreadsheets.Validation
 {
     /// <summary>
-    /// An import error for row validation errors.
+    /// An import error for member validation errors on a row.
     /// </summary>
     public class FieldValidationError : RowImportError, IImportError
     {
