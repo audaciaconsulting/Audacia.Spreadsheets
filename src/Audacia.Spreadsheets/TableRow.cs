@@ -49,7 +49,7 @@ namespace Audacia.Spreadsheets
 
                 var styleIndex = sharedData.GetOrCreateCellFormat(cellStyle).Index;
 
-                cell.Write(styleIndex, cellReference, writer);
+                cell.Write(styleIndex, column.Format, cellReference, writer);
 
                 cellReference.NextColumn();
             }

@@ -21,36 +21,9 @@ namespace Audacia.Spreadsheets
         
         public bool IsFormula { get; set; }
 
-        private Tuple<string, string> GetDataTypeAndFormattedValue()
+        public void Write(UInt32Value styleIndex, CellFormat format, string reference, OpenXmlWriter writer)
         {
-            switch (Value)
-            {
-                case DateTime date:
-                {
-                    var dateString = string.Empty;
-                    if (!date.Equals(DateTime.MinValue))
-                    {
-                        dateString = date.ToOADatePrecise().ToString(CultureInfo.CurrentCulture);
-                    }
-
-                    return new Tuple<string, string>(DataType.Number, dateString);
-                }
-                case decimal dec:
-                    return new Tuple<string, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
-                case double d:
-                    return new Tuple<string, string>(DataType.Number, d.ToString(CultureInfo.CurrentCulture));
-                case int i:
-                    return new Tuple<string, string>(DataType.Number, i.ToString(CultureInfo.CurrentCulture));
-                case bool b:
-                    return new Tuple<string, string>(DataType.String, b ? "Yes" : "No");
-                default:
-                    return new Tuple<string, string>(DataType.String, Value.ToString());
-            }
-        }
-        
-        public void Write(UInt32Value styleIndex, string reference, OpenXmlWriter writer)
-        {
-            (string dataType, string value) = GetDataTypeAndFormattedValue();
+            (string dataType, string value) = GetDataTypeAndFormattedValue(format);
             WriteCell(writer, styleIndex, reference, dataType, value, IsFormula);
         }
 
@@ -79,6 +52,49 @@ namespace Audacia.Spreadsheets
             }
 
             writer.WriteEndElement();
+        }
+        
+
+        private Tuple<string, string> GetDataTypeAndFormattedValue(CellFormat format)
+        {
+            switch (Value)
+            {
+                case DateTime date:
+                    return new Tuple<string, string>(DataType.Number, FormatDateTimeAsString(date));
+                case DateTimeOffset date:
+                    return new Tuple<string, string>(DataType.Number, FormatDateTimeAsString(date.LocalDateTime));
+                case decimal dec:
+                    return new Tuple<string, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
+                case double d:
+                    return new Tuple<string, string>(DataType.Number, d.ToString(CultureInfo.CurrentCulture));
+                case float f:
+                    return new Tuple<string, string>(DataType.Number, f.ToString(CultureInfo.CurrentCulture));
+                case int i:
+                    return new Tuple<string, string>(DataType.Number, i.ToString(CultureInfo.CurrentCulture));
+                case bool b:
+                    return new Tuple<string, string>(DataType.String, FormatBooleanAsString(format, b));
+                default:
+                    return new Tuple<string, string>(DataType.String, Value.ToString());
+            }
+        }
+
+        private static string FormatBooleanAsString(CellFormat format, bool value)
+        {
+            switch (format)
+            {
+                case CellFormat.BooleanYN: return value ? "Y" : "N";
+                case CellFormat.BooleanYesNo: return value ? "Yes" : "No";
+                case CellFormat.BooleanOneZero: return value ? "1" : "0";
+                case CellFormat.BooleanTrueFalse: return value ? "True" : "False";
+                default: return value.ToString();
+            }
+        }
+
+        private static string FormatDateTimeAsString(DateTime value)
+        {
+            return !value.Equals(DateTime.MinValue)
+                ? value.ToOADatePrecise().ToString(CultureInfo.CurrentCulture)
+                : string.Empty;
         }
     }
 }
