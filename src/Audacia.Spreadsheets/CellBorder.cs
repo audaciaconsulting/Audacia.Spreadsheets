@@ -1,6 +1,6 @@
 ﻿namespace Audacia.Spreadsheets
 {
-    public enum CellBorderType
+    public enum CellBorder
     {
         Top = 1,
         Right = 2,

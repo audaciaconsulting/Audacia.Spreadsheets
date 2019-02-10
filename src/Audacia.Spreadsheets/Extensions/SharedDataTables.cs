@@ -25,11 +25,11 @@ namespace Audacia.Spreadsheets.Extensions
                 return matchingStyle;
             }
 
-            var borders = new List<CellBorderType>();
-            if (cellStyle.BorderTop) borders.Add(CellBorderType.Top);
-            if (cellStyle.BorderRight) borders.Add(CellBorderType.Right);
-            if (cellStyle.BorderBottom) borders.Add(CellBorderType.Bottom);
-            if (cellStyle.BorderLeft) borders.Add(CellBorderType.Left);
+            var borders = new List<CellBorder>();
+            if (cellStyle.BorderTop) borders.Add(CellBorder.Top);
+            if (cellStyle.BorderRight) borders.Add(CellBorder.Right);
+            if (cellStyle.BorderBottom) borders.Add(CellBorder.Bottom);
+            if (cellStyle.BorderLeft) borders.Add(CellBorder.Left);
 
             var borderSum = UInt32Value.FromUInt32((uint) borders.Sum(b => (int) b));
 
