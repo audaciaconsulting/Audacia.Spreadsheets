@@ -138,7 +138,14 @@ namespace Audacia.Spreadsheets
             {
                 new Fill { PatternFill = new PatternFill { PatternType = PatternValues.None } },                             // none
                 new Fill { PatternFill = new PatternFill { PatternType = PatternValues.Gray125 } },                          // grey
-                new Fill { PatternFill = new PatternFill { ForegroundColor = new ForegroundColor { Rgb = "FF79A7E3" } } }    // default header
+                new Fill 
+                { 
+                    PatternFill = new PatternFill
+                    {
+                        PatternType = PatternValues.Solid,
+                        ForegroundColor = new ForegroundColor { Rgb = "FF79A7E3" }
+                    } 
+                }    // default header
             };
             fills.Append(defaultFills);
             
