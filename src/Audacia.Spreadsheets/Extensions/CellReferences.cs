@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Audacia.Spreadsheets.Extensions
 {
@@ -11,11 +11,14 @@ namespace Audacia.Spreadsheets.Extensions
         /// </summary>
         public static uint GetRowNumber(this string cellReference)
         {
-            var regex = new Regex(@"^(?<ColumnIndex>[A-Z]+)(?<RowIndex>\d+)");
-            var match = regex.Match(cellReference);
-            if (!match.Success || !match.Groups["RowIndex"].Success)
-                return 0;
-            return uint.Parse(match.Groups["RowIndex"].Value);
+            var numberChars = cellReference.Where(char.IsNumber).ToArray();
+            var rowNumber = new string(numberChars);
+            if (uint.TryParse(rowNumber, out var result))
+            {
+                return result;
+            }
+            
+            return 0;
         }
 
         /// <summary>
@@ -24,11 +27,13 @@ namespace Audacia.Spreadsheets.Extensions
         /// </summary>
         public static string GetColumnLetter(this string cellReference)
         {
-            var regex = new Regex(@"^(?<ColumnIndex>[A-Z]+)(?<RowIndex>\d+)");
-            var match = regex.Match(cellReference);
-            if (!match.Success || !match.Groups["ColumnIndex"].Success)
-                return "A";
-            return match.Groups["ColumnIndex"].Value;
+            var columnChars = cellReference.Where(char.IsLetter).ToArray();
+            if (columnChars.Any())
+            {
+                return new string(columnChars);
+            }
+
+            return "A";
         }
 
         /// <summary>

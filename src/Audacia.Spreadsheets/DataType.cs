@@ -3,22 +3,32 @@
     /// <summary>
     /// Cell Data Type. This is a copy of
     /// <see cref="DocumentFormat.OpenXml.Spreadsheet.CellValues"/>
-    /// but as constant strings rather than enums.
+    /// but using strings rather than enum values.
     /// </summary>
-    public static class DataType
+    public class DataType
     {
-        public const string Boolean = "b";
+        private readonly string _value;
+
+        private DataType() { }
+
+        private DataType(string value) => _value = value;
         
-        public const string Date = "d";
+        public static implicit operator string(DataType source) => source.ToString();
+
+        public override string ToString() => _value;
+
+        public static DataType Boolean { get; } = new DataType("b");
+
+        public static DataType Date { get; } = new DataType("d");
         
-        public const string Error = "e";
+        public static DataType Error { get; } = new DataType("e");
         
-        public const string InlineString = "inlineStr";
+        public static DataType InlineString { get; } = new DataType("inlineStr");
         
-        public const string Number = "n";
+        public static DataType Number { get; } = new DataType("n");
         
-        public const string SharedString = "s";
+        public static DataType SharedString { get; } = new DataType("s");
         
-        public const string String = "str";
+        public static DataType String { get; } = new DataType("str");
     }
 }

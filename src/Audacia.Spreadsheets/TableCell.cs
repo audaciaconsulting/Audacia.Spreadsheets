@@ -23,12 +23,12 @@ namespace Audacia.Spreadsheets
 
         public void Write(UInt32Value styleIndex, CellFormat format, string reference, OpenXmlWriter writer)
         {
-            (string dataType, string value) = GetDataTypeAndFormattedValue(format);
+            (DataType dataType, string value) = GetDataTypeAndFormattedValue(format);
             WriteCell(writer, styleIndex, reference, dataType, value, IsFormula);
         }
 
         public static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex,
-            string reference, string dataType, string value, bool isFormula)
+            string reference, DataType dataType, string value, bool isFormula)
         {
             var attributes = new List<OpenXmlAttribute>
             {
@@ -55,26 +55,26 @@ namespace Audacia.Spreadsheets
         }
         
 
-        private Tuple<string, string> GetDataTypeAndFormattedValue(CellFormat format)
+        private Tuple<DataType, string> GetDataTypeAndFormattedValue(CellFormat format)
         {
             switch (Value)
             {
                 case DateTime date:
-                    return new Tuple<string, string>(DataType.Number, FormatDateTimeAsString(date));
+                    return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date));
                 case DateTimeOffset date:
-                    return new Tuple<string, string>(DataType.Number, FormatDateTimeAsString(date.LocalDateTime));
+                    return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date.LocalDateTime));
                 case decimal dec:
-                    return new Tuple<string, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
+                    return new Tuple<DataType, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
                 case double d:
-                    return new Tuple<string, string>(DataType.Number, d.ToString(CultureInfo.CurrentCulture));
+                    return new Tuple<DataType, string>(DataType.Number, d.ToString(CultureInfo.CurrentCulture));
                 case float f:
-                    return new Tuple<string, string>(DataType.Number, f.ToString(CultureInfo.CurrentCulture));
+                    return new Tuple<DataType, string>(DataType.Number, f.ToString(CultureInfo.CurrentCulture));
                 case int i:
-                    return new Tuple<string, string>(DataType.Number, i.ToString(CultureInfo.CurrentCulture));
+                    return new Tuple<DataType, string>(DataType.Number, i.ToString(CultureInfo.CurrentCulture));
                 case bool b:
-                    return new Tuple<string, string>(DataType.String, FormatBooleanAsString(format, b));
+                    return new Tuple<DataType, string>(DataType.String, FormatBooleanAsString(format, b));
                 default:
-                    return new Tuple<string, string>(DataType.String, Value.ToString());
+                    return new Tuple<DataType, string>(DataType.String, Value.ToString());
             }
         }
 

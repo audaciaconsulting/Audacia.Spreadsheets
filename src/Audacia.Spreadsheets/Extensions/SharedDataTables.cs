@@ -8,9 +8,9 @@ namespace Audacia.Spreadsheets.Extensions
 {
     public static class SharedDataTables
     {
-        public static CellStyle GetOrCreateCellFormat(this SharedDataTable sharedData, CellStyle cellStyle)
+        public static CellStyle GetCellFormat(this SharedDataTable sharedData, CellStyle cellStyle)
         {
-            var matchingStyle = sharedData.CellFormats.SingleOrDefault(cf =>
+            return sharedData.CellFormats.SingleOrDefault(cf =>
                 cf.TextColour == cellStyle.TextColour &&
                 cf.BackgroundColour == cellStyle.BackgroundColour &&
                 cf.BorderTop == cellStyle.BorderTop &&
@@ -19,6 +19,11 @@ namespace Audacia.Spreadsheets.Extensions
                 cf.BorderLeft == cellStyle.BorderLeft &&
                 cf.Format == cellStyle.Format &&
                 cf.HasWordWrap == cellStyle.HasWordWrap);
+        }
+
+        public static CellStyle GetOrCreateCellFormat(this SharedDataTable sharedData, CellStyle cellStyle)
+        {
+            var matchingStyle = sharedData.GetCellFormat(cellStyle);
 
             if (matchingStyle != default(CellStyle))
             {
@@ -26,10 +31,22 @@ namespace Audacia.Spreadsheets.Extensions
             }
 
             var borders = new List<CellBorder>();
-            if (cellStyle.BorderTop) borders.Add(CellBorder.Top);
-            if (cellStyle.BorderRight) borders.Add(CellBorder.Right);
-            if (cellStyle.BorderBottom) borders.Add(CellBorder.Bottom);
-            if (cellStyle.BorderLeft) borders.Add(CellBorder.Left);
+            if (cellStyle.BorderTop)
+            {
+                borders.Add(CellBorder.Top);
+            }
+            if (cellStyle.BorderRight)
+            {
+                borders.Add(CellBorder.Right);
+            }
+            if (cellStyle.BorderBottom)
+            {
+                borders.Add(CellBorder.Bottom);
+            }
+            if (cellStyle.BorderLeft)
+            {
+                borders.Add(CellBorder.Left);
+            }
 
             var borderSum = UInt32Value.FromUInt32((uint) borders.Sum(b => (int) b));
 

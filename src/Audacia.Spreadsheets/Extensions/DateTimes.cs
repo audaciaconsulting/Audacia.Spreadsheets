@@ -5,7 +5,7 @@ namespace Audacia.Spreadsheets.Extensions
 {
     public static class DateTimes
     {
-        private static readonly DateTime OaDateEpoch = new DateTime(1899, 12, 30);
+        public static readonly DateTime OaDateEpoch = new DateTime(1899, 12, 30);
         
         /// <summary>
         /// Converts an OADate to a DateTime
