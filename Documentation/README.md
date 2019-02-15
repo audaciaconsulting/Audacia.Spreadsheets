@@ -15,7 +15,7 @@ Install-Package Audacia.Spreadsheets
 ```
 
 ### Basic Exports:
-For more info [see Exports](./Exports.md).
+For more info [see Exports](./Features/Exports.md).
 ```csharp
 var books = new [] { ... books ... };
 
@@ -38,7 +38,7 @@ using (var fileStream = new FileStream(@".\Books.xlsx", FileMode.OpenOrCreate))
 ```
 
 ### Basic Imports:
-For more info [see Imports](./Imports.md).
+For more info [see Imports](./Features/Imports.md).
 ```csharp
 // Read from a stream.
 var spreadsheet = default(Spreadsheet);
@@ -53,3 +53,36 @@ var importer = new HouseImporter();
 var houses = importer.Import(spreadsheet);
 
 ```
+
+### Migrating from previous libraries
+
+Meaning Audacia.Spreadsheets.Export, please don't use this on newer projects.
+Here are the names and namespaces for classes so your code can continue to work.
+
+#### Data Attributes
+
+`using Audacia.Spreadsheets.Attributes;`
+
+- CellBackgroundColour
+- CellFormat
+- CellTextColour
+- IdColumn
+- IgnoreDataMember
+- HideHeader
+- SubtotalHeader
+
+#### Creating a worksheet from a collection
+
+```csharp
+using Audacia.Spreadsheets;
+using Audacia.Spreadsheets.Extensions;
+
+var books = new [] { ... books ... };
+
+var legacyWorksheet = books.ToWorksheet("Naughty Books");
+
+var spreadsheet = Spreadsheet.FromWorksheets(legacyWorksheet);
+
+var bytes = spreadsheet.Export();
+```
+

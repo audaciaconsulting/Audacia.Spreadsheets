@@ -40,7 +40,7 @@ public class TableHeaderStyle
 ## Cell Colours
 
 Cell colours can be customised during the transformation of your data to a cell.
-For more information on creating worksheets see [Imports](/Imports.md).
+For more information on creating worksheets see [Imports](./Imports.md).
 
 Currently there are no extra options other than customising cell colours.
 This library does not currently support making specific cells **Bold** or *Italic*.

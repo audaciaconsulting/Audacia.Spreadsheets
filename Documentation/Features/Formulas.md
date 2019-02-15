@@ -1,7 +1,7 @@
 # Excel Formulas
 If you know a formula and want to put it in, you can.
 
-For more information on creating worksheets see [Imports](/Imports.md).
+For more information on creating worksheets see [Imports](./Imports.md).
 ```csharp
 new TableCell("SUM(S:S)"),
 {
@@ -10,7 +10,7 @@ new TableCell("SUM(S:S)"),
 ```
 
 ## Column Subtotals
-If you've run the demo code from [Imports](/Imports.md), you probably noticed that there's an extra row above the column headers.
+If you've run the demo code from [Imports](./Imports.md), you probably noticed that there's an extra row above the column headers.
 It is in fact a row dedicated to showing subtotals for specified columns.
 
 If you choose to display a subtotal above a column, when exported the library will write a subtotal formula above the cell.
