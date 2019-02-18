@@ -61,7 +61,7 @@ namespace Audacia.Spreadsheets
                 case DateTime date:
                     return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date));
                 case DateTimeOffset date:
-                    return new Tuple<DataType, string>(DataType.Number, FormatDateTimeOffsetAsString(date));
+                    return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date.LocalDateTime));
                 case decimal dec:
                     return new Tuple<DataType, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
                 case double d:
@@ -73,7 +73,7 @@ namespace Audacia.Spreadsheets
                 case bool b:
                     return new Tuple<DataType, string>(DataType.String, FormatBooleanAsString(format, b));
                 default:
-                    return new Tuple<DataType, string>(DataType.String, Value.ToString());
+                    return new Tuple<DataType, string>(DataType.String, Value?.ToString() ?? string.Empty);
             }
         }
 
@@ -89,17 +89,10 @@ namespace Audacia.Spreadsheets
             }
         }
 
-        private static string FormatDateTimeAsString(DateTime? value)
+        private static string FormatDateTimeAsString(DateTime value)
         {
-            return value.HasValue && !value.Equals(DateTime.MinValue)
-                ? value.Value.ToOADatePrecise().ToString(CultureInfo.CurrentCulture)
-                : string.Empty;
-        }
-
-        private static string FormatDateTimeOffsetAsString(DateTimeOffset? value)
-        {
-            return value.HasValue
-                ? FormatDateTimeAsString(value.Value.LocalDateTime)
+            return !value.Equals(DateTime.MinValue)
+                ? value.ToOADatePrecise().ToString(CultureInfo.CurrentCulture)
                 : string.Empty;
         }
     }
