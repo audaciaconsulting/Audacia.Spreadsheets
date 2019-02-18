@@ -8,7 +8,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 namespace Audacia.Spreadsheets
 {
     public class TableCell
-    {   
+    {
         public TableCell() { }
 
         public TableCell(object value) => Value = value;
@@ -18,7 +18,7 @@ namespace Audacia.Spreadsheets
         public string FillColour { get; set; }
 
         public string TextColour { get; set; }
-        
+
         public bool IsFormula { get; set; }
 
         public void Write(UInt32Value styleIndex, CellFormat format, string reference, OpenXmlWriter writer)
@@ -53,7 +53,6 @@ namespace Audacia.Spreadsheets
 
             writer.WriteEndElement();
         }
-        
 
         private Tuple<DataType, string> GetDataTypeAndFormattedValue(CellFormat format)
         {
@@ -62,7 +61,7 @@ namespace Audacia.Spreadsheets
                 case DateTime date:
                     return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date));
                 case DateTimeOffset date:
-                    return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date.LocalDateTime));
+                    return new Tuple<DataType, string>(DataType.Number, FormatDateTimeOffsetAsString(date));
                 case decimal dec:
                     return new Tuple<DataType, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
                 case double d:
@@ -90,10 +89,17 @@ namespace Audacia.Spreadsheets
             }
         }
 
-        private static string FormatDateTimeAsString(DateTime value)
+        private static string FormatDateTimeAsString(DateTime? value)
         {
-            return !value.Equals(DateTime.MinValue)
-                ? value.ToOADatePrecise().ToString(CultureInfo.CurrentCulture)
+            return value.HasValue && !value.Equals(DateTime.MinValue)
+                ? value.Value.ToOADatePrecise().ToString(CultureInfo.CurrentCulture)
+                : string.Empty;
+        }
+
+        private static string FormatDateTimeOffsetAsString(DateTimeOffset? value)
+        {
+            return value.HasValue
+                ? FormatDateTimeAsString(value.Value.LocalDateTime)
                 : string.Empty;
         }
     }
