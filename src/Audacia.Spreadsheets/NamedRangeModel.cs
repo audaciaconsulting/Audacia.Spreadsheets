@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Audacia.Spreadsheets
 {
@@ -17,7 +18,15 @@ namespace Audacia.Spreadsheets
             }
             set
             {
-                _name = value.Replace(' ', '_');
+                Regex r = new Regex("^[a-zA-Z0-9_]*$");
+                if (r.IsMatch(value))
+                {
+                    _name = value;
+                }
+                else
+                {
+                    throw new Exception("Named Range names must be alphanumeric");
+                }
             }
         }
         public string SheetName { get; set; }
