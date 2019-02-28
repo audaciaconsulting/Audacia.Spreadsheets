@@ -16,33 +16,58 @@ namespace Audacia.Spreadsheets
         public IEnumerable<Table> Tables { get; set; }
         public FreezePane FreezePane { get; set; }
         public WorksheetProtection WorksheetProtection { get; set; }
+        public IList<StaticDropdown> StaticDataValidations { get; set; }
+        public IList<DependentDropdown> DependentDataValidations { get; set; }
 
         public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
             var writer = OpenXmlWriter.Create(worksheetPart);
+            writer.WriteStartElement(new OpenXmlWorksheet());
+            AddSheetView(writer);
+            writer.WriteStartElement(new SheetData());
 
             foreach (var table in Tables)
             {
-                // TODO JP: why is there a new worksheet for each data table?
-                writer.WriteStartElement(new OpenXmlWorksheet());
-
-                AddSheetView(writer);
                 AddColumns(table, writer);
-
-                writer.WriteStartElement(new SheetData());
 
                 table.Write(sharedData, writer);
 
-                writer.WriteEndElement(); // Sheet Data
-
                 // Auto Filter for a single table on the worksheet
                 AddAutoFilter(table, sharedData.DefinedNames, writer);
+                
+            }
+            writer.WriteEndElement(); // Sheet Data
 
-                writer.WriteEndElement(); // Worksheet
+            DataValidations dataValidations = new DataValidations();
+            // Add Static Data Validation
+            if (StaticDataValidations != null && StaticDataValidations.Any())
+            {
+                foreach (var val in StaticDataValidations)
+                {
+                    val.Write(dataValidations);
+                }
+            }
+            // Add Dynamic Data Validation
+            if (DependentDataValidations != null && DependentDataValidations.Any())
+            {
+                foreach (var val in DependentDataValidations)
+                {
+                    val.Write(dataValidations);
+                }
+
             }
 
-            writer.Close();
+            //  Only add validation if dataValidations has Descendants
+            if (dataValidations.Descendants<DataValidation>().Any())
+            {
+                writer.WriteElement(dataValidations);
+            }
 
+
+            writer.WriteEndElement(); // Worksheet
+
+            writer.Close();
+            
             AddProtection(worksheetPart);
         }
 

@@ -22,7 +22,9 @@ namespace Audacia.Spreadsheets
             for (var columnIndex = 0; columnIndex < columns.Count; columnIndex++)
             {
                 var column = columns[columnIndex];
-                var cell = Cells[columnIndex];
+                var cell = Cells.Count > columnIndex
+                    ? Cells[columnIndex]
+                    : new TableCell();
                 var value = cell.Value;
 
                 var cellStyle = new CellStyle

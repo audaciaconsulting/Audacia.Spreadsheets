@@ -79,5 +79,14 @@ namespace Audacia.Spreadsheets.Extensions
 
             return columnName;
         }
+
+        /// <summary>
+        /// Returns previous column letter
+        /// </summary>
+        public static string PreviousColumn(this string columnName)
+        {
+            if (columnName == "A") throw new Exception("Cannot get previous column if column is 'A'");
+            return (columnName.ToColumnNumber() - 1).ToColumnLetter();
+        }
     }
 }
