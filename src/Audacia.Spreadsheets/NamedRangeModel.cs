@@ -7,6 +7,7 @@ namespace Audacia.Spreadsheets
 {
     public class NamedRangeModel
     {
+        private static Regex r = new Regex("^[a-zA-Z0-9_]*$");
         private string _name;
         /// <summary>
         /// Name for Named Range. Must only contain Alpha Numerics
@@ -18,7 +19,7 @@ namespace Audacia.Spreadsheets
             }
             set
             {
-                Regex r = new Regex("^[a-zA-Z0-9_]*$");
+                
                 if (r.IsMatch(value))
                 {
                     _name = value;
