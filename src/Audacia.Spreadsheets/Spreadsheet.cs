@@ -12,7 +12,10 @@ namespace Audacia.Spreadsheets
     public class Spreadsheet
     {
         public IList<Worksheet> Worksheets { get; } = new List<Worksheet>();
-
+        /// <summary>
+        /// Must be defined after worksheets have been defined or the ranges will be moved by the addition of tables
+        /// </summary>
+        public IList<NamedRangeModel> NamedRanges { get; set; } = new List<NamedRangeModel>();
         /// <summary>
         /// Writes the spreadsheet to a stream as an Excel Workbook (*.xlsx).
         /// </summary>
@@ -25,7 +28,7 @@ namespace Audacia.Spreadsheets
                 var workbookPart = document.AddWorkbookPart();
                 var workbook = workbookPart.Workbook = new Workbook();
                 var sheets = workbook.AppendChild(new Sheets());
-                workbook.AppendChild(sharedData.DefinedNames);
+                
                 workbook.CalculationProperties = new CalculationProperties();
 
                 // Shared string table
@@ -64,9 +67,26 @@ namespace Audacia.Spreadsheets
                     };
                     
                     sheets.Append(sheet);
+
                     worksheet.Write(worksheetPart, sharedData);
                 }
+                var definedNames = new DefinedNames();
 
+                if ( NamedRanges != null && NamedRanges.Any())
+                {
+                    //  Adds DefinedNames To Workbook
+                    foreach (var namedRange in NamedRanges)
+                    {
+                        var definedNameToPush = new DefinedName
+                        {
+                            Name = namedRange.Name,
+                            Text = $"\'{namedRange.SheetName}\'!{namedRange.StartCell}:{namedRange.EndCell}"
+                        };
+                        definedNames.Append(definedNameToPush);
+                    }
+                    workbookPart.Workbook.DefinedNames = definedNames;
+                }
+                
                 document.Close();
             }
         }
