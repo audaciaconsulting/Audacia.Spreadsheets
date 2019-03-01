@@ -13,7 +13,7 @@ namespace Audacia.Spreadsheets
     public class TableRow
     {
         public int? Id { get; set; }
-        public IList<TableCell> Cells { get; } = new List<TableCell>();
+        public List<TableCell> Cells { get; } = new List<TableCell>();
 
         public void Write(CellReference cellReference, IList<TableColumn> columns, SharedDataTable sharedData, OpenXmlWriter writer)
         {

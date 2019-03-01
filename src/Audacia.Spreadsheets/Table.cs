@@ -19,9 +19,9 @@ namespace Audacia.Spreadsheets
 
         public bool IncludeHeaders { get; set; }
         
-        public IList<TableColumn> Columns { get; } = new List<TableColumn>();
+        public List<TableColumn> Columns { get; } = new List<TableColumn>();
 
-        public IList<TableRow> Rows { get; } = new List<TableRow>();
+        public List<TableRow> Rows { get; } = new List<TableRow>();
         
         public void Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {

@@ -11,11 +11,11 @@ namespace Audacia.Spreadsheets
 {
     public class Spreadsheet
     {
-        public IList<Worksheet> Worksheets { get; } = new List<Worksheet>();
+        public List<Worksheet> Worksheets { get; } = new List<Worksheet>();
         /// <summary>
         /// Must be defined after worksheets have been defined or the ranges will be moved by the addition of tables
         /// </summary>
-        public IList<NamedRangeModel> NamedRanges { get; set; } = new List<NamedRangeModel>();
+        public List<NamedRangeModel> NamedRanges { get; } = new List<NamedRangeModel>();
         /// <summary>
         /// Writes the spreadsheet to a stream as an Excel Workbook (*.xlsx).
         /// </summary>
