@@ -13,11 +13,11 @@ namespace Audacia.Spreadsheets
     public class Worksheet
     {
         public string SheetName { get; set; }
-        public IEnumerable<Table> Tables { get; set; }
+        public Table Table { get; set; }
         public FreezePane FreezePane { get; set; }
         public WorksheetProtection WorksheetProtection { get; set; }
-        public IList<StaticDropdown> StaticDataValidations { get; set; }
-        public IList<DependentDropdown> DependentDataValidations { get; set; }
+        public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
+        public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
 
         public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
@@ -26,16 +26,12 @@ namespace Audacia.Spreadsheets
             AddSheetView(writer);
             writer.WriteStartElement(new SheetData());
 
-            foreach (var table in Tables)
-            {
-                AddColumns(table, writer);
+            AddColumns(Table, writer);
+            Table.Write(sharedData, writer);
 
-                table.Write(sharedData, writer);
+            // Auto Filter for a single table on the worksheet
+            AddAutoFilter(Table, sharedData.DefinedNames, writer);
 
-                // Auto Filter for a single table on the worksheet
-                AddAutoFilter(table, sharedData.DefinedNames, writer);
-                
-            }
             writer.WriteEndElement(); // Sheet Data
 
             DataValidations dataValidations = new DataValidations();
@@ -73,7 +69,6 @@ namespace Audacia.Spreadsheets
 
         private void AddAutoFilter(Table table, DefinedNames definedNames, OpenXmlWriter writer)
         {
-            // TODO JP: make this more efficient, only add filters to the first table that requests it
             if (table.IncludeHeaders && table.Rows.Any())
             {
                 var firstCell = new CellReference(table.StartingCellRef);
@@ -236,7 +231,7 @@ namespace Audacia.Spreadsheets
             return new Worksheet
             {
                 SheetName = worksheet.Name,
-                Tables = new List<Table> { table }
+                Table = table
             };
         }
         

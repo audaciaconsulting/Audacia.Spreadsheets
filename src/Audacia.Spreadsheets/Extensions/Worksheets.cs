@@ -162,7 +162,7 @@ namespace Audacia.Spreadsheets.Extensions
             {
                 SheetName = sheetName,
                 FreezePane = freezePane,
-                Tables = new List<Table> { table }
+                Table = table
             };
         }
     }

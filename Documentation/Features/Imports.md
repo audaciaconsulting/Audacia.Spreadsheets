@@ -1,4 +1,4 @@
-# Importing a spreadsheet
+﻿# Importing a spreadsheet
 Step by step instructions to import data from a spreadsheet.
 
 ### Create an Importer class
@@ -21,8 +21,8 @@ public class BookImporter
         // Look at index or sheet name
         var sheet = spreadsheet.Worksheets[0];
         
-        // Normally only one table
-        var table = sheet.Tables.ElementAt(0);
+        // Only one table
+        var table = sheet.Table;
 
         _columnMap = table.Columns.ToDictionary();
         

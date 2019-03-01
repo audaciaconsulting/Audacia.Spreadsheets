@@ -14,7 +14,7 @@ namespace Audacia.Spreadsheets
         public StylesheetBuilder(IEnumerable<Worksheet> worksheets)
         {
             var allTables = worksheets
-                .SelectMany(w => w.Tables)
+                .Select(w => w.Table)
                 .ToArray();
 
             _distinctHeaderStyles = allTables
