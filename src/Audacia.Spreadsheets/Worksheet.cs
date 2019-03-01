@@ -22,11 +22,14 @@ namespace Audacia.Spreadsheets
         public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
             var writer = OpenXmlWriter.Create(worksheetPart);
+
             writer.WriteStartElement(new OpenXmlWorksheet());
+
             AddSheetView(writer);
+            AddColumns(Table, writer);
+
             writer.WriteStartElement(new SheetData());
 
-            AddColumns(Table, writer);
             Table.Write(sharedData, writer);
 
             // Auto Filter for a single table on the worksheet
