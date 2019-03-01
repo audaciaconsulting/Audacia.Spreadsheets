@@ -1,4 +1,4 @@
-# Exporting a spreadsheet
+﻿# Exporting a spreadsheet
 Step by step instructions to create and export a worksheet.
 
 ### Have an entity to export
@@ -39,7 +39,7 @@ public class BookReport : Worksheet
         
         table.Columns.AddRange(Columns);
         table.Rows.AddRange(rows);
-        Tables = new[] { table };
+        Table = table;
     }
 
     ///<summary>Define columns and how they will be formatted.</summary>
