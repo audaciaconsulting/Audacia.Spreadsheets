@@ -12,6 +12,7 @@ namespace Audacia.Spreadsheets
         public bool AllowBlanks { get; set; } = true;
         public string DependentColumn { get; set; } = "";
         public string Column { get; set; }
+        public string Formula { get; set; } = "";
 
         /// <summary>
         /// Will create a dropdown which will look for a Named Range with the same name as the value of 'DependentColumn'
@@ -24,6 +25,10 @@ namespace Audacia.Spreadsheets
             {
                 DependentColumn = Column.PreviousColumn();
             }
+            if (string.IsNullOrEmpty(Formula))
+            {
+                Formula = $"=INDIRECT(SUBSTITUTE(${DependentColumn}2, \" \", \"_\"))";
+            }
 
             DataValidation dataValidation = new DataValidation()
             {
@@ -33,7 +38,7 @@ namespace Audacia.Spreadsheets
             };
             Formula1 formula = new Formula1
             {
-                Text = $"=INDIRECT(SUBSTITUTE(${DependentColumn}2, \" \", \"_\"))"
+                Text = Formula
             };
 
             dataValidation.Append(formula);
