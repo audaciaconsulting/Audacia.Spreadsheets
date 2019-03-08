@@ -3,9 +3,19 @@ using System;
 
 namespace Audacia.Spreadsheets.Extensions
 {
+    /// <summary>
+    /// For more information on date systems in Excel, please read the following article.
+    /// https://support.microsoft.com/en-za/help/214330/differences-between-the-1900-and-the-1904-date-system-in-excel
+    /// </summary>
     public static class DateTimes
     {
-        public static readonly DateTime OaDateEpoch = new DateTime(1899, 12, 30);
+        /* For when we get to implementing 1904 dates
+        /// <summary>1904 Date System, Epoch is 1st January 1904.</summary>
+        public static readonly DateTime EpochJan1904 = new DateTime(1904, 1, 1);
+        */
+        
+        /// <summary>1900 Date System, Epoch is 30th December 1899.</summary>
+        public static readonly DateTime EpochJan1900 = new DateTime(1899, 12, 30);
         
         /// <summary>
         /// Converts an OADate to a DateTime
@@ -19,7 +29,7 @@ namespace Audacia.Spreadsheets.Extensions
             if (!(d >= 0))
                 throw new ArgumentOutOfRangeException(); // NaN or negative d not supported
 
-            return OaDateEpoch + TimeSpan.FromTicks(Convert.ToInt64(d * TimeSpan.TicksPerDay));
+            return EpochJan1900 + TimeSpan.FromTicks(Convert.ToInt64(d * TimeSpan.TicksPerDay));
         }
 
         /// <summary>
@@ -31,10 +41,10 @@ namespace Audacia.Spreadsheets.Extensions
         /// <returns>An OADate (Ticks since 30th December 1899)</returns>
         public static double ToOADatePrecise(this DateTime dt)
         {
-            if (dt < OaDateEpoch)
+            if (dt < EpochJan1900)
                 throw new ArgumentOutOfRangeException();
 
-            return Convert.ToDouble((dt - OaDateEpoch).Ticks) / TimeSpan.TicksPerDay;
+            return Convert.ToDouble((dt - EpochJan1900).Ticks) / TimeSpan.TicksPerDay;
         }
     }
 }
