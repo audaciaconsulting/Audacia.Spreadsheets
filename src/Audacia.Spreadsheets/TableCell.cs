@@ -62,6 +62,15 @@ namespace Audacia.Spreadsheets
                     return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date));
                 case DateTimeOffset date:
                     return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date.LocalDateTime));
+                case TimeSpan t:
+                {
+                    if (format == CellFormat.Text)
+                    {
+                        return new Tuple<DataType, string>(DataType.String, Value.ToString());
+                    }
+                    // Use the provided number format
+                    return new Tuple<DataType, string>(DataType.Number, t.ToOADatePrecise().ToString(CultureInfo.CurrentCulture));
+                } 
                 case decimal dec:
                     return new Tuple<DataType, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
                 case double d:
