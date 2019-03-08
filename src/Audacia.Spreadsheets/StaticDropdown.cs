@@ -8,11 +8,22 @@ namespace Audacia.Spreadsheets
 {
     public class StaticDropdown
     {
+        private string _formulaText { get; set; }
+
         public bool AllowBlanks { get; set; }
         public int StartingRow { get; set; } = 2;
         public int EndingRow { get; set; } = 1048576;
         public string Column { get; set; }
-        public List<string> Options { get; set; }
+
+        public StaticDropdown(IEnumerable<string> options)
+        {
+            _formulaText = $"\"{string.Join(",", options)}\"";
+        }
+
+        public StaticDropdown(string formula)
+        {
+            _formulaText = formula;
+        }
 
         public void Write(DataValidations dataValidations)
         {
@@ -24,7 +35,7 @@ namespace Audacia.Spreadsheets
             };
             Formula1 formula = new Formula1
             {
-                Text = $"\"{string.Join(",", Options)}\""
+                Text = _formulaText
             };
 
             dataValidation.Append(formula);
