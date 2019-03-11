@@ -15,6 +15,7 @@ namespace Audacia.Spreadsheets
         public string SheetName { get; set; }
         public Table Table { get; set; }
         public FreezePane FreezePane { get; set; }
+        public SheetStateValues Visibility { get; set; } = SheetStateValues.Visible;
         public WorksheetProtection WorksheetProtection { get; set; }
         public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
         public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
