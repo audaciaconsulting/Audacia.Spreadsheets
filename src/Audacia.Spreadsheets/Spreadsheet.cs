@@ -62,7 +62,7 @@ namespace Audacia.Spreadsheets
                     {
                         Id = workbookPart.GetIdOfPart(worksheetPart),
                         SheetId = Convert.ToUInt32(sheetNumber),
-                        State = SheetStateValues.Visible,
+                        State = worksheet.Visibility,
                         Name = worksheet.SheetName
                     };
                     
