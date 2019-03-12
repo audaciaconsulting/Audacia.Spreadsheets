@@ -108,10 +108,8 @@ namespace Audacia.Spreadsheets
                 });
             }
 
-            // Find the max cell width of each column           
+            // Find the max cell width of supplied column           
             var current = 0;
-
-            //using cell index as my column
             for (var i = 0; i < cells.Count; i++)
             {
                 var cell = cells[i];
@@ -124,6 +122,7 @@ namespace Audacia.Spreadsheets
                 }
             }
 
+            //  75 is chosen as a maximum length to prevent the column becoming too monsterous
             if (current > 75)
             {
                 current = 75;
