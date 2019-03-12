@@ -34,6 +34,8 @@ namespace Audacia.Spreadsheets
 
         public bool DisplaySubtotal { get; set; }
 
+        public int? Width { get; set; }
+
         public CellFormat Format { get; set; } = CellFormat.Text;
 
         public CellBackgroundColourAttribute CellBackgroundFormat { get; set; }

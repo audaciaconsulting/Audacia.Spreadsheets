@@ -16,6 +16,7 @@ namespace Audacia.Spreadsheets
         public Table Table { get; set; }
         public FreezePane FreezePane { get; set; }
         public SheetStateValues Visibility { get; set; } = SheetStateValues.Visible;
+        public bool ShowGridLines { get; set; } = false;
         public WorksheetProtection WorksheetProtection { get; set; }
         public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
         public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
@@ -107,23 +108,19 @@ namespace Audacia.Spreadsheets
         private void AddColumns(Table table, OpenXmlWriter writer)
         {
             writer.WriteStartElement(new Columns());
-
-            var maxColWidth = Table.GetMaxCharacterWidth(table);
             const double maxWidth = 11D;
 
-            for (var i = 0; i < maxColWidth.Count; i++)
+            for (var i = 0; i < table.Columns.Count; i++)
             {
-                var item = maxColWidth[i];
+                var item = Table.GetMaxCharacterWidth(table, i);
 
                 //width = Truncate([{Number of Characters} * {Maximum Digit Width} + {20 pixel padding}]/{Maximum Digit Width}*256)/256
                 var width = Math.Truncate((item * maxWidth + 20) / maxWidth * 256) / 256;
 
-                if (width > 75)
-                {
-                    width = 75;
-                }
+                //  To adjust for font size.
+                var factor = (table.HeaderStyle?.FontSize ?? 11) / maxWidth;
 
-                var colWidth = (DoubleValue)width;
+                var colWidth = (DoubleValue)(width * factor);
 
                 writer.WriteElement(new Column
                 {
@@ -187,7 +184,7 @@ namespace Audacia.Spreadsheets
             writer.WriteStartElement(new SheetViews());
             var sheetView = new SheetView
             {
-                ShowGridLines = false,
+                ShowGridLines = ShowGridLines,
                 WorkbookViewId = 0U
             };
             
