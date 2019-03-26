@@ -190,7 +190,6 @@ namespace Audacia.Spreadsheets
                 WorkbookViewId = 0U
             };
             
-            // TODO JP: figure out which sheet view gets the freeze pane if multiple tables
             FreezePane?.Write(sheetView);
 
             writer.WriteElement(sheetView);
