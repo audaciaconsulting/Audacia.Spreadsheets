@@ -24,20 +24,9 @@ namespace Audacia.Spreadsheets
                 var column = columns[columnIndex];
                 var cell = Cells.Count > columnIndex
                     ? Cells[columnIndex]
-                    : new TableCell();
-                var value = cell.Value;
-
-                var cellStyle = new CellStyle
-                {
-                    TextColour = 0U,
-                    BackgroundColour = 0U,
-                    BorderBottom = true,
-                    BorderTop = true,
-                    BorderLeft = true,
-                    BorderRight = true,
-                    Format = column.Format,
-                    HasWordWrap = value is string && !cell.IsFormula
-                };
+                    : new TableCell(hasBorders: Cells.Count > 0 && Cells.Last().HasBorders);
+                
+                var cellStyle = cell.CellStyle(column);
 
                 if (!string.IsNullOrWhiteSpace(cell.FillColour))
                 {
