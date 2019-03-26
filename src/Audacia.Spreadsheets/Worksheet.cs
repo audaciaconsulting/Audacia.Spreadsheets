@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Audacia.Core.Extensions;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -20,6 +19,17 @@ namespace Audacia.Spreadsheets
         public WorksheetProtection WorksheetProtection { get; set; }
         public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
         public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
+
+        /// <summary>
+        /// Sets Visibility to Hidden.
+        /// </summary>
+        /// <param name="completelyHidden">If true the worksheet will not be visible from Excel</param>
+        public void Hide(bool completelyHidden = false)
+        {
+            Visibility = completelyHidden
+                ? SheetStateValues.VeryHidden
+                : SheetStateValues.Hidden;
+        }
 
         public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
@@ -188,7 +198,6 @@ namespace Audacia.Spreadsheets
                 WorkbookViewId = 0U
             };
             
-            // TODO JP: figure out which sheet view gets the freeze pane if multiple tables
             FreezePane?.Write(sheetView);
 
             writer.WriteElement(sheetView);

@@ -13,7 +13,10 @@ namespace Audacia.Spreadsheets
     {
         public TableColumn() { }
 
-        public TableColumn(string name) => Name = name;
+        public TableColumn(string name)
+        {
+            Name = name;
+        }
 
         public TableColumn(string name, CellFormat format)
         {
@@ -27,8 +30,14 @@ namespace Audacia.Spreadsheets
             Format = format;
             DisplaySubtotal = displaySubtotal;
         }
-
-        public static implicit operator TableColumn(string name) => new TableColumn(name);
+        
+        public TableColumn(string name, CellFormat format = CellFormat.Text, bool displaySubtotal = false, bool hasBorders = true)
+        {
+            Name = name;
+            Format = format;
+            DisplaySubtotal = displaySubtotal;
+            HasBorders = hasBorders;
+        }
 
         public string Name { get; set; }
 
@@ -36,6 +45,8 @@ namespace Audacia.Spreadsheets
 
         public int? Width { get; set; }
 
+        public bool HasBorders { get; set; } = true;
+        
         public CellFormat Format { get; set; } = CellFormat.Text;
 
         public CellBackgroundColourAttribute CellBackgroundFormat { get; set; }
@@ -51,10 +62,10 @@ namespace Audacia.Spreadsheets
             {
                 TextColour = 1U,
                 BackgroundColour = 0U,
-                BorderBottom = true,
-                BorderTop = true,
-                BorderLeft = isFirstColumn,
-                BorderRight = isLastColumn,
+                BorderBottom = HasBorders,
+                BorderTop = HasBorders,
+                BorderLeft = HasBorders && isFirstColumn,
+                BorderRight = HasBorders && isLastColumn,
                 Format = DisplaySubtotal ? Format : CellFormat.Text,
                 HasWordWrap = false
             };
@@ -102,10 +113,10 @@ namespace Audacia.Spreadsheets
             {
                 TextColour = font,
                 BackgroundColour = fillColour,
-                BorderBottom = true,
-                BorderTop = true,
-                BorderLeft = isFirstColumn,
-                BorderRight = isLastColumn,
+                BorderBottom = HasBorders,
+                BorderTop = HasBorders,
+                BorderLeft = HasBorders && isFirstColumn,
+                BorderRight = HasBorders && isLastColumn,
                 Format = CellFormat.Text,
                 HasWordWrap = false
             };
