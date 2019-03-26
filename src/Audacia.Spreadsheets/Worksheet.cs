@@ -20,6 +20,17 @@ namespace Audacia.Spreadsheets
         public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
         public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
 
+        /// <summary>
+        /// Sets Visibility to Hidden.
+        /// </summary>
+        /// <param name="completelyHidden">If true the worksheet will not be visible from Excel</param>
+        public void Hide(bool completelyHidden = false)
+        {
+            Visibility = completelyHidden
+                ? SheetStateValues.VeryHidden
+                : SheetStateValues.Hidden;
+        }
+
         public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
             var writer = OpenXmlWriter.Create(worksheetPart);
