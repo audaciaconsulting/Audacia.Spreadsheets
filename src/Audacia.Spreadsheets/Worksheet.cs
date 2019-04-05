@@ -16,6 +16,7 @@ namespace Audacia.Spreadsheets
         public FreezePane FreezePane { get; set; }
         public SheetStateValues Visibility { get; set; } = SheetStateValues.Visible;
         public bool ShowGridLines { get; set; } = false;
+        public bool HasAutofilter { get; set; } = false;
         public WorksheetProtection WorksheetProtection { get; set; }
         public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
         public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
@@ -39,16 +40,14 @@ namespace Audacia.Spreadsheets
 
             AddSheetView(writer);
             AddColumns(Table, writer);
-
-            writer.WriteStartElement(new SheetData());
-
+            
             Table.Write(sharedData, writer);
-
-            // Auto Filter for a single table on the worksheet
-            AddAutoFilter(Table, sharedData.DefinedNames, writer);
-
-            writer.WriteEndElement(); // Sheet Data
-
+            
+            if (HasAutofilter)
+            {
+                AddAutoFilter(Table, sharedData.DefinedNames, writer);
+            }
+            
             DataValidations dataValidations = new DataValidations();
             // Add Static Data Validation
             if (StaticDataValidations != null && StaticDataValidations.Any())
