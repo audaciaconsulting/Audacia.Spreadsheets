@@ -162,7 +162,8 @@ namespace Audacia.Spreadsheets.Extensions
             {
                 SheetName = sheetName,
                 FreezePane = freezePane,
-                Table = table
+                Table = table,
+                HasAutofilter = true
             };
         }
     }
