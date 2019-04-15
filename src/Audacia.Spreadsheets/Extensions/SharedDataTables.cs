@@ -68,19 +68,17 @@ namespace Audacia.Spreadsheets.Extensions
                 ApplyFill = true,
                 ApplyBorder = true,
                 ApplyNumberFormat = true,
-                Protection = cellStyle.IsEditable ? new Protection() { Locked = false } : default(Protection)
+                Protection = cellStyle.IsEditable ? new Protection() { Locked = false } : default(Protection),
+                Alignment = new Alignment
+                {
+                    Horizontal = HorizontalAlignmentValues.Left,
+                    Vertical = VerticalAlignmentValues.Top,
+                    TextRotation = 0U,
+                    WrapText = cellStyle.HasWordWrap,
+                    ReadingOrder = 1U
+                }
             };
 
-            var alignment = new Alignment
-            {
-                Horizontal = HorizontalAlignmentValues.Left,
-                Vertical = VerticalAlignmentValues.Top,
-                TextRotation = 0U,
-                WrapText = cellStyle.HasWordWrap,
-                ReadingOrder = 1U
-            };
-
-            //cellFormat.Append(alignment);
             cellFormatsElement.Append(cellFormat);
 
             cellStyle.Index = UInt32Value.FromUInt32((uint) cellFormatsElement.ChildElements.Count) - 1;
