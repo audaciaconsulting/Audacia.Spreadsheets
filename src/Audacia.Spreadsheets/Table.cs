@@ -25,6 +25,8 @@ namespace Audacia.Spreadsheets
 
         public void Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
+            writer.WriteStartElement(new SheetData());
+            
             var rowReference = new CellReference(StartingCellRef);
 
             // Write Subtotals above headers
@@ -69,6 +71,8 @@ namespace Audacia.Spreadsheets
                 row.Write(rowReference.Clone(), Columns, sharedData, writer);
                 rowReference.NextRow();
             }
+            
+            writer.WriteEndElement(); // Sheet Data
         }
 
 

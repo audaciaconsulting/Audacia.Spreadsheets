@@ -11,7 +11,23 @@ namespace Audacia.Spreadsheets
     {
         public TableCell() { }
 
-        public TableCell(object value) => Value = value;
+        public TableCell(object value)
+        {
+            Value = value;
+        }
+        
+        public TableCell(object value, bool isFormula)
+        {
+            Value = value;
+            IsFormula = isFormula;
+        }
+        
+        public TableCell(object value = null, bool isFormula = false, bool hasBorders = true)
+        {
+            Value = value;
+            IsFormula = isFormula;
+            HasBorders = hasBorders;
+        }
 
         public object Value { get; set; }
 
@@ -20,6 +36,23 @@ namespace Audacia.Spreadsheets
         public string TextColour { get; set; }
 
         public bool IsFormula { get; set; }
+
+        public bool HasBorders { get; set; } = true;
+
+        public CellStyle CellStyle(TableColumn column)
+        {
+            return new CellStyle
+            {
+                TextColour = 0U,
+                BackgroundColour = 0U,
+                BorderBottom = HasBorders,
+                BorderTop = HasBorders,
+                BorderLeft = HasBorders,
+                BorderRight = HasBorders,
+                Format = column.Format,
+                HasWordWrap = Value is string && !IsFormula
+            };
+        }
 
         public bool IsEditable { get; set; }
 
@@ -64,6 +97,15 @@ namespace Audacia.Spreadsheets
                     return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date));
                 case DateTimeOffset date:
                     return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date.LocalDateTime));
+                case TimeSpan t:
+                {
+                    if (format == CellFormat.Text)
+                    {
+                        return new Tuple<DataType, string>(DataType.String, Value.ToString());
+                    }
+                    // Use the provided number format
+                    return new Tuple<DataType, string>(DataType.Number, t.ToOADatePrecise().ToString(CultureInfo.CurrentCulture));
+                } 
                 case decimal dec:
                     return new Tuple<DataType, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
                 case double d:

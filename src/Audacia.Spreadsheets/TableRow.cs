@@ -24,6 +24,9 @@ namespace Audacia.Spreadsheets
                 var column = columns[columnIndex];
                 var cell = Cells.Count > columnIndex
                     ? Cells[columnIndex]
+                    : new TableCell(hasBorders: Cells.Count > 0 && Cells.Last().HasBorders);
+                
+                var cellStyle = cell.CellStyle(column);
                     : new TableCell();
                 var value = cell.Value;
 
