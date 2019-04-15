@@ -81,6 +81,7 @@ namespace Audacia.Spreadsheets
                 return column.Width.Value;
             }
 
+            //  Get all of the cells for this column to find the widest cell and make that width of the column
             var cells = table.Rows.Select(r => r.Cells.Count > columnIndex ? r.Cells[columnIndex] : null).Where(c => c != null).ToList();
 
             if (table.IncludeHeaders)
@@ -88,7 +89,7 @@ namespace Audacia.Spreadsheets
                 cells.Add(new TableCell(column.Name));
             }
 
-            // Create Cells for Rollups
+            // Create a Cell for Rollup if necessary
             if (column.DisplaySubtotal)
             {
                 var total = table.Rows

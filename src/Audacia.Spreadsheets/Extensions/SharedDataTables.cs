@@ -18,7 +18,8 @@ namespace Audacia.Spreadsheets.Extensions
                 cf.BorderBottom == cellStyle.BorderBottom &&
                 cf.BorderLeft == cellStyle.BorderLeft &&
                 cf.Format == cellStyle.Format &&
-                cf.HasWordWrap == cellStyle.HasWordWrap);
+                cf.HasWordWrap == cellStyle.HasWordWrap &&
+                cf.IsEditable == cellStyle.IsEditable);
         }
 
         public static CellStyle GetOrCreateCellFormat(this SharedDataTable sharedData, CellStyle cellStyle)
@@ -66,8 +67,10 @@ namespace Audacia.Spreadsheets.Extensions
                 ApplyFont = true,
                 ApplyFill = true,
                 ApplyBorder = true,
-                ApplyNumberFormat = true
+                ApplyNumberFormat = true,
+                Protection = cellStyle.IsEditable ? new Protection() { Locked = false } : default(Protection)
             };
+
             var alignment = new Alignment
             {
                 Horizontal = HorizontalAlignmentValues.Left,
@@ -77,7 +80,7 @@ namespace Audacia.Spreadsheets.Extensions
                 ReadingOrder = 1U
             };
 
-            cellFormat.Append(alignment);
+            //cellFormat.Append(alignment);
             cellFormatsElement.Append(cellFormat);
 
             cellStyle.Index = UInt32Value.FromUInt32((uint) cellFormatsElement.ChildElements.Count) - 1;

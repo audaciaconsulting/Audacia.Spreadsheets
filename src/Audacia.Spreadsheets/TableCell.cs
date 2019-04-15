@@ -21,6 +21,8 @@ namespace Audacia.Spreadsheets
 
         public bool IsFormula { get; set; }
 
+        public bool IsEditable { get; set; }
+
         public void Write(UInt32Value styleIndex, CellFormat format, string reference, OpenXmlWriter writer)
         {
             (DataType dataType, string value) = GetDataTypeAndFormattedValue(format);

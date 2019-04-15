@@ -134,7 +134,7 @@ namespace Audacia.Spreadsheets
 
             writer.WriteEndElement();
         }
-        
+
         private void AddProtection(WorksheetPart worksheetPart)
         {
             if (WorksheetProtection == null)
@@ -159,24 +159,12 @@ namespace Audacia.Spreadsheets
                 // by OpenXML when attempting to open it - the Productivity tool does the same thing.
                 // So we'll just do worksheet protection
                 sheetProtection.Password = HexPasswordConversion(WorksheetProtection.Password);
-            }
-
-            var pRanges = new ProtectedRanges();
-
-            foreach (var protectedRange in WorksheetProtection.EditableCellRanges)
-            {
-                var pRange = new ProtectedRange();
-                var lValue = new ListValue<StringValue> { InnerText = protectedRange };
-
-                pRange.SequenceOfReferences = lValue;
-                pRange.Name = "not allow editing";
-                pRanges.Append(pRange);
+                sheetProtection.SelectLockedCells = false;
             }
 
             //These are the cells that are editable
-            var pageM = worksheetPart.Worksheet.GetFirstChild<PageMargins>();
-            worksheetPart.Worksheet.InsertBefore(sheetProtection, pageM);
-            worksheetPart.Worksheet.InsertBefore(pRanges, pageM);
+            var pageM = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+            worksheetPart.Worksheet.InsertAfter(sheetProtection, pageM);
         }
 
         private void AddSheetView(OpenXmlWriter writer)
