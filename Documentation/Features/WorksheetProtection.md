@@ -2,7 +2,11 @@
 
 You can add WorksheetProtection to worksheets.
 
-If done right this will password protect a region of cells or an entire worksheet.
+By default, Excel marks all cells as 'Locked' by default. You can see this behaviour by opening an Excel file > right-click a cell > Format Cell > Protection.
+
+The protection does not effect the document unless there is a password protecting the sheet.
+
+To protect the entire sheet, add this code to your worksheet:
 
 ```csharp
 public class HouseReport : Worksheet
@@ -16,8 +20,11 @@ public class HouseReport : Worksheet
             CanAddOrDeleteColumns = false,
             CanAddOrDeleteRows = false,
             Password = "secret",
-            EditableCellRanges = new [] { "F:S" }
         }
     }
 }
 ```
+
+If you need particular cells to be editable, this is done at a `TableCell` level.
+
+When creating a `TableCell` you can use the `IsEditable` property to decide if a particular cell should be editable.

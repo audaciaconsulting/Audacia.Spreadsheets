@@ -26,7 +26,20 @@ namespace Audacia.Spreadsheets
                     ? Cells[columnIndex]
                     : new TableCell(hasBorders: Cells.Count > 0 && Cells.Last().HasBorders);
                 
-                var cellStyle = cell.CellStyle(column);
+                var value = cell.Value;
+
+                var cellStyle = new CellStyle
+                {
+                    TextColour = 0U,
+                    BackgroundColour = 0U,
+                    BorderBottom = true,
+                    BorderTop = true,
+                    BorderLeft = true,
+                    BorderRight = true,
+                    Format = column.Format,
+                    HasWordWrap = value is string && !cell.IsFormula,
+                    IsEditable = cell.IsEditable
+                };
 
                 if (!string.IsNullOrWhiteSpace(cell.FillColour))
                 {
@@ -122,7 +135,16 @@ namespace Audacia.Spreadsheets
                                         valueAdded = true;
                                     }
                                 }
-                            }
+
+                                if (!valueAdded && IsNumberFormat(cellFormat.NumberFormatId))
+                                {
+                                    if (!valueAdded && decimal.TryParse(c.CellValue.Text, out var value))
+                                    {
+                                        cellData.Add(new TableCell { Value = value });
+                                        valueAdded = true;
+                                    }
+                                }
+                            }      
 
                             if (!valueAdded)
                             {
@@ -156,6 +178,20 @@ namespace Audacia.Spreadsheets
             return formatCode != null && (formatCode.Contains("mmm") || formatCode.Contains("yy"));
         }
 
+        private static bool IsNumberFormat(uint numberFormatId, string formatCode = null)
+        {
+            // Microsoft only give limited format information, there's no entire list of format codes online
+            // So first check the ones we do
+            if ((numberFormatId >= 1U && numberFormatId <= 11U) || 
+                numberFormatId == 44U ||
+                (numberFormatId >= 164U && numberFormatId <= 166U))
+            {
+                return true;
+            }
+
+            // Then check if it contains date formatting or year formatting
+            return formatCode != null && (formatCode.Contains("mmm") || formatCode.Contains("yy"));
+        }
         private static ICollection<uint> GetDateFormatsInFile(WorkbookStylesPart stylePart)
         {
             var formatIds = new Collection<uint>();

@@ -16,5 +16,7 @@ namespace Audacia.Spreadsheets
 
         public CellFormat Format { get; set; }
         public bool HasWordWrap { get; set; }
+
+        public bool IsEditable { get; set; }
     }
 }
