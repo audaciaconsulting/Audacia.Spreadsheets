@@ -228,7 +228,8 @@ namespace Audacia.Spreadsheets
             return new Worksheet
             {
                 SheetName = worksheet.Name,
-                Table = table
+                Table = table,
+                Visibility = worksheet.State
             };
         }
         
