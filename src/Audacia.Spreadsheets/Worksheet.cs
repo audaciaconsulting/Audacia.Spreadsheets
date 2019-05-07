@@ -229,7 +229,7 @@ namespace Audacia.Spreadsheets
             {
                 SheetName = worksheet.Name,
                 Table = table,
-                Visibility = worksheet.State
+                Visibility = worksheet.State ?? SheetStateValues.Visible
             };
         }
         
