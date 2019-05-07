@@ -139,7 +139,7 @@ namespace Audacia.Spreadsheets
                                 var styleIndex = (int)c.StyleIndex.Value;
                                 var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
 
-                                Fill fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
+                                var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
                                 var patternFill = fill?.PatternFill;
 
                                 if (IsDateFormat(cellFormat.NumberFormatId) ||
@@ -192,7 +192,7 @@ namespace Audacia.Spreadsheets
 
         private static string GetColor(SpreadsheetDocument sd, PatternFill fill)
         {
-            ColorType ct = fill.ForegroundColor;
+            var ct = fill.ForegroundColor;
             if (ct == null)
             {
                 return null;
