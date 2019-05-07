@@ -101,7 +101,7 @@ namespace Audacia.Spreadsheets
                     var matchedCells = cells.Where(c =>
                         string.Compare(cellReference, c.CellReference.Value, StringComparison.OrdinalIgnoreCase) == 0)
                         .ToList();
-                    TableCell newCell = new TableCell(null);
+                    var newCell = new TableCell(null);
 
                     if (!matchedCells.Any() || matchedCells.First().CellValue == null)
                     {
@@ -119,10 +119,13 @@ namespace Audacia.Spreadsheets
                                 var styleIndex = (int)c.StyleIndex.Value;
                                 var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
 
-                                Fill fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
+                                var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
                                 var patternFill = fill?.PatternFill;
 
-                                newCell.FillColour = GetColor(spreadSheet, patternFill);
+                                if (patternFill != null)
+                                {
+                                    newCell.FillColour = GetColor(spreadSheet, patternFill);
+                                }
                             }
 
                             cellData.Add(newCell);
