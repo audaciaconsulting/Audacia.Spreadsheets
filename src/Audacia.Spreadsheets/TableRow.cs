@@ -79,7 +79,8 @@ namespace Audacia.Spreadsheets
         public static IEnumerable<TableRow> FromOpenXml(WorksheetPart worksheetPart, 
             SpreadsheetDocument spreadSheet, int columnsCount, int startingRowIndex = 0)
         {
-            var cellFormats = spreadSheet.WorkbookPart.WorkbookStylesPart.Stylesheet.CellFormats;
+            var stylesheet = spreadSheet.WorkbookPart.WorkbookStylesPart.Stylesheet;
+            var cellFormats = stylesheet.CellFormats;
             var dateFormatIds = GetDateFormatsInFile(spreadSheet.WorkbookPart.WorkbookStylesPart);
 
             // Read each row and add to table
@@ -100,20 +101,34 @@ namespace Audacia.Spreadsheets
                     var matchedCells = cells.Where(c =>
                         string.Compare(cellReference, c.CellReference.Value, StringComparison.OrdinalIgnoreCase) == 0)
                         .ToList();
+                    var newCell = new TableCell(null);
 
                     if (!matchedCells.Any() || matchedCells.First().CellValue == null)
                     {
-                        cellData.Add(new TableCell { Value = null });
+                        cellData.Add(newCell);
                     }
                     else
                     {
                         var c = matchedCells.First();
                         if (c.DataType != null && c.DataType.HasValue && c.DataType.Value == CellValues.SharedString)
                         {
-                            cellData.Add(new TableCell
+                            newCell.Value = stringTable.SharedStringTable.ElementAt(int.Parse(c.CellValue.Text)).InnerText;
+
+                            if (c.StyleIndex != null)
                             {
-                                Value = stringTable.SharedStringTable.ElementAt(int.Parse(c.CellValue.Text)).InnerText
-                            });
+                                var styleIndex = (int)c.StyleIndex.Value;
+                                var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
+
+                                var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
+                                var patternFill = fill?.PatternFill;
+
+                                if (patternFill != null)
+                                {
+                                    newCell.FillColour = GetColor(spreadSheet, patternFill);
+                                }
+                            }
+
+                            cellData.Add(newCell);
                         }
                         else
                         {
@@ -124,6 +139,9 @@ namespace Audacia.Spreadsheets
                                 var styleIndex = (int)c.StyleIndex.Value;
                                 var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
 
+                                var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
+                                var patternFill = fill?.PatternFill;
+
                                 if (IsDateFormat(cellFormat.NumberFormatId) ||
                                     dateFormatIds.Contains(cellFormat.NumberFormatId))
                                 {
@@ -131,7 +149,8 @@ namespace Audacia.Spreadsheets
                                     {
                                         var date = DateTime.FromOADate(parsedValue);
 
-                                        cellData.Add(new TableCell { Value = date });
+                                        newCell.Value = date;
+                                        cellData.Add(newCell);
                                         valueAdded = true;
                                     }
                                 }
@@ -140,16 +159,22 @@ namespace Audacia.Spreadsheets
                                 {
                                     if (!valueAdded && decimal.TryParse(c.CellValue.Text, out var value))
                                     {
-                                        cellData.Add(new TableCell { Value = value });
+                                        newCell.Value = value;
+                                        cellData.Add(newCell);
                                         valueAdded = true;
                                     }
                                 }
-                            }      
+
+                                newCell.FillColour = GetColor(spreadSheet, patternFill);
+                            }
 
                             if (!valueAdded)
                             {
-                                cellData.Add(new TableCell { Value = c.CellValue.Text });
+                                newCell.Value = c.CellValue.Text;
+                                cellData.Add(newCell);
                             }
+
+
                         }
                     }
                     
@@ -164,6 +189,49 @@ namespace Audacia.Spreadsheets
                 rowPointer.NextRow();
             }
         }
+
+        private static string GetColor(SpreadsheetDocument sd, PatternFill fill)
+        {
+            var ct = fill.ForegroundColor;
+            if (ct == null)
+            {
+                return null;
+            }
+
+            if (ct.Auto != null)
+            {
+                return null;
+            }
+
+            if (ct.Rgb != null)
+            {
+                //  ct.Rgb gives "FF######" so need to take off the first 2 characters. Thanks OpenXml
+                return ct.Rgb.Value.Substring(2);
+            }
+
+            //  These 3 are too difficult to understand...Code stolen from:
+            //  https://stackoverflow.com/questions/10756206/getting-cell-backgroundcolor-in-excel-with-open-xml-2-0
+            //  
+            //if (ct.Indexed != null)
+            //{
+            //    return sd.WorkbookPart.WorkbookStylesPart.Stylesheet.Colors.IndexedColors.ChildElements[(int)ct.Indexed.Value].InnerText;
+            //}
+
+            //if (ct.Theme != null)
+            //{
+            //    var c2t = (DocumentFormat.OpenXml.Drawing.Color2Type)sd.WorkbookPart.ThemePart.Theme.ThemeElements.ColorScheme.ChildElements[(int)ct.Theme.Value];
+
+            //    return ((DocumentFormat.OpenXml.Drawing.SystemColor)c2t.FirstChild).LastColor;
+            //}
+
+            //if (ct.Tint != null)
+            //{
+            //    return ct.Tint.Value.ToString();
+            //}
+
+            return null;
+        }
+
 
         private static bool IsDateFormat(uint numberFormatId, string formatCode = null)
         {
