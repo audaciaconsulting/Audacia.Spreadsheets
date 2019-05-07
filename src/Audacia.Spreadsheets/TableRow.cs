@@ -234,7 +234,9 @@ namespace Audacia.Spreadsheets
         {
             // Microsoft only give limited format information, there's no entire list of format codes online
             // So first check the ones we do
-            if ((numberFormatId >= 14 && numberFormatId <= 22) || numberFormatId == 30)
+            if ((numberFormatId >= (uint)CellFormat.Date 
+              && numberFormatId <= (uint)CellFormat.DateTime) 
+              || numberFormatId == 30U)
             {
                 return true;
             }
@@ -247,9 +249,11 @@ namespace Audacia.Spreadsheets
         {
             // Microsoft only give limited format information, there's no entire list of format codes online
             // So first check the ones we do
-            if ((numberFormatId >= 1U && numberFormatId <= 11U) || 
-                numberFormatId == 44U ||
-                (numberFormatId >= 164U && numberFormatId <= 166U))
+            if ((numberFormatId >= (uint)CellFormat.Integer 
+              && numberFormatId <= (uint)CellFormat.Scientific)
+              || numberFormatId == (uint)CellFormat.Currency
+              || (numberFormatId >= (uint)CellFormat.AccountingGBP 
+              && numberFormatId <= (uint)CellFormat.AccountingEUR))
             {
                 return true;
             }
