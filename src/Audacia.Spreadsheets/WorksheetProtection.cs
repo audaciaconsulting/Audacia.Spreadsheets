@@ -7,5 +7,7 @@ namespace Audacia.Spreadsheets
         public bool CanAddOrDeleteColumns { get; set; }
         public bool CanAddOrDeleteRows { get; set; }
         public string Password { get; set; }
+        public bool AllowSort { get; set; }
+        public bool AllowAutoFilter { get; set; }
     }
 }
