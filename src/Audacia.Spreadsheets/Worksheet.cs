@@ -160,8 +160,10 @@ namespace Audacia.Spreadsheets
                 DeleteColumns = !WorksheetProtection.CanAddOrDeleteColumns,
                 InsertRows = !WorksheetProtection.CanAddOrDeleteRows,
                 DeleteRows = !WorksheetProtection.CanAddOrDeleteRows,
-                AutoFilter = WorksheetProtection.AllowAutoFilter,
-                Sort = WorksheetProtection.AllowSort,
+                //  A value of 0 allows AutoFiltering
+                AutoFilter = !WorksheetProtection.AllowAutoFilter,
+                //  A value of 0 allows Sorting
+                Sort = !WorksheetProtection.AllowSort,
             };
 
             if (!string.IsNullOrWhiteSpace(WorksheetProtection.Password))
