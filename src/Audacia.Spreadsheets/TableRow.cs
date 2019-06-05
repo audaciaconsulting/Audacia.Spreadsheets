@@ -181,12 +181,15 @@ namespace Audacia.Spreadsheets
                     cellRef.NextColumn();
                 }
 
-                if (cellData.All(c => c.Value == null || (c.Value is string s && string.IsNullOrWhiteSpace(s)))) continue;
-
                 var rowId = Convert.ToInt32(rowPointer.RowNumber);
-                yield return FromCells(cellData, rowId);
-                
                 rowPointer.NextRow();
+
+                if (cellData.All(c => c.Value == null || (c.Value is string s && string.IsNullOrWhiteSpace(s))))
+                {
+                    continue;
+                }
+                
+                yield return FromCells(cellData, rowId);
             }
         }
 
