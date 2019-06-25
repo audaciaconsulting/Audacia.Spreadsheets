@@ -164,6 +164,9 @@ namespace Audacia.Spreadsheets
                 AutoFilter = !WorksheetProtection.AllowAutoFilter,
                 //  A value of 0 allows Sorting
                 Sort = !WorksheetProtection.AllowSort,
+                FormatRows = !WorksheetProtection.AllowFormatRows,
+                FormatColumns = !WorksheetProtection.AllowFormatColumns,
+                FormatCells = !WorksheetProtection.AllowFormatCells
             };
 
             if (!string.IsNullOrWhiteSpace(WorksheetProtection.Password))
