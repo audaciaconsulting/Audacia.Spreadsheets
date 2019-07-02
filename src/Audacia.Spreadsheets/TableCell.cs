@@ -22,11 +22,12 @@ namespace Audacia.Spreadsheets
             IsFormula = isFormula;
         }
         
-        public TableCell(object value = null, bool isFormula = false, bool hasBorders = true)
+        public TableCell(object value = null, bool isFormula = false, bool hasBorders = true, bool isBold = false)
         {
             Value = value;
             IsFormula = isFormula;
             HasBorders = hasBorders;
+            IsBold = isBold;
         }
 
         public object Value { get; set; }
@@ -37,20 +38,39 @@ namespace Audacia.Spreadsheets
 
         public bool IsFormula { get; set; }
 
-        public bool HasBorders { get; set; } = true;
+        public bool HasBorderTop { get; set; } = true;
+        public bool HasBorderRight { get; set; } = true;
+        public bool HasBorderBottom { get; set; } = true;
+        public bool HasBorderLeft { get; set; } = true;
+
+        // making still usable despite separating the border into 4 sections as may be required
+        public bool HasBorders
+        {
+            get => HasBorderTop && HasBorderRight && HasBorderBottom && HasBorderLeft;
+            set 
+            { 
+                HasBorderTop = value;
+                HasBorderRight = value;
+                HasBorderBottom = value;
+                HasBorderLeft = value;
+            }
+        }
+
+        public bool IsBold { get; set; }
 
         public CellStyle CellStyle(TableColumn column)
         {
             return new CellStyle
             {
-                TextColour = 0U,
+                TextColour = IsBold ? 1U : 0U,
                 BackgroundColour = 0U,
-                BorderBottom = HasBorders,
-                BorderTop = HasBorders,
-                BorderLeft = HasBorders,
-                BorderRight = HasBorders,
+                BorderBottom = HasBorderBottom,
+                BorderTop = HasBorderTop,
+                BorderLeft = HasBorderLeft,
+                BorderRight = HasBorderRight,
                 Format = column.Format,
-                HasWordWrap = Value is string && !IsFormula
+                HasWordWrap = Value is string && !IsFormula,
+                IsEditable = IsEditable
             };
         }
 
