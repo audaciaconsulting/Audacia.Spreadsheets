@@ -17,7 +17,7 @@ namespace Audacia.Spreadsheets.Extensions
             return Regex.Replace(input, "([a-z](?=[A-Z]|[0-9])|[A-Z](?=[A-Z][a-z]|[0-9])|[0-9](?=[^0-9]))", "$1 ");
         }
 
-        public static IList<TableColumn> GetColumns<T>(params string[] propertiesToIgnore)
+        public static List<TableColumn> GetColumns<T>(params string[] propertiesToIgnore)
         {
             var columns = new List<TableColumn>();
             var properties = typeof(T).GetProps();
@@ -43,26 +43,27 @@ namespace Audacia.Spreadsheets.Extensions
             return columns;
         }
         
-        public static IEnumerable<TableRow> GetRows<T>(this IEnumerable<T> dataList, params string[] propertiesToIgnore)
+        public static IEnumerable<TableRow> GetRows<T>(IEnumerable<T> dataList, params string[] propertiesToIgnore)
         {
             var properties = typeof(T).GetProps();
             
             return dataList.Select(entry =>
             {
-                var cells = properties
-                    .Select(prop => new TableCell(prop.GetValue(entry)))
-                    .ToList();
+                var cells = properties.Select(prop => new TableCell(prop.GetValue(entry)));
                 return TableRow.FromCells(cells, null);
             });
         }
         
-        public static Table ToSpreadsheetTable<T>(this List<T> dataList, IList<string> propertiesToIgnore)
+        /// <summary>
+        /// Generic table generation func, most likely missing lots of functionality.
+        /// </summary>
+        public static Table ToSpreadsheetTable<T>(this IEnumerable<T> dataList, IList<string> propertiesToIgnore)
         {
-            var table = new Table(true);
-            var columns = GetColumns<T>(propertiesToIgnore.ToArray());
-            table.Columns.AddRange(columns);
-            table.Rows = dataList.GetRows(propertiesToIgnore.ToArray());
-            return table;
+            return new Table(includeHeaders: true)
+            {
+                Columns = GetColumns<T>(propertiesToIgnore.ToArray()),
+                Rows = GetRows(dataList, propertiesToIgnore.ToArray())
+            };
         }
     }
 }
