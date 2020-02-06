@@ -13,7 +13,7 @@ namespace Audacia.Spreadsheets
     public class Spreadsheet
     {
         public List<WorksheetBase> Worksheets { get; } = new List<WorksheetBase>();
-        
+
         /// <summary>
         /// Must be defined after worksheets have been defined or the ranges will be moved by the addition of tables
         /// </summary>

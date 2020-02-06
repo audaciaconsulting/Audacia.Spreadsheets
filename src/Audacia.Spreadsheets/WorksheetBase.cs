@@ -31,7 +31,7 @@ namespace Audacia.Spreadsheets
                 : SheetStateValues.Hidden;
         }
 
-        protected abstract void WriteSheetContent(SharedDataTable sharedData, OpenXmlWriter writer);
+        protected abstract void WriteSheet(SharedDataTable sharedData, OpenXmlWriter writer);
 
         public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
@@ -39,7 +39,7 @@ namespace Audacia.Spreadsheets
 
             writer.WriteStartElement(new OpenXmlWorksheet());
 
-            WriteSheetContent(sharedData, writer);
+            WriteSheet(sharedData, writer);
             
             writer.WriteEndElement(); // Worksheet
 
@@ -80,28 +80,44 @@ namespace Audacia.Spreadsheets
                 writer.WriteElement(filter);
             }
         }
-        
-        protected void AddColumns(Table table, OpenXmlWriter writer)
+        protected static void AddColumns(IReadOnlyCollection<Table> tables, OpenXmlWriter writer)
         {
             writer.WriteStartElement(new Columns());
+
+            // Find the table with the most columns and get the total columns
+            var maxColumnCount = tables
+                .OrderByDescending(t => t.Columns.Count)
+                .First().Columns.Count;
+
             const double maxWidth = 11D;
 
-            for (var i = 0; i < table.Columns.Count; i++)
+            for (var columnIndex = 0; columnIndex < maxColumnCount; columnIndex++)
             {
-                var item = Table.GetMaxCharacterWidth(table, i);
+                // Find the max cell width from all tables with the column
+                var item = tables
+                    .Where(t => columnIndex < t.Columns.Count)
+                    .Select(t => new { Table = t, MaxCellWidth = Table.GetMaxCharacterWidth(t, columnIndex) })
+                    .OrderByDescending(x => x.MaxCellWidth)
+                    .FirstOrDefault();
 
                 //width = Truncate([{Number of Characters} * {Maximum Digit Width} + {20 pixel padding}]/{Maximum Digit Width}*256)/256
-                var width = Math.Truncate((item * maxWidth + 20) / maxWidth * 256) / 256;
-
+                var width = Math.Truncate((item.MaxCellWidth * maxWidth + 20) / maxWidth * 256) / 256;
+                
+                // Limit the column width to 75...
+                if (width > 75)
+                {
+                    width = 75;
+                }
+ 
                 //  To adjust for font size.
-                var factor = (table.HeaderStyle?.FontSize ?? 11) / maxWidth;
+                var factor = (item.Table.HeaderStyle?.FontSize ?? 11) / maxWidth;
 
                 var colWidth = (DoubleValue)(width * factor);
 
                 writer.WriteElement(new Column
                 {
-                    Min = Convert.ToUInt32(i + 1),
-                    Max = Convert.ToUInt32(i + 1),
+                    Min = Convert.ToUInt32(columnIndex + 1),
+                    Max = Convert.ToUInt32(columnIndex + 1),
                     CustomWidth = true,
                     BestFit = true,
                     Width = colWidth
@@ -110,7 +126,7 @@ namespace Audacia.Spreadsheets
 
             writer.WriteEndElement();
         }
-
+        
         private void AddProtection(WorksheetPart worksheetPart)
         {
             if (WorksheetProtection == null)

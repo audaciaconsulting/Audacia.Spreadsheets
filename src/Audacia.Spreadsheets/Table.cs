@@ -23,10 +23,8 @@ namespace Audacia.Spreadsheets
 
         public IEnumerable<TableRow> Rows { get; set; }
 
-        public void Write(SharedDataTable sharedData, OpenXmlWriter writer)
+        public CellReference Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
-            writer.WriteStartElement(new SheetData());
-            
             var rowReference = new CellReference(StartingCellRef);
             var rowCount = Rows.Count();
 
@@ -72,11 +70,11 @@ namespace Audacia.Spreadsheets
                 row.Write(rowReference.Clone(), Columns, sharedData, writer);
                 rowReference.NextRow();
             }
-            
-            writer.WriteEndElement(); // Sheet Data
+
+            // Return the cell ref at end of the table
+            return rowReference;
         }
-
-
+        
         public static int GetMaxCharacterWidth(Table table, int columnIndex)
         {
             var column = table.Columns[columnIndex];

@@ -45,7 +45,7 @@ namespace Audacia.Spreadsheets
         {
             return new CellReference(ColumnLetter, RowNumber);
         }
-        
+
         /// <summary>
         /// Returns a new object modified by the given values.
         /// </summary>

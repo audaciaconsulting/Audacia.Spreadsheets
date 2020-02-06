@@ -10,19 +10,25 @@ namespace Audacia.Spreadsheets
     {
         public Table Table { get; set; }
         
-        protected override void WriteSheetContent(SharedDataTable sharedData, OpenXmlWriter writer)
+        protected override void WriteSheet(SharedDataTable sharedData, OpenXmlWriter writer)
         {
+            // Sheet view and columns should only ever be written once per worksheet
             AddSheetView(writer);
-            AddColumns(Table, writer);
+            AddColumns(new[] { Table }, writer);
             
+            writer.WriteStartElement(new SheetData());
+
             Table.Write(sharedData, writer);
+            
+            // Close SheetData tag
+            writer.WriteEndElement();
             
             if (HasAutofilter)
             {
                 AddAutoFilter(Table, sharedData.DefinedNames, writer);
             }
             
-            DataValidations dataValidations = new DataValidations();
+            var dataValidations = new DataValidations();
             
             // Add Static Data Validation
             if (StaticDataValidations != null && StaticDataValidations.Any())
