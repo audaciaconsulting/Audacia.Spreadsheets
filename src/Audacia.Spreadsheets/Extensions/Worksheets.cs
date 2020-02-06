@@ -84,7 +84,7 @@ namespace Audacia.Spreadsheets.Extensions
                 table.Columns.Add(column);
             }
 
-            foreach (var item in data)
+            table.Rows = data.Select(item =>
             {
                 var row = new TableRow();
                 var values = properties.Select(p => p.GetValue(item, null)).ToList();
@@ -129,8 +129,8 @@ namespace Audacia.Spreadsheets.Extensions
                     row.Cells.Add(cell);
                 }
 
-                table.Rows.Add(row);
-            }
+                return row;
+            });
 
             return table;
         }

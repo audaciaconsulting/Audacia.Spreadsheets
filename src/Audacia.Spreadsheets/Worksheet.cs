@@ -93,7 +93,7 @@ namespace Audacia.Spreadsheets
                     firstCell.NextRow();
                 }
 
-                var lastCell = firstCell.MutateBy(table.Columns.Count - 1, table.Rows.Count);
+                var lastCell = firstCell.MutateBy(table.Columns.Count - 1, table.Rows.Count());
 
                 // Selects All Column Headers & Data
                 var cellReference = $"{firstCell}:{lastCell}";
@@ -229,8 +229,7 @@ namespace Audacia.Spreadsheets
 
             var maxRowWidth = includeHeaders ? table.Columns.Count : GetMaxRowWidth(worksheetPart);
 
-            var rows = TableRow.FromOpenXml(worksheetPart, spreadSheet, maxRowWidth, startingRowIndex);
-            table.Rows.AddRange(rows);
+            table.Rows = TableRow.FromOpenXml(worksheetPart, spreadSheet, maxRowWidth, startingRowIndex);
 
             return new Worksheet
             {

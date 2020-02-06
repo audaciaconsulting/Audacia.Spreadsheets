@@ -21,7 +21,7 @@ namespace Audacia.Spreadsheets
 
         public List<TableColumn> Columns { get; } = new List<TableColumn>();
 
-        public List<TableRow> Rows { get; } = new List<TableRow>();
+        public IEnumerable<TableRow> Rows { get; set; }
 
         public void Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
@@ -39,7 +39,7 @@ namespace Audacia.Spreadsheets
                 {
                     var isFirstColumn = column == Columns.ElementAt(0);
                     var isLastColumn = column == Columns.ElementAt(Columns.Count - 1);
-                    column.WriteSubtotal(subtotalCellRef, isFirstColumn, isLastColumn, Rows.Count, sharedData, writer);
+                    column.WriteSubtotal(subtotalCellRef, isFirstColumn, isLastColumn, Rows.Count(), sharedData, writer);
                     subtotalCellRef.NextColumn();
                 }
 
