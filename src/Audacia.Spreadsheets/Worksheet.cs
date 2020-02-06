@@ -229,7 +229,8 @@ namespace Audacia.Spreadsheets
 
             var maxRowWidth = includeHeaders ? table.Columns.Count : GetMaxRowWidth(worksheetPart);
 
-            table.Rows = TableRow.FromOpenXml(worksheetPart, spreadSheet, maxRowWidth, startingRowIndex);
+            // Force enumeration of the content when reading the worksheet, otherwise the spreadsheet is disposed before we can read the data.
+            table.Rows = TableRow.FromOpenXml(worksheetPart, spreadSheet, maxRowWidth, startingRowIndex).ToArray();
 
             return new Worksheet
             {

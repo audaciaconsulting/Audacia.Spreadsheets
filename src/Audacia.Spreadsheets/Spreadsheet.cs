@@ -115,7 +115,6 @@ namespace Audacia.Spreadsheets
 
         public static Spreadsheet FromStream(Stream stream, bool includeHeaders = true, bool hasSubtotals = false)
         {
-            // TODO: fix disposal of spreadsheet and stream before the content has been enumerated
             using (var spreadSheet = SpreadsheetDocument.Open(stream, false))
             {
                 var worksheets = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>()
