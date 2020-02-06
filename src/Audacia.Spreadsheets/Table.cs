@@ -28,6 +28,7 @@ namespace Audacia.Spreadsheets
             writer.WriteStartElement(new SheetData());
             
             var rowReference = new CellReference(StartingCellRef);
+            var rowCount = Rows.Count();
 
             // Write Subtotals above headers
             if (IncludeHeaders && Columns.Any(c => c.DisplaySubtotal))
@@ -39,7 +40,7 @@ namespace Audacia.Spreadsheets
                 {
                     var isFirstColumn = column == Columns.ElementAt(0);
                     var isLastColumn = column == Columns.ElementAt(Columns.Count - 1);
-                    column.WriteSubtotal(subtotalCellRef, isFirstColumn, isLastColumn, Rows.Count(), sharedData, writer);
+                    column.WriteSubtotal(subtotalCellRef, isFirstColumn, isLastColumn, rowCount, sharedData, writer);
                     subtotalCellRef.NextColumn();
                 }
 
