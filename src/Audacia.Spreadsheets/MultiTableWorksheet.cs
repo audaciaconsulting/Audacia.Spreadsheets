@@ -10,7 +10,7 @@ namespace Audacia.Spreadsheets
     {
         public IEnumerable<Table> Tables { get; set; }
         
-        public override void WriteSheetContent(SharedDataTable sharedData, OpenXmlWriter writer)
+        protected override void WriteSheetContent(SharedDataTable sharedData, OpenXmlWriter writer)
         {
             AddSheetView(writer);
 

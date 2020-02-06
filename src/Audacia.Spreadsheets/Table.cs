@@ -19,7 +19,7 @@ namespace Audacia.Spreadsheets
 
         public bool IncludeHeaders { get; set; }
 
-        public List<TableColumn> Columns { get; } = new List<TableColumn>();
+        public List<TableColumn> Columns { get; set; } = new List<TableColumn>();
 
         public IEnumerable<TableRow> Rows { get; set; }
 

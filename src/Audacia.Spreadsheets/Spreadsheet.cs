@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -10,11 +12,13 @@ namespace Audacia.Spreadsheets
 {
     public class Spreadsheet
     {
-        public List<Worksheet> Worksheets { get; } = new List<Worksheet>();
+        public List<WorksheetBase> Worksheets { get; } = new List<WorksheetBase>();
+        
         /// <summary>
         /// Must be defined after worksheets have been defined or the ranges will be moved by the addition of tables
         /// </summary>
         public List<NamedRangeModel> NamedRanges { get; } = new List<NamedRangeModel>();
+        
         /// <summary>
         /// Writes the spreadsheet to a stream as an Excel Workbook (*.xlsx).
         /// </summary>
@@ -22,7 +26,8 @@ namespace Audacia.Spreadsheets
         {
             using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
             {
-                var sharedData = new StylesheetBuilder(Worksheets).Build();
+                var tables = this.GetTables();
+                var sharedData = new StylesheetBuilder(tables).Build();
                 
                 var workbookPart = document.AddWorkbookPart();
                 var workbook = workbookPart.Workbook = new Workbook();
@@ -102,7 +107,7 @@ namespace Audacia.Spreadsheets
             }
         }
         
-        public static Spreadsheet FromWorksheets(params Worksheet[] worksheets)
+        public static Spreadsheet FromWorksheets(params WorksheetBase[] worksheets)
         {
             var spreadsheet = new Spreadsheet();
             if (worksheets != null)

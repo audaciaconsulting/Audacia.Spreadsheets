@@ -31,7 +31,7 @@ namespace Audacia.Spreadsheets
                 : SheetStateValues.Hidden;
         }
 
-        public abstract void WriteSheetContent(SharedDataTable sharedData, OpenXmlWriter writer);
+        protected abstract void WriteSheetContent(SharedDataTable sharedData, OpenXmlWriter writer);
 
         public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
@@ -165,49 +165,7 @@ namespace Audacia.Spreadsheets
             writer.WriteEndElement();
         }
 
-        public static Worksheet FromOpenXml(Sheet worksheet, SpreadsheetDocument spreadSheet, bool includeHeaders, bool hasSubtotals)
-        {
-            var worksheetPart = (WorksheetPart) spreadSheet.WorkbookPart.GetPartById(worksheet.Id);
-
-            var table = new Table
-            {
-                StartingCellRef = "A1",
-                IncludeHeaders = includeHeaders,
-                HeaderStyle = null
-            };
-
-            var startingRowIndex = 0;
-            if (hasSubtotals && includeHeaders)
-            {
-                // Rows start at i = 2 if this sheet was also exported with subtotals 
-                startingRowIndex += 2;
-            } 
-            else if (includeHeaders)
-            {
-                // Rows start at i = 1 to skip header row IF headers are included
-                startingRowIndex += 1;
-            }
-
-            if (includeHeaders)
-            {
-                var columns = TableColumn.FromOpenXml(worksheetPart, spreadSheet, hasSubtotals);
-                table.Columns.AddRange(columns);
-            }
-
-            var maxRowWidth = includeHeaders ? table.Columns.Count : GetMaxRowWidth(worksheetPart);
-
-            // Force enumeration of the content when reading the worksheet, otherwise the spreadsheet is disposed before we can read the data.
-            table.Rows = TableRow.FromOpenXml(worksheetPart, spreadSheet, maxRowWidth, startingRowIndex).ToArray();
-
-            return new Worksheet
-            {
-                SheetName = worksheet.Name,
-                Table = table,
-                Visibility = worksheet.State ?? SheetStateValues.Visible
-            };
-        }
-        
-        private static int GetMaxRowWidth(WorksheetPart worksheetPart)
+        protected static int GetMaxRowWidth(WorksheetPart worksheetPart)
         {
             var maxWidth = 0;
             var rows = worksheetPart.Worksheet.Elements<SheetData>().First().Elements<Row>().ToList();

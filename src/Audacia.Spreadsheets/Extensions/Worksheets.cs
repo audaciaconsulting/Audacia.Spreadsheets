@@ -10,11 +10,20 @@ namespace Audacia.Spreadsheets.Extensions
 {
     public static class Worksheets
     {
-        private static IEnumerable<PropertyInfo> GetProps(this Type classType, params string[] ignoreProperties)
+        internal static IEnumerable<PropertyInfo> GetProps(this Type classType, params string[] ignoreProperties)
         {
             return classType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p => !ignoreProperties.Contains(p.Name))
+                .Where(property =>
+                {
+                    var ignoredAttribute = property.GetCustomAttributes(typeof(CellIgnoreAttribute), false);
+                    if (ignoredAttribute.Any())
+                    {
+                        return false;
+                    }
+
+                    return !ignoreProperties?.Contains(property.Name) ?? true;
+                })
                 .Where(p =>
                 {
                     var underlyingType = p.PropertyType.GetUnderlyingTypeIfNullable();
@@ -61,16 +70,19 @@ namespace Audacia.Spreadsheets.Extensions
                 
                 if (hideColumn) { continue; }
 
+                var headerText = prop.GetCustomAttributes<CellHeaderNameAttribute>(false)?.FirstOrDefault()?.Name
+                    ?? prop.GetDataAnnotationDisplayName();
+                
                 var hideHeader = prop.GetCustomAttributes<HideHeaderAttribute>(false).Any();
                 var displaySubtotal = prop.GetCustomAttributes<SubtotalHeaderAttribute>(false).Any() 
                                    && prop.PropertyType.IsNumeric();
                 var backgroundColour = prop.GetCustomAttributes<CellBackgroundColourAttribute>(false).FirstOrDefault();
                 var textColour = prop.GetCustomAttributes<CellTextColourAttribute>(false).FirstOrDefault();
                 var format = prop.GetCustomAttributes<CellFormatAttribute>(false).FirstOrDefault();
-                
+
                 var column = new TableColumn
                 {
-                    Name = hideHeader ? string.Empty : prop.GetDataAnnotationDisplayName(),
+                    Name = hideHeader ? string.Empty : headerText,
                     DisplaySubtotal = displaySubtotal,
                     CellBackgroundFormat = backgroundColour,
                     CellTextFormat = textColour
