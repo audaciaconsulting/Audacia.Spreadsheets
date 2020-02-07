@@ -10,49 +10,9 @@ namespace Audacia.Spreadsheets
     {
         public Table Table { get; set; }
         
-        protected override void WriteSheet(SharedDataTable sharedData, OpenXmlWriter writer)
+        protected override void WriteSheetData(SharedDataTable sharedData, OpenXmlWriter writer)
         {
-            // Sheet view and columns should only ever be written once per worksheet
-            AddSheetView(writer);
-            AddColumns(new[] { Table }, writer);
-            
-            writer.WriteStartElement(new SheetData());
-
             Table.Write(sharedData, writer);
-            
-            // Close SheetData tag
-            writer.WriteEndElement();
-            
-            if (HasAutofilter)
-            {
-                AddAutoFilter(Table, sharedData.DefinedNames, writer);
-            }
-            
-            var dataValidations = new DataValidations();
-            
-            // Add Static Data Validation
-            if (StaticDataValidations != null && StaticDataValidations.Any())
-            {
-                foreach (var val in StaticDataValidations)
-                {
-                    val.Write(dataValidations);
-                }
-            }
-            
-            // Add Dynamic Data Validation
-            if (DependentDataValidations != null && DependentDataValidations.Any())
-            {
-                foreach (var val in DependentDataValidations)
-                {
-                    val.Write(dataValidations);
-                }
-            }
-
-            //  Only add validation if dataValidations has Descendants
-            if (dataValidations.Descendants<DataValidation>().Any())
-            {
-                writer.WriteElement(dataValidations);
-            }
         }
         
         public static Worksheet FromOpenXml(Sheet worksheet, SpreadsheetDocument spreadSheet, bool includeHeaders, bool hasSubtotals)

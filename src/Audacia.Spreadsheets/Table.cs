@@ -65,9 +65,9 @@ namespace Audacia.Spreadsheets
             }
 
             // Write data
-            foreach (var row in Rows)
+            for(var index = 0; index < rowCount; index++)
             {
-                row.Write(rowReference.Clone(), Columns, sharedData, writer);
+                Rows.ElementAt(index).Write(rowReference.Clone(), Columns, sharedData, writer);
                 rowReference.NextRow();
             }
 
