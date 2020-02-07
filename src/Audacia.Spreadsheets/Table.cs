@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Audacia.Core.Extensions;
+using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Spreadsheet;
 
@@ -64,12 +65,19 @@ namespace Audacia.Spreadsheets
                 rowReference.NextRow();
             }
 
-            // Write data
-            var index = 0;
-            foreach (var row in Rows)
+            // Write data in batches of 1000
+            var sections = Rows.Section(1000);
+            foreach (var section in sections)
             {
-                row.Write(rowReference.Clone(), Columns, sharedData, writer);
-                rowReference.NextRow();
+                foreach (var row in section)
+                {
+                    row.Write(rowReference.Clone(), Columns, sharedData, writer);
+                    rowReference.NextRow();
+                }
+                
+                // This is a work around for a "memory leak" when iterating over 100,0000 rows.
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
 
             // Return the cell ref at end of the table
