@@ -92,9 +92,6 @@ namespace Audacia.Spreadsheets
                 
                 document.Close();
             }
-            
-            // This is a work around for a memory leak when iterating over 100,0000 rows.
-            GC.Collect();
         }
 
         /// <summary>

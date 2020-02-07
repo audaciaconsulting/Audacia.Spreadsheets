@@ -56,53 +56,59 @@ namespace Audacia.Spreadsheets.Extensions
             
             return tableColumns;
         }
-        
+
+        /// <summary>
+        /// Converts the provided entity with attributes into a table row.
+        /// </summary>
+        public static TableRow GetRow<TEntity>(this TEntity entry, IReadOnlyCollection<TableColumn> columns)
+            where TEntity : class
+        {
+            var cells = columns.Select(column =>
+            {
+                var cell = new TableCell
+                {
+                    Value = column.PropertyInfo.GetValue(entry) ?? string.Empty,
+                    FillColour = column.CellBackgroundFormat?.Colour,
+                    TextColour = column.CellTextFormat?.Colour
+                };
+
+                // Get FillColour from property
+                if (!string.IsNullOrEmpty(column.CellBackgroundFormat?.ReferenceField))
+                {
+                    var valueOfMatchingProperty = typeof(TEntity)
+                        .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                        .Where(property => string.Equals(property.Name, column.CellBackgroundFormat.ReferenceField))
+                        .Select(property => property.GetValue(entry, null) as string)
+                        .FirstOrDefault();
+
+                    cell.FillColour = valueOfMatchingProperty;
+                }
+                    
+                // Get TextColour from property
+                if (!string.IsNullOrEmpty(column.CellTextFormat?.ReferenceField))
+                {
+                    var valueOfMatchingProperty = typeof(TEntity)
+                        .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                        .Where(property => string.Equals(property.Name, column.CellTextFormat.ReferenceField))
+                        .Select(property => property.GetValue(entry, null) as string)
+                        .FirstOrDefault();
+
+                    cell.TextColour = valueOfMatchingProperty;
+                }
+
+                return cell;
+            });
+                
+            return TableRow.FromCells(cells, null);
+        }
+
         /// <summary>
         /// Converts the provided enumerable into an enumerable of table rows.
         /// </summary>
         public static IEnumerable<TableRow> GetRows<TEntity>(IEnumerable<TEntity> source, IReadOnlyCollection<TableColumn> columns)
             where TEntity : class
         {
-            return source.Select(entry =>
-            {
-                var cells = columns.Select(column =>
-                {
-                    var cell = new TableCell
-                    {
-                        Value = column.PropertyInfo.GetValue(entry) ?? string.Empty,
-                        FillColour = column.CellBackgroundFormat?.Colour,
-                        TextColour = column.CellTextFormat?.Colour
-                    };
-
-                    // Get FillColour from property
-                    if (!string.IsNullOrEmpty(column.CellBackgroundFormat?.ReferenceField))
-                    {
-                        var valueOfMatchingProperty = typeof(TEntity)
-                            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                            .Where(property => string.Equals(property.Name, column.CellBackgroundFormat.ReferenceField))
-                            .Select(property => property.GetValue(entry, null) as string)
-                            .FirstOrDefault();
-
-                        cell.FillColour = valueOfMatchingProperty;
-                    }
-                    
-                    // Get TextColour from property
-                    if (!string.IsNullOrEmpty(column.CellTextFormat?.ReferenceField))
-                    {
-                        var valueOfMatchingProperty = typeof(TEntity)
-                            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                            .Where(property => string.Equals(property.Name, column.CellTextFormat.ReferenceField))
-                            .Select(property => property.GetValue(entry, null) as string)
-                            .FirstOrDefault();
-
-                        cell.TextColour = valueOfMatchingProperty;
-                    }
-
-                    return cell;
-                });
-                
-                return TableRow.FromCells(cells, null);
-            });
+            return source.Select(entry => GetRow(entry, columns));
         }
 
         /// <summary>

@@ -24,7 +24,7 @@ namespace Audacia.Spreadsheets
 
         public IEnumerable<TableRow> Rows { get; set; }
 
-        public CellReference Write(SharedDataTable sharedData, OpenXmlWriter writer)
+        public virtual CellReference Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
             var rowReference = new CellReference(StartingCellRef);
             var rowCount = Rows.Count();
@@ -76,9 +76,9 @@ namespace Audacia.Spreadsheets
             return rowReference;
         }
         
-        public static int GetMaxCharacterWidth(Table table, int columnIndex)
+        public virtual int GetMaxCharacterWidth(int columnIndex)
         {
-            var column = table.Columns[columnIndex];
+            var column = Columns[columnIndex];
 
             if (column.Width.HasValue)
             {
@@ -86,9 +86,9 @@ namespace Audacia.Spreadsheets
             }
 
             //  Get all of the cells for this column to find the widest cell and make that width of the column
-            var cells = table.Rows.Select(r => r.Cells.Count > columnIndex ? r.Cells[columnIndex] : null).Where(c => c != null).ToList();
+            var cells = Rows.Select(r => r.Cells.Count > columnIndex ? r.Cells[columnIndex] : null).Where(c => c != null).ToList();
 
-            if (table.IncludeHeaders)
+            if (IncludeHeaders)
             {
                 cells.Add(new TableCell(column.Name));
             }
@@ -96,7 +96,7 @@ namespace Audacia.Spreadsheets
             // Create a Cell for Rollup if necessary
             if (column.DisplaySubtotal)
             {
-                var total = table.Rows
+                var total = Rows
                         .Where(r => r.Cells.Count > columnIndex)
                         .Select(r =>
                         {

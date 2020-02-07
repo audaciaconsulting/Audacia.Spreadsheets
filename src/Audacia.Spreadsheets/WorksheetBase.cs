@@ -36,68 +36,69 @@ namespace Audacia.Spreadsheets
         public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
         {
             // Create an openxml writer
-            var writer = OpenXmlWriter.Create(worksheetPart);
-
-            // Create a worksheet
-            writer.WriteStartElement(new OpenXmlWorksheet());
-
-            // Write meta data for the worksheet
-            // Sheet view, Columns, and Sheet Data should only ever be written once per worksheet
-            AddSheetView(writer);
-            
-            var allTables = this.GetTables().ToArray();
-            AddColumns(allTables, writer);
-
-            // Create a place to store sheet data
-            writer.WriteStartElement(new SheetData());
-
-            // write the sheet data
-            WriteSheetData(sharedData, writer);
-
-            // Close SheetData tag
-            writer.WriteEndElement();
-            
-            // We don't currently support autofilters for multi-table worksheets
-            if (HasAutofilter && allTables.Any())
+            using (var writer = OpenXmlWriter.Create(worksheetPart))
             {
-                AddAutoFilter(allTables.First(), sharedData.DefinedNames, writer);
-            }
+                // Create a worksheet
+                writer.WriteStartElement(new OpenXmlWorksheet());
 
-            // Add data validation if required
-            var dataValidations = new DataValidations();
-            
-            // Add Static Data Validation
-            if (StaticDataValidations != null && StaticDataValidations.Any())
-            {
-                foreach (var val in StaticDataValidations)
+                // Write meta data for the worksheet
+                // Sheet view, Columns, and Sheet Data should only ever be written once per worksheet
+                AddSheetView(writer);
+                
+                var allTables = this.GetTables().ToArray();
+                AddColumns(allTables, writer);
+
+                // Create a place to store sheet data
+                writer.WriteStartElement(new SheetData());
+
+                // write the sheet data
+                WriteSheetData(sharedData, writer);
+
+                // Close SheetData tag
+                writer.WriteEndElement();
+                
+                // We don't currently support autofilters for multi-table worksheets
+                if (HasAutofilter && allTables.Any())
                 {
-                    val.Write(dataValidations);
+                    AddAutoFilter(allTables.First(), sharedData.DefinedNames, writer);
                 }
-            }
-            
-            // Add Dynamic Data Validation
-            if (DependentDataValidations != null && DependentDataValidations.Any())
-            {
-                foreach (var val in DependentDataValidations)
-                {
-                    val.Write(dataValidations);
-                }
-            }
 
-            //  Only add validation if dataValidations has Descendants
-            if (dataValidations.Descendants<DataValidation>().Any())
-            {
-                writer.WriteElement(dataValidations);
+                // Add data validation if required
+                var dataValidations = new DataValidations();
+                
+                // Add Static Data Validation
+                if (StaticDataValidations != null && StaticDataValidations.Any())
+                {
+                    foreach (var val in StaticDataValidations)
+                    {
+                        val.Write(dataValidations);
+                    }
+                }
+                
+                // Add Dynamic Data Validation
+                if (DependentDataValidations != null && DependentDataValidations.Any())
+                {
+                    foreach (var val in DependentDataValidations)
+                    {
+                        val.Write(dataValidations);
+                    }
+                }
+
+                //  Only add validation if dataValidations has Descendants
+                if (dataValidations.Descendants<DataValidation>().Any())
+                {
+                    writer.WriteElement(dataValidations);
+                }
+                
+                // Close the worksheet
+                writer.WriteEndElement();
+                
+                // Close the openxml writer for this worksheet part
+                writer.Close();
+                
+                // TODO: this should be done after sheet data using the openxml writer
+                AddProtection(worksheetPart);
             }
-            
-            // Close the worksheet
-            writer.WriteEndElement();
-            
-            // Close the openxml writer for this worksheet part
-            writer.Close();
-            
-            // TODO: this should be done after sheet data using the openxml writer
-            AddProtection(worksheetPart);
         }
 
         protected void AddAutoFilter(Table table, DefinedNames definedNames, OpenXmlWriter writer)
@@ -149,7 +150,7 @@ namespace Audacia.Spreadsheets
                 // Find the max cell width from all tables with the column
                 var item = tables
                     .Where(t => columnIndex < t.Columns.Count)
-                    .Select(t => new { Table = t, MaxCellWidth = Table.GetMaxCharacterWidth(t, columnIndex) })
+                    .Select(t => new { Table = t, MaxCellWidth = t.GetMaxCharacterWidth(columnIndex) })
                     .OrderByDescending(x => x.MaxCellWidth)
                     .FirstOrDefault();
 

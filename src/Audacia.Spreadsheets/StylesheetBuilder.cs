@@ -22,6 +22,7 @@ namespace Audacia.Spreadsheets
                 .ToArray();
 
             _distinctBackgroundColours = allTables
+                .Where(t => t.Rows != null)
                 .SelectMany(dt => dt.Rows)
                 .SelectMany(r => r.Cells.Select(c => c.FillColour))
                 .Where(c => !string.IsNullOrWhiteSpace(c))
@@ -29,6 +30,7 @@ namespace Audacia.Spreadsheets
                 .ToArray();
 
             _distinctTextColours = allTables
+                .Where(t => t.Rows != null)
                 .SelectMany(dt => dt.Rows)
                 .SelectMany(r => r.Cells.Select(c => c.TextColour))
                 .Where(c => !string.IsNullOrWhiteSpace(c))
