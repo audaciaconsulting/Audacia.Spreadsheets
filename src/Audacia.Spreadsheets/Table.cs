@@ -70,12 +70,6 @@ namespace Audacia.Spreadsheets
             {
                 row.Write(rowReference.Clone(), Columns, sharedData, writer);
                 rowReference.NextRow();
-
-                // This is a work around for a "memory leak" when iterating over 100,0000 rows.
-                if (index++ % 10000 == 0)
-                {
-                    GC.Collect();
-                }
             }
 
             // Return the cell ref at end of the table
