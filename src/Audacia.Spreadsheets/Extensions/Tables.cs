@@ -26,6 +26,7 @@ namespace Audacia.Spreadsheets.Extensions
                                       property.PropertyType.IsNumeric();
                 var backgroundColour = property.GetCustomAttributes<CellBackgroundColourAttribute>(false).FirstOrDefault();
                 var textColour = property.GetCustomAttributes<CellTextColourAttribute>(false).FirstOrDefault();
+                var columnWidth = property.GetCustomAttributes<ColumnWidthAttribute>(false).FirstOrDefault();
                 
                 // The column name is either the cell header, the Display attribute or the property name.
                 // Please leave the cell header logic alone, this is specific to gymfinity :(
@@ -38,7 +39,8 @@ namespace Audacia.Spreadsheets.Extensions
                     Name = hideCellHeader ? string.Empty : columnName,
                     DisplaySubtotal = displaySubtotal,
                     CellBackgroundFormat = backgroundColour,
-                    CellTextFormat = textColour
+                    CellTextFormat = textColour,
+                    Width = columnWidth?.Width
                 };
 
                 if (cellFormat != null)

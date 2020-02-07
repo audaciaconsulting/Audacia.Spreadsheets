@@ -109,6 +109,19 @@ Alternative:
 public string DataProperty { get; set; }
 ```
 
+## Column Width
+Sets the column width to an arbitrary value.
+
+Fields:
+- Width
+
+Usage:
+```csharp
+[ColumnWidth(75)]
+public string DataProperty { get; set; }
+```
+
+
 ## Hide Header
 This will set the column header text to an empty string.
 
