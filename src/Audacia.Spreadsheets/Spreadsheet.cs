@@ -75,7 +75,7 @@ namespace Audacia.Spreadsheets
                 }
                 var definedNames = new DefinedNames();
 
-                if ( NamedRanges != null && NamedRanges.Any())
+                if (NamedRanges != null && NamedRanges.Any())
                 {
                     //  Adds DefinedNames To Workbook
                     foreach (var namedRange in NamedRanges)
@@ -92,6 +92,9 @@ namespace Audacia.Spreadsheets
                 
                 document.Close();
             }
+            
+            // This is a work around for a memory leak when iterating over 100,0000 rows.
+            GC.Collect();
         }
 
         /// <summary>
