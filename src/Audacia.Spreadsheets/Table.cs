@@ -65,19 +65,11 @@ namespace Audacia.Spreadsheets
                 rowReference.NextRow();
             }
 
-            // Write data in batches of 1000
-            var sections = Rows.Section(1000);
-            foreach (var section in sections)
+            // If we aren't using a queryable there absolutely nothing we can do about memory at this point
+            foreach (var row in Rows)
             {
-                foreach (var row in section)
-                {
-                    row.Write(rowReference.Clone(), Columns, sharedData, writer);
-                    rowReference.NextRow();
-                }
-                
-                // This is a work around for a "memory leak" when iterating over 100,0000 rows.
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                row.Write(rowReference.Clone(), Columns, sharedData, writer);
+                rowReference.NextRow();
             }
 
             // Return the cell ref at end of the table
