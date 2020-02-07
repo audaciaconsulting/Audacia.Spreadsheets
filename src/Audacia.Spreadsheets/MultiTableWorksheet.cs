@@ -8,7 +8,7 @@ namespace Audacia.Spreadsheets
 {
     public class MultiTableWorksheet : WorksheetBase
     {
-        public IReadOnlyCollection<Table> Tables { get; set; }
+        public IList<Table> Tables { get; set; }
         
         protected override void WriteSheet(SharedDataTable sharedData, OpenXmlWriter writer)
         {

@@ -80,7 +80,8 @@ namespace Audacia.Spreadsheets
                 writer.WriteElement(filter);
             }
         }
-        protected static void AddColumns(IReadOnlyCollection<Table> tables, OpenXmlWriter writer)
+        
+        protected static void AddColumns(IList<Table> tables, OpenXmlWriter writer)
         {
             writer.WriteStartElement(new Columns());
 
