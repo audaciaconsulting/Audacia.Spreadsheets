@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Audacia.Spreadsheets.Attributes;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
@@ -38,6 +39,8 @@ namespace Audacia.Spreadsheets
             DisplaySubtotal = displaySubtotal;
             HasBorders = hasBorders;
         }
+
+        public PropertyInfo PropertyInfo { get; set; }
 
         public string Name { get; set; }
 

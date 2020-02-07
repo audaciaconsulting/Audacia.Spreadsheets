@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,7 +25,7 @@ namespace Audacia.Spreadsheets
         {
             using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
             {
-                var tables = this.GetTables();
+                var tables = Worksheets.GetTables();
                 var sharedData = new StylesheetBuilder(tables).Build();
                 
                 var workbookPart = document.AddWorkbookPart();
