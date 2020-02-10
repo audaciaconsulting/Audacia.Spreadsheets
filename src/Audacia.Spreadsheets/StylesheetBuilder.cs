@@ -11,11 +11,9 @@ namespace Audacia.Spreadsheets
         private readonly ICollection<string> _distinctBackgroundColours;
         private readonly ICollection<string> _distinctTextColours;
 
-        public StylesheetBuilder(IEnumerable<Worksheet> worksheets)
+        public StylesheetBuilder(IEnumerable<Table> tables)
         {
-            var allTables = worksheets
-                .Select(w => w.Table)
-                .ToArray();
+            var allTables = tables.ToArray();
 
             _distinctHeaderStyles = allTables
                 .Where(t => t.HeaderStyle != null)
@@ -24,6 +22,7 @@ namespace Audacia.Spreadsheets
                 .ToArray();
 
             _distinctBackgroundColours = allTables
+                .Where(t => t.Rows != null)
                 .SelectMany(dt => dt.Rows)
                 .SelectMany(r => r.Cells.Select(c => c.FillColour))
                 .Where(c => !string.IsNullOrWhiteSpace(c))
@@ -31,6 +30,7 @@ namespace Audacia.Spreadsheets
                 .ToArray();
 
             _distinctTextColours = allTables
+                .Where(t => t.Rows != null)
                 .SelectMany(dt => dt.Rows)
                 .SelectMany(r => r.Cells.Select(c => c.TextColour))
                 .Where(c => !string.IsNullOrWhiteSpace(c))

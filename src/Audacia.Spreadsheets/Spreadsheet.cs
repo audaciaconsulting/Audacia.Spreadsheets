@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -10,11 +11,13 @@ namespace Audacia.Spreadsheets
 {
     public class Spreadsheet
     {
-        public List<Worksheet> Worksheets { get; } = new List<Worksheet>();
+        public List<WorksheetBase> Worksheets { get; } = new List<WorksheetBase>();
+
         /// <summary>
         /// Must be defined after worksheets have been defined or the ranges will be moved by the addition of tables
         /// </summary>
         public List<NamedRangeModel> NamedRanges { get; } = new List<NamedRangeModel>();
+        
         /// <summary>
         /// Writes the spreadsheet to a stream as an Excel Workbook (*.xlsx).
         /// </summary>
@@ -22,7 +25,8 @@ namespace Audacia.Spreadsheets
         {
             using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
             {
-                var sharedData = new StylesheetBuilder(Worksheets).Build();
+                var tables = Worksheets.GetTables();
+                var sharedData = new StylesheetBuilder(tables).Build();
                 
                 var workbookPart = document.AddWorkbookPart();
                 var workbook = workbookPart.Workbook = new Workbook();
@@ -45,33 +49,38 @@ namespace Audacia.Spreadsheets
                     var sheetNumber = index + 1;
                     var worksheet = Worksheets[index];
                     var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
-
-                    // Sanitize worksheet name
-                    const int maxSheetNameLength = 30;
-                    if (string.IsNullOrWhiteSpace(worksheet.SheetName))
+                    using (var writer = OpenXmlWriter.Create(worksheetPart))
                     {
-                        worksheet.SheetName = $"Sheet {sheetNumber}";
+                        // Sanitize worksheet name
+                        const int maxSheetNameLength = 30;
+                        if (string.IsNullOrWhiteSpace(worksheet.SheetName))
+                        {
+                            worksheet.SheetName = $"Sheet {sheetNumber}";
+                        }
+                        else if (worksheet.SheetName.Length > maxSheetNameLength)
+                        {
+                            worksheet.SheetName = worksheet.SheetName.Substring(0, maxSheetNameLength).Trim();
+                        }
+
+                        var sheet = new Sheet
+                        {
+                            Id = workbookPart.GetIdOfPart(worksheetPart),
+                            SheetId = Convert.ToUInt32(sheetNumber),
+                            State = worksheet.Visibility,
+                            Name = worksheet.SheetName
+                        };
+                        
+                        sheets.Append(sheet);
+
+                        worksheet.Write(sharedData, writer); 
+                        
+                        // Close the openxml writer for this worksheet part
+                        writer.Close();
                     }
-                    else if (worksheet.SheetName.Length > maxSheetNameLength)
-                    {
-                        worksheet.SheetName = worksheet.SheetName.Substring(0, maxSheetNameLength).Trim();
-                    }
-
-                    var sheet = new Sheet
-                    {
-                        Id = workbookPart.GetIdOfPart(worksheetPart),
-                        SheetId = Convert.ToUInt32(sheetNumber),
-                        State = worksheet.Visibility,
-                        Name = worksheet.SheetName
-                    };
-                    
-                    sheets.Append(sheet);
-
-                    worksheet.Write(worksheetPart, sharedData);
                 }
                 var definedNames = new DefinedNames();
 
-                if ( NamedRanges != null && NamedRanges.Any())
+                if (NamedRanges != null && NamedRanges.Any())
                 {
                     //  Adds DefinedNames To Workbook
                     foreach (var namedRange in NamedRanges)
@@ -102,7 +111,7 @@ namespace Audacia.Spreadsheets
             }
         }
         
-        public static Spreadsheet FromWorksheets(params Worksheet[] worksheets)
+        public static Spreadsheet FromWorksheets(params WorksheetBase[] worksheets)
         {
             var spreadsheet = new Spreadsheet();
             if (worksheets != null)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Audacia.Core.Extensions;
+using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Spreadsheet;
 
@@ -19,19 +20,18 @@ namespace Audacia.Spreadsheets
 
         public bool IncludeHeaders { get; set; }
 
-        public List<TableColumn> Columns { get; } = new List<TableColumn>();
+        public List<TableColumn> Columns { get; set; } = new List<TableColumn>();
 
-        public List<TableRow> Rows { get; } = new List<TableRow>();
+        public IEnumerable<TableRow> Rows { get; set; }
 
-        public void Write(SharedDataTable sharedData, OpenXmlWriter writer)
+        public virtual CellReference Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
-            writer.WriteStartElement(new SheetData());
-            
             var rowReference = new CellReference(StartingCellRef);
 
             // Write Subtotals above headers
             if (IncludeHeaders && Columns.Any(c => c.DisplaySubtotal))
             {
+                var rowCount = Rows.Count();
                 var subtotalCellRef = rowReference.Clone();
                 writer.WriteStartElement(new Row());
 
@@ -39,7 +39,7 @@ namespace Audacia.Spreadsheets
                 {
                     var isFirstColumn = column == Columns.ElementAt(0);
                     var isLastColumn = column == Columns.ElementAt(Columns.Count - 1);
-                    column.WriteSubtotal(subtotalCellRef, isFirstColumn, isLastColumn, Rows.Count, sharedData, writer);
+                    column.WriteSubtotal(subtotalCellRef, isFirstColumn, isLastColumn, rowCount, sharedData, writer);
                     subtotalCellRef.NextColumn();
                 }
 
@@ -64,21 +64,22 @@ namespace Audacia.Spreadsheets
                 writer.WriteEndElement();
                 rowReference.NextRow();
             }
-
-            // Write data
+            
+            // Enumerate over all rows and write them using an openxmlwriter
+            // This puts them into a memorystream, to improve this we would need to update the openxml library we are using
             foreach (var row in Rows)
             {
                 row.Write(rowReference.Clone(), Columns, sharedData, writer);
                 rowReference.NextRow();
             }
-            
-            writer.WriteEndElement(); // Sheet Data
+
+            // Return the cell ref at end of the table
+            return rowReference;
         }
-
-
-        public static int GetMaxCharacterWidth(Table table, int columnIndex)
+        
+        public virtual int GetMaxCharacterWidth(int columnIndex)
         {
-            var column = table.Columns[columnIndex];
+            var column = Columns[columnIndex];
 
             if (column.Width.HasValue)
             {
@@ -86,9 +87,9 @@ namespace Audacia.Spreadsheets
             }
 
             //  Get all of the cells for this column to find the widest cell and make that width of the column
-            var cells = table.Rows.Select(r => r.Cells.Count > columnIndex ? r.Cells[columnIndex] : null).Where(c => c != null).ToList();
+            var cells = Rows.Select(r => r.Cells.Count > columnIndex ? r.Cells[columnIndex] : null).Where(c => c != null).ToList();
 
-            if (table.IncludeHeaders)
+            if (IncludeHeaders)
             {
                 cells.Add(new TableCell(column.Name));
             }
@@ -96,7 +97,7 @@ namespace Audacia.Spreadsheets
             // Create a Cell for Rollup if necessary
             if (column.DisplaySubtotal)
             {
-                var total = table.Rows
+                var total = Rows
                         .Where(r => r.Cells.Count > columnIndex)
                         .Select(r =>
                         {
