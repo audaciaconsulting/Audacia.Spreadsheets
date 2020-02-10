@@ -27,11 +27,11 @@ namespace Audacia.Spreadsheets
         public virtual CellReference Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
             var rowReference = new CellReference(StartingCellRef);
-            var rowCount = Rows.Count();
 
             // Write Subtotals above headers
             if (IncludeHeaders && Columns.Any(c => c.DisplaySubtotal))
             {
+                var rowCount = Rows.Count();
                 var subtotalCellRef = rowReference.Clone();
                 writer.WriteStartElement(new Row());
 
