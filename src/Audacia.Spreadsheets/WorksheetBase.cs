@@ -33,72 +33,64 @@ namespace Audacia.Spreadsheets
 
         protected abstract void WriteSheetData(SharedDataTable sharedData, OpenXmlWriter writer);
 
-        public void Write(WorksheetPart worksheetPart, SharedDataTable sharedData)
+        public void Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
-            // Create an openxml writer
-            using (var writer = OpenXmlWriter.Create(worksheetPart))
+            // Create a worksheet
+            writer.WriteStartElement(new OpenXmlWorksheet());
+
+            // Write meta data for the worksheet
+            // Sheet view, Columns, and Sheet Data should only ever be written once per worksheet
+            AddSheetView(writer);
+            
+            var allTables = this.GetTables().ToArray();
+            AddColumns(allTables, writer);
+
+            // Create a place to store sheet data
+            writer.WriteStartElement(new SheetData());
+
+            // write the sheet data
+            WriteSheetData(sharedData, writer);
+
+            // Close SheetData tag
+            writer.WriteEndElement();
+            
+            AddProtection(writer);
+            
+            // We don't currently support autofilters for multi-table worksheets
+            if (HasAutofilter && allTables.Any())
             {
-                // Create a worksheet
-                writer.WriteStartElement(new OpenXmlWorksheet());
-
-                // Write meta data for the worksheet
-                // Sheet view, Columns, and Sheet Data should only ever be written once per worksheet
-                AddSheetView(writer);
-                
-                var allTables = this.GetTables().ToArray();
-                AddColumns(allTables, writer);
-
-                // Create a place to store sheet data
-                writer.WriteStartElement(new SheetData());
-
-                // write the sheet data
-                WriteSheetData(sharedData, writer);
-
-                // Close SheetData tag
-                writer.WriteEndElement();
-                
-                // We don't currently support autofilters for multi-table worksheets
-                if (HasAutofilter && allTables.Any())
-                {
-                    AddAutoFilter(allTables.First(), sharedData.DefinedNames, writer);
-                }
-
-                // Add data validation if required
-                var dataValidations = new DataValidations();
-                
-                // Add Static Data Validation
-                if (StaticDataValidations != null && StaticDataValidations.Any())
-                {
-                    foreach (var val in StaticDataValidations)
-                    {
-                        val.Write(dataValidations);
-                    }
-                }
-                
-                // Add Dynamic Data Validation
-                if (DependentDataValidations != null && DependentDataValidations.Any())
-                {
-                    foreach (var val in DependentDataValidations)
-                    {
-                        val.Write(dataValidations);
-                    }
-                }
-
-                //  Only add validation if dataValidations has Descendants
-                if (dataValidations.Descendants<DataValidation>().Any())
-                {
-                    writer.WriteElement(dataValidations);
-                }
-                
-                // Close the worksheet
-                writer.WriteEndElement();
-                
-                // Close the openxml writer for this worksheet part
-                writer.Close();
-                
-                // TODO: this should be done after sheet data using the openxml writer
-                AddProtection(worksheetPart);
+                AddAutoFilter(allTables.First(), sharedData.DefinedNames, writer);
             }
+
+            // Add data validation if required
+            var dataValidations = new DataValidations();
+            
+            // Add Static Data Validation
+            if (StaticDataValidations != null && StaticDataValidations.Any())
+            {
+                foreach (var val in StaticDataValidations)
+                {
+                    val.Write(dataValidations);
+                }
+            }
+            
+            // Add Dynamic Data Validation
+            if (DependentDataValidations != null && DependentDataValidations.Any())
+            {
+                foreach (var val in DependentDataValidations)
+                {
+                    val.Write(dataValidations);
+                }
+            }
+
+            //  Only add validation if dataValidations has Descendants
+            if (dataValidations.Descendants<DataValidation>().Any())
+            {
+                writer.WriteElement(dataValidations);
+            }
+            
+            // Close the worksheet
+            writer.WriteEndElement();
         }
 
         protected void AddAutoFilter(Table table, DefinedNames definedNames, OpenXmlWriter writer)
@@ -181,7 +173,7 @@ namespace Audacia.Spreadsheets
             writer.WriteEndElement();
         }
         
-        private void AddProtection(WorksheetPart worksheetPart)
+        private void AddProtection(OpenXmlWriter writer)
         {
             if (WorksheetProtection == null)
             {
@@ -214,10 +206,6 @@ namespace Audacia.Spreadsheets
                 sheetProtection.Password = HexPasswordConversion(WorksheetProtection.Password);
                 sheetProtection.SelectLockedCells = false;
             }
-
-            //These are the cells that are editable
-            var pageM = worksheetPart.Worksheet.GetFirstChild<SheetData>();
-            worksheetPart.Worksheet.InsertAfter(sheetProtection, pageM);
         }
 
         protected void AddSheetView(OpenXmlWriter writer)

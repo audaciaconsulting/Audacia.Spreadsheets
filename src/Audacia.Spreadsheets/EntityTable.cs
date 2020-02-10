@@ -15,6 +15,7 @@ namespace Audacia.Spreadsheets
             // Generate the column data if someone hasn't filled it in themselves...
             Columns = Extensions.Tables.GetColumns<TEntity>();
             Data = source;
+            IncludeHeaders = true;
         }
 
         public IEnumerable<TEntity> Data { get; set; }
@@ -66,6 +67,8 @@ namespace Audacia.Spreadsheets
                 rowReference.NextRow();
             }
 
+            // Enumerate over all rows and write them using an openxmlwriter
+            // This puts them into a memorystream, to improve this we would need to update the openxml library we are using
             foreach (var entity in Data)
             {
                 var row = FromEntity(entity);

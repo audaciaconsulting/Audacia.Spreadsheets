@@ -49,29 +49,34 @@ namespace Audacia.Spreadsheets
                     var sheetNumber = index + 1;
                     var worksheet = Worksheets[index];
                     var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
-
-                    // Sanitize worksheet name
-                    const int maxSheetNameLength = 30;
-                    if (string.IsNullOrWhiteSpace(worksheet.SheetName))
+                    using (var writer = OpenXmlWriter.Create(worksheetPart))
                     {
-                        worksheet.SheetName = $"Sheet {sheetNumber}";
+                        // Sanitize worksheet name
+                        const int maxSheetNameLength = 30;
+                        if (string.IsNullOrWhiteSpace(worksheet.SheetName))
+                        {
+                            worksheet.SheetName = $"Sheet {sheetNumber}";
+                        }
+                        else if (worksheet.SheetName.Length > maxSheetNameLength)
+                        {
+                            worksheet.SheetName = worksheet.SheetName.Substring(0, maxSheetNameLength).Trim();
+                        }
+
+                        var sheet = new Sheet
+                        {
+                            Id = workbookPart.GetIdOfPart(worksheetPart),
+                            SheetId = Convert.ToUInt32(sheetNumber),
+                            State = worksheet.Visibility,
+                            Name = worksheet.SheetName
+                        };
+                        
+                        sheets.Append(sheet);
+
+                        worksheet.Write(sharedData, writer); 
+                        
+                        // Close the openxml writer for this worksheet part
+                        writer.Close();
                     }
-                    else if (worksheet.SheetName.Length > maxSheetNameLength)
-                    {
-                        worksheet.SheetName = worksheet.SheetName.Substring(0, maxSheetNameLength).Trim();
-                    }
-
-                    var sheet = new Sheet
-                    {
-                        Id = workbookPart.GetIdOfPart(worksheetPart),
-                        SheetId = Convert.ToUInt32(sheetNumber),
-                        State = worksheet.Visibility,
-                        Name = worksheet.SheetName
-                    };
-                    
-                    sheets.Append(sheet);
-
-                    worksheet.Write(worksheetPart, sharedData);
                 }
                 var definedNames = new DefinedNames();
 

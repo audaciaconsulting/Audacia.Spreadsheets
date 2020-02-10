@@ -64,8 +64,9 @@ namespace Audacia.Spreadsheets
                 writer.WriteEndElement();
                 rowReference.NextRow();
             }
-
-            // If we aren't using a queryable there absolutely nothing we can do about memory at this point
+            
+            // Enumerate over all rows and write them using an openxmlwriter
+            // This puts them into a memorystream, to improve this we would need to update the openxml library we are using
             foreach (var row in Rows)
             {
                 row.Write(rowReference.Clone(), Columns, sharedData, writer);
