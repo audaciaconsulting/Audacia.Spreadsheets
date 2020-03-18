@@ -110,7 +110,26 @@ namespace Audacia.Spreadsheets
                 return stream.ToArray();
             }
         }
-        
+
+        /// <summary>
+        /// Writes the spreadsheet to the specified filepath as an Excel Workbook (*.xlsx).
+        /// </summary>
+        public void Export(string filepath)
+        {
+            if (string.IsNullOrEmpty(filepath))
+                throw new ArgumentNullException(filepath);
+
+            var directory = Path.GetDirectoryName(filepath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                throw new DirectoryNotFoundException(directory);
+
+            using (var fileStream = new FileStream(filepath, FileMode.OpenOrCreate))
+            {
+                Write(fileStream);
+                fileStream.Close();
+            }
+        }
+
         public static Spreadsheet FromWorksheets(params WorksheetBase[] worksheets)
         {
             var spreadsheet = new Spreadsheet();
