@@ -43,6 +43,9 @@ namespace Audacia.Spreadsheets
             AddSheetView(writer);
             
             var allTables = this.GetTables().ToArray();
+
+            DefineColumnsIfRequired(allTables);
+
             AddColumns(allTables, writer);
 
             // Create a place to store sheet data
@@ -125,15 +128,34 @@ namespace Audacia.Spreadsheets
                 writer.WriteElement(filter);
             }
         }
-        
+
+        private void DefineColumnsIfRequired(IEnumerable<Table> tables)
+        {
+            // If the developer has not added any column headers, then we need to do this.
+            // We use TableColumns to define column metadata in OpenXML and also to write cell content.
+            // They do not get to benefit from number formats because they haven't defined their columns themselves.
+            foreach (var table in tables)
+            {
+                if (!table.IncludeHeaders && !table.Columns.Any())
+                {
+                    var maxCells = table.Rows.Max(r => r.Cells.Count);
+                    table.Columns = Enumerable.Range(0, maxCells)
+                        .Select(_ => new TableColumn())
+                        .ToList();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Defines column metadata in the spreadsheet.
+        /// This is specifically for OpenXML columns & defining column widths.
+        /// </summary>
         protected static void AddColumns(IList<Table> tables, OpenXmlWriter writer)
         {
             writer.WriteStartElement(new Columns());
 
             // Find the table with the most columns and get the total columns
-            var maxColumnCount = tables
-                .OrderByDescending(t => t.Columns.Count)
-                .First().Columns.Count;
+            var maxColumnCount = tables.Max(t => t.Columns.Count);
 
             const double maxWidth = 11D;
 
