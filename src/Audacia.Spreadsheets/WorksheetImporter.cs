@@ -264,6 +264,11 @@ namespace Audacia.Spreadsheets
                 {
                     return t;
                 }
+                else if (DateTime.TryParseExact(valueString, "dd/MM/yyyy HH:mm:ss",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                {
+                    return new TimeSpan(dt.Hour, dt.Minute, dt.Second, dt.Millisecond);
+                }
             }
             else if (propertyType == typeof(decimal))
             {
