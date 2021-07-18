@@ -130,6 +130,24 @@ namespace Audacia.Spreadsheets
             }
         }
 
+        /// <summary>
+        /// Reads the spreadsheet from the provided file bytes, supports Excel Workbook (*.xlsx).
+        /// </summary>
+        /// <param name="bytes">Spreadsheet file bytes</param>
+        /// <param name="includeHeaders">Declare if column header row is included on the spreadsheet</param>
+        /// <param name="hasSubtotals">Declare if subtotal row exists above column header row</param>
+        public static Spreadsheet FromBytes(byte[] bytes, bool includeHeaders = true, bool hasSubtotals = false)
+        {
+            using (var ms = new MemoryStream(bytes))
+            {
+                return FromStream(ms, includeHeaders, hasSubtotals);
+            }
+        }
+
+        /// <summary>
+        /// Creates a spreadsheet containing the provided worksheets.
+        /// </summary>
+        /// <param name="worksheets">Worksheets to include</param> 
         public static Spreadsheet FromWorksheets(params WorksheetBase[] worksheets)
         {
             var spreadsheet = new Spreadsheet();
@@ -141,6 +159,12 @@ namespace Audacia.Spreadsheets
             return spreadsheet;
         }
 
+        /// <summary>
+        /// Reads the spreadsheet from the provided stream, supports Excel Workbook (*.xlsx).
+        /// </summary>
+        /// <param name="bytes">Spreadsheet file bytes</param>
+        /// <param name="includeHeaders">Declare if column header row is included on the spreadsheet</param>
+        /// <param name="hasSubtotals">Declare if subtotal row exists above column header row</param>
         public static Spreadsheet FromStream(Stream stream, bool includeHeaders = true, bool hasSubtotals = false)
         {
             using (var spreadSheet = SpreadsheetDocument.Open(stream, false))
