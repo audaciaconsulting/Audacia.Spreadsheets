@@ -80,7 +80,19 @@
         /// Format: d/m/yyyy
         /// </summary>
         Date = 14U,
-        
+
+        /// <summary>
+        /// Formats date/timespan as Time.
+        /// Format: h:mm tt
+        /// </summary>
+        Time = 18U,
+
+        /// <summary>
+        /// Formats date/timespan as Time.
+        /// Format: h:mm:ss tt
+        /// </summary>
+        TimeWithSeconds = 19U,
+
         /// <summary>
         /// Formats timespan to show hours and minutes.
         /// Format: H:mm
@@ -98,6 +110,13 @@
         /// Format: d/mm/yyyy H:mm
         /// </summary>
         DateTime = 22U,
+
+        /// <summary>
+        /// Formats number/date as a Date.
+        /// Is either a legacy or regional date format.
+        /// Format: dd/mm/yyyy
+        /// </summary>
+        DateVariant = 30U,
 
         /// <summary>
         /// Formats number as GBP.
