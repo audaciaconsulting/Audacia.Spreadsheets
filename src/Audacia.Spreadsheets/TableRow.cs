@@ -141,7 +141,16 @@ namespace Audacia.Spreadsheets
                                     {
                                         var date = DateTime.FromOADate(parsedValue);
 
-                                        newCell.Value = date;
+                                        // Breaking Change: Cut down to timespan if required
+                                        if (IsTimespanFormat(cellFormat.NumberFormatId))
+                                        {
+                                            newCell.Value = date.TimeOfDay;
+                                        }
+                                        else
+                                        {
+                                            newCell.Value = date;
+                                        }
+
                                         cellData.Add(newCell);
                                         valueAdded = true;
                                     }
@@ -236,7 +245,7 @@ namespace Audacia.Spreadsheets
             // So first check the ones we do
             if ((numberFormatId >= (uint)CellFormat.Date 
               && numberFormatId <= (uint)CellFormat.DateTime) 
-              || numberFormatId == 30U) // TODO JP: What cell format does 30U stand for?
+              || numberFormatId == (uint)CellFormat.DateVariant)
             {
                 return true;
             }
@@ -261,6 +270,14 @@ namespace Audacia.Spreadsheets
             // Then check if it contains date formatting or year formatting
             return formatCode != null && (formatCode.Contains("mmm") || formatCode.Contains("yy"));
         }
+
+        public static bool IsTimespanFormat(uint numberFormatId)
+        {
+            return (numberFormatId >= (uint)CellFormat.Time
+                && numberFormatId <= (uint)CellFormat.TimeSpanFull)
+                || numberFormatId == (uint)CellFormat.TimeSpanMinutes;
+        }
+
         private static ICollection<uint> GetDateFormatsInFile(WorkbookStylesPart stylePart)
         {
             var formatIds = new Collection<uint>();
