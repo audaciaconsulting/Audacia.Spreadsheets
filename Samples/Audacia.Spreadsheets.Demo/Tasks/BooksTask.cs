@@ -13,11 +13,11 @@ namespace Audacia.Spreadsheets.Demo.Tasks
     {
         private Book[] Dataset { get; } = new[]
         {
-            new Book { IsbnNumber = "086140324X", Author = "Terry Pratchet", Published = DateTime.Now, Timespan = new TimeSpan(1, 0 , 0, 0),  Price = 9.99m, Name = "The Colour of Magic", },
-            new Book { IsbnNumber = "0861402030", Author = "Terry Pratchet", Published = DateTime.Now, Timespan = new TimeSpan(0, 1 , 0, 0),  Price = 10m,   Name = "The Light Fantastic", },
-            new Book { IsbnNumber = "0304364258", Author = "Terry Pratchet", Published = DateTime.Now, Timespan = new TimeSpan(0, 0 , 1, 0),  Price = 8.99m, Name = "Equal Rites",         },
-            new Book { IsbnNumber = "0552152617", Author = "Terry Pratchet", Published = DateTime.Now, Timespan = new TimeSpan(0, 0 , 0, 1),  Price = 20m,   Name = "Mort",                },
-            new Book { IsbnNumber = "0575042176", Author = "Terry Pratchet", Published = DateTime.Now, Timespan = new TimeSpan(1, 24 , 0, 0), Price = 5m,    Name = "Sourcery",            }
+            new Book { IsbnNumber = "086140324X", Author = "Terry Pratchet", Published = DateTime.Now, Price = 9.99m, Name = "The Colour of Magic", },
+            new Book { IsbnNumber = "0861402030", Author = "Terry Pratchet", Published = DateTime.Now, Price = 10m,   Name = "The Light Fantastic", },
+            new Book { IsbnNumber = "0304364258", Author = "Terry Pratchet", Published = DateTime.Now, Price = 8.99m, Name = "Equal Rites",         },
+            new Book { IsbnNumber = "0552152617", Author = "Terry Pratchet", Published = DateTime.Now, Price = 20m,   Name = "Mort",                },
+            new Book { IsbnNumber = "0575042176", Author = "Terry Pratchet", Published = DateTime.Now, Price = 5m,    Name = "Sourcery",            }
         };
 
         public byte[] Export()

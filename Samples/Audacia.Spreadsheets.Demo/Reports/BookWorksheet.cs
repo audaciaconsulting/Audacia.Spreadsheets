@@ -24,10 +24,7 @@ namespace Audacia.Spreadsheets.Demo.Reports
             new TableColumn("Author", hasBorders: false),
             new TableColumn("Published", CellFormat.Date, hasBorders: false),
             new TableColumn("Price (£)", CellFormat.AccountingGBP, displaySubtotal: true, hasBorders: false),
-            new TableColumn("ISBN Number", hasBorders: false),
-            new TableColumn("Full", (CellFormat)30U, hasBorders: false),
-            new TableColumn("Hours", CellFormat.TimeSpanHours, hasBorders: false),
-            new TableColumn("Mins", CellFormat.TimeSpanMinutes, hasBorders: false)
+            new TableColumn("ISBN Number", hasBorders: false)
         };
         
         private static TableRow FromBook(Book book)
@@ -38,10 +35,7 @@ namespace Audacia.Spreadsheets.Demo.Reports
                 new TableCell(book.Author, hasBorders: false),
                 new TableCell(book.Published, hasBorders: false),
                 new TableCell(book.Price, hasBorders: false),
-                new TableCell(book.IsbnNumber, hasBorders: false),
-                new TableCell(book.Timespan, hasBorders: false),
-                new TableCell(book.Timespan, hasBorders: false),
-                new TableCell(book.Timespan, hasBorders: false)
+                new TableCell(book.IsbnNumber, hasBorders: false)
             }, null);
         }
     }
