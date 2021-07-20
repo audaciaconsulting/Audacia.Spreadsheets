@@ -399,7 +399,7 @@ namespace Audacia.Spreadsheets
         /// </summary>
         /// <param name="fields">Cell values</param>
         /// <param name="columnName">Column header</param>
-        protected string GetValue(string[] fields, string columnName)
+        protected string GetValueStr(string[] fields, string columnName)
         {
             if (!SpreadsheetColumns.ContainsKey(columnName)) return string.Empty;
 
