@@ -341,6 +341,7 @@ namespace Audacia.Spreadsheets.Tests
                 new TimeSpan(18, 3, 0),
             }, t => t.Value);
         }
+
         /// <summary>
         /// Validates the ability to convert and parse a formatted value.
         /// </summary>
