@@ -163,7 +163,7 @@ namespace Audacia.Spreadsheets
         /// <summary>
         /// Handles the parsing of the CurrentRow, should add validation errors where necessary.
         /// </summary>
-        protected virtual IList<IImportError> ParseRow(out TRowModel model)
+        protected virtual IEnumerable<IImportError> ParseRow(out TRowModel model)
         {
             // For the application developer to override
             // Use either TryGetCell(), TryGetValue(), TryGetValueStr()
