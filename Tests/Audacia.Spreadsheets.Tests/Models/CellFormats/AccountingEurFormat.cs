@@ -6,5 +6,13 @@ namespace Audacia.Spreadsheets.Tests.Models.CellFormats
     {
         [CellFormat(CellFormat.AccountingEUR)]
         public decimal Value { get; set; }
+
+        public static implicit operator AccountingEurFormat(decimal d)
+        {
+            return new AccountingEurFormat
+            {
+                Value = d
+            };
+        }
     }
 }

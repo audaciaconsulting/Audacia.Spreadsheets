@@ -7,5 +7,13 @@ namespace Audacia.Spreadsheets.Tests.Models.CellFormats
     {
         [CellFormat(CellFormat.Date)]
         public DateTime Value { get; set; }
+
+        public static implicit operator DateFormat(DateTime dt)
+        {
+            return new DateFormat
+            {
+                Value = dt
+            };
+        }
     }
 }

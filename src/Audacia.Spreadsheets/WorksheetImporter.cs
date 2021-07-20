@@ -15,6 +15,14 @@ namespace Audacia.Spreadsheets
     /// </summary>
     public class WorksheetImporter<TRowModel> where TRowModel : class, new()
     {
+        private readonly string[] DateTimeFormats = new[]
+        {
+            "dd/MM/yyyy HH:mm:ss",
+            "dd/MM/yyyy",
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd"
+        };
+
         /// <summary>
         /// Maps expected column headers to properties on the row model.
         /// </summary>
@@ -219,10 +227,11 @@ namespace Audacia.Spreadsheets
                 return null;
             }
 
+            // Fallback parser based on the output property type for when the number format isn't parsed
             if (propertyType == typeof(DateTime))
             {
-                if (DateTime.TryParseExact(valueString, "dd/MM/yyyy HH:mm:ss",
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                // Could be datetime, or number format
+                if (DateTime.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
                 {
                     return dt;
                 }
@@ -240,8 +249,8 @@ namespace Audacia.Spreadsheets
             }
             else if (propertyType == typeof(DateTimeOffset))
             {
-                if (DateTimeOffset.TryParseExact(valueString, "dd/MM/yyyy HH:mm:ss",
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out var dtoff))
+                // Could be datetime, or number format
+                if (DateTimeOffset.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dtoff))
                 {
                     return dtoff;
                 }
@@ -260,14 +269,26 @@ namespace Audacia.Spreadsheets
             }
             else if (propertyType == typeof(TimeSpan))
             {
+                // Could be datetime, timespan, or number format
                 if (TimeSpan.TryParseExact(valueString, "g", CultureInfo.InvariantCulture, out var t))
                 {
                     return t;
                 }
-                else if (DateTime.TryParseExact(valueString, "dd/MM/yyyy HH:mm:ss",
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                else if (DateTime.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
                 {
                     return new TimeSpan(dt.Hour, dt.Minute, dt.Second, dt.Millisecond);
+                }
+                else
+                {
+                    try
+                    {
+                        var datetime = DateTimes.FromOADatePrecise(double.Parse(valueString));
+                        return datetime.TimeOfDay;
+                    }
+                    catch
+                    {
+                        // Import error is raised below
+                    }
                 }
             }
             else if (propertyType == typeof(decimal))

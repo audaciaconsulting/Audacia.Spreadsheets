@@ -6,5 +6,13 @@ namespace Audacia.Spreadsheets.Tests.Models.CellFormats
     {
         [CellFormat(CellFormat.AccountingGBP)]
         public decimal Value { get; set; }
+
+        public static implicit operator AccountingGbpFormat(decimal d)
+        {
+            return new AccountingGbpFormat
+            {
+                Value = d
+            };
+        }
     }
 }

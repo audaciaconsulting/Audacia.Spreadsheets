@@ -6,5 +6,13 @@ namespace Audacia.Spreadsheets.Tests.Models.CellFormats
     {
         [CellFormat(CellFormat.IntegerWithCommas)]
         public int Value { get; set; }
+
+        public static implicit operator IntegerWithCommasFormat(int i)
+        {
+            return new IntegerWithCommasFormat
+            {
+                Value = i
+            };
+        }
     }
 }

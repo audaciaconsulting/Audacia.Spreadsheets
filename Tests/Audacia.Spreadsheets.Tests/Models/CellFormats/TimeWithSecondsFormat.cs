@@ -7,5 +7,13 @@ namespace Audacia.Spreadsheets.Tests.Models.CellFormats
     {
         [CellFormat(CellFormat.TimeWithSeconds)]
         public TimeSpan Value { get; set; }
+
+        public static implicit operator TimeWithSecondsFormat(TimeSpan t)
+        {
+            return new TimeWithSecondsFormat
+            {
+                Value = t
+            };
+        }
     }
 }

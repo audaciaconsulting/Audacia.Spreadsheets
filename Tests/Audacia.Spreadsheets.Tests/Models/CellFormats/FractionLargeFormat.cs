@@ -6,5 +6,13 @@ namespace Audacia.Spreadsheets.Tests.Models.CellFormats
     {
         [CellFormat(CellFormat.FractionLarge)]
         public decimal Value { get; set; }
+
+        public static implicit operator FractionLargeFormat(decimal d)
+        {
+            return new FractionLargeFormat
+            {
+                Value = d
+            };
+        }
     }
 }

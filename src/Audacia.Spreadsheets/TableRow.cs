@@ -245,7 +245,8 @@ namespace Audacia.Spreadsheets
             // So first check the ones we do
             if ((numberFormatId >= (uint)CellFormat.Date 
               && numberFormatId <= (uint)CellFormat.DateTime) 
-              || numberFormatId == (uint)CellFormat.DateVariant)
+              || numberFormatId == (uint)CellFormat.DateVariant
+              || numberFormatId == (uint)CellFormat.TimeSpanMinutes) // Covering edgecase standard parser 
             {
                 return true;
             }
