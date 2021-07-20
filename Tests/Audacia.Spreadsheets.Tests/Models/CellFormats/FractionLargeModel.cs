@@ -2,14 +2,14 @@
 
 namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
-    public class AccountingGbpFormat
+    public class FractionLargeModel
     {
-        [CellFormat(CellFormat.AccountingGBP)]
+        [CellFormat(CellFormat.FractionLarge)]
         public decimal Value { get; set; }
 
-        public static implicit operator AccountingGbpFormat(decimal d)
+        public static implicit operator FractionLargeModel(decimal d)
         {
-            return new AccountingGbpFormat
+            return new FractionLargeModel
             {
                 Value = d
             };

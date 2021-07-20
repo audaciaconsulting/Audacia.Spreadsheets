@@ -2,14 +2,14 @@
 
 namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
-    public class BooleanYnFormat
+    public class BooleanYesNoModel
     {
-        [CellFormat(CellFormat.BooleanYN)]
+        [CellFormat(CellFormat.BooleanYesNo)]
         public bool Value { get; set; }
 
-        public static implicit operator BooleanYnFormat(bool b)
+        public static implicit operator BooleanYesNoModel(bool b)
         {
-            return new BooleanYnFormat
+            return new BooleanYesNoModel
             {
                 Value = b
             };

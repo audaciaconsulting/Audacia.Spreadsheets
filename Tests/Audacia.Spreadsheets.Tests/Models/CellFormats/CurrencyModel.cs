@@ -2,14 +2,14 @@
 
 namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
-    public class Decimal2DpWithCommasFormat
+    public class CurrencyModel
     {
-        [CellFormat(CellFormat.Decimal2DpWithCommas)]
+        [CellFormat(CellFormat.Currency)]
         public decimal Value { get; set; }
 
-        public static implicit operator Decimal2DpWithCommasFormat(decimal d)
+        public static implicit operator CurrencyModel(decimal d)
         {
-            return new Decimal2DpWithCommasFormat
+            return new CurrencyModel
             {
                 Value = d
             };

@@ -2,14 +2,14 @@
 
 namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
-    public class TextFormat
+    public class TextModel
     {
         [CellFormat(CellFormat.Text)]
         public string Value { get; set; }
 
-        public static implicit operator TextFormat(string str)
+        public static implicit operator TextModel(string str)
         {
-            return new TextFormat
+            return new TextModel
             {
                 Value = str
             };

@@ -15,7 +15,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void AccountingEurConversions()
         {
-            Validate(new AccountingEurFormat[]
+            Validate(new AccountingEurModel[]
             {
                 0m,
                 1m,
@@ -28,7 +28,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void AccountingGbpConversions()
         {
-            Validate(new AccountingGbpFormat[]
+            Validate(new AccountingGbpModel[]
             {
                 0m,
                 1m,
@@ -41,7 +41,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void AccountingUsdConversions()
         {
-            Validate(new AccountingUsdFormat[]
+            Validate(new AccountingUsdModel[]
             {
                 0m,
                 1m,
@@ -54,7 +54,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void BooleanOneZeroConversions()
         {
-            Validate(new BooleanOneZeroFormat[]
+            Validate(new BooleanOneZeroModel[]
             {
                 true,
                 false
@@ -64,7 +64,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void BooleanTrueFalseConversions()
         {
-            Validate(new BooleanTrueFalseFormat[]
+            Validate(new BooleanTrueFalseModel[]
             {
                 true,
                 false
@@ -74,7 +74,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void BooleanYesNoConversions()
         {
-            Validate(new BooleanYesNoFormat[]
+            Validate(new BooleanYesNoModel[]
             {
                 true,
                 false
@@ -84,7 +84,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void BooleanYnConversions()
         {
-            Validate(new BooleanYnFormat[]
+            Validate(new BooleanYnModel[]
             {
                 true,
                 false
@@ -94,7 +94,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void CurrencyConversions()
         {
-            Validate(new CurrencyFormat[]
+            Validate(new CurrencyModel[]
             {
                 0m,
                 1m,
@@ -107,7 +107,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void DateConversions()
         {
-            Validate(new DateFormat[]
+            Validate(new DateModel[]
             {
                 new DateTime(1970, 1, 1),
                 new DateTime(2011, 1, 1),
@@ -121,7 +121,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void DateTimeConversions()
         {
-            Validate(new DateTimeFormat[]
+            Validate(new DateTimeModel[]
             {
                 new DateTime(1970, 1, 1, 0, 0, 0),
                 new DateTime(2011, 1, 1, 18, 30, 0),
@@ -135,7 +135,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void DateTimeVariantConversions()
         {
-            Validate(new DateVariantFormat[]
+            Validate(new DateVariantModel[]
             {
                 new DateTime(1970, 1, 1),
                 new DateTime(2011, 1, 1),
@@ -149,7 +149,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void Decimal2DpConversions()
         {
-            Validate(new Decimal2DpFormat[]
+            Validate(new Decimal2DpModel[]
             {
                 -7.59m
                 -3m,
@@ -164,7 +164,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void Decimal2DpWithCommasConversions()
         {
-            Validate(new Decimal2DpWithCommasFormat[]
+            Validate(new Decimal2DpWithCommasModel[]
             {
                 -7.59m
                 -3m,
@@ -179,7 +179,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void FractionLargeConversions()
         {
-            Validate(new FractionLargeFormat[]
+            Validate(new FractionLargeModel[]
             {
                 0.5m,
                 0.3333333333333333m,
@@ -197,7 +197,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void FractionSmallConversions()
         {
-            Validate(new FractionSmallFormat[]
+            Validate(new FractionSmallModel[]
             {
                 0.5m,
                 0.3333333333333333m,
@@ -215,7 +215,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void PercentageConversions()
         {
-            Validate(new PercentageFormat[]
+            Validate(new PercentageModel[]
             {
                 0.1m,
                 0.25m,
@@ -228,7 +228,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void Percentage2DpConversions()
         {
-            Validate(new Percentage2DpFormat[]
+            Validate(new Percentage2DpModel[]
             {
                 0.1m,
                 0.25m,
@@ -241,7 +241,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void ScientificConversions()
         {
-            Validate(new ScientificFormat[]
+            Validate(new ScientificModel[]
             {
                 0.5m,
                 0.3333333333333333m,
@@ -259,7 +259,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void TextConversions()
         {
-            Validate(new TextFormat[]
+            Validate(new TextModel[]
             {
                 "Hello World",
                 "Wibble",
@@ -270,7 +270,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void TimeConversions()
         {
-            Validate(new TimeFormat[]
+            Validate(new TimeModel[]
             {
                 new TimeSpan(0, 0, 0),
                 new TimeSpan(3, 0, 0),
@@ -285,7 +285,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void TimeSpanFullConversions()
         {
-            Validate(new TimeSpanFullFormat[]
+            Validate(new TimeSpanFullModel[]
             {
                 new TimeSpan(0, 0, 0),
                 new TimeSpan(3, 0, 0),
@@ -300,7 +300,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void TimeSpanHoursConversions()
         {
-            Validate(new TimeSpanHoursFormat[]
+            Validate(new TimeSpanHoursModel[]
             {
                 new TimeSpan(0, 0, 0),
                 new TimeSpan(3, 0, 0),
@@ -315,7 +315,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void TimeSpanMinutesConversions()
         {
-            Validate(new TimeSpanMinutesFormat[]
+            Validate(new TimeSpanMinutesModel[]
             {
                 new TimeSpan(0, 0, 0),
                 new TimeSpan(3, 0, 0),
@@ -330,7 +330,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void TimeWithSecondsConversions()
         {
-            Validate(new TimeWithSecondsFormat[]
+            Validate(new TimeWithSecondsModel[]
             {
                 new TimeSpan(0, 0, 0),
                 new TimeSpan(3, 0, 2),

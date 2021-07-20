@@ -3,14 +3,14 @@ using Audacia.Spreadsheets.Attributes;
 
 namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
-    public class TimeFormat
+    public class TimeSpanFullModel
     {
-        [CellFormat(CellFormat.Time)]
+        [CellFormat(CellFormat.TimeSpanFull)]
         public TimeSpan Value { get; set; }
 
-        public static implicit operator TimeFormat(TimeSpan t)
+        public static implicit operator TimeSpanFullModel(TimeSpan t)
         {
-            return new TimeFormat
+            return new TimeSpanFullModel
             {
                 Value = t
             };

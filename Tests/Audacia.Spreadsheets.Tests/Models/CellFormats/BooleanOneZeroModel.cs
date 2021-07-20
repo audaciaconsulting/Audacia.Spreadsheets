@@ -2,14 +2,14 @@
 
 namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
-    public class BooleanOneZeroFormat
+    public class BooleanOneZeroModel
     {
         [CellFormat(CellFormat.BooleanOneZero)]
         public bool Value { get; set; }
 
-        public static implicit operator BooleanOneZeroFormat(bool b)
+        public static implicit operator BooleanOneZeroModel(bool b)
         {
-            return new BooleanOneZeroFormat
+            return new BooleanOneZeroModel
             {
                 Value = b
             };

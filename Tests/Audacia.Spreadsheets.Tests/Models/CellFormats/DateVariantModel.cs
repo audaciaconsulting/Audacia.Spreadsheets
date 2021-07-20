@@ -3,14 +3,14 @@ using Audacia.Spreadsheets.Attributes;
 
 namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
-    public class DateFormat
+    public class DateVariantModel
     {
-        [CellFormat(CellFormat.Date)]
+        [CellFormat(CellFormat.DateVariant)]
         public DateTime Value { get; set; }
 
-        public static implicit operator DateFormat(DateTime dt)
+        public static implicit operator DateVariantModel(DateTime dt)
         {
-            return new DateFormat
+            return new DateVariantModel
             {
                 Value = dt
             };

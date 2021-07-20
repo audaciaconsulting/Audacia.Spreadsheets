@@ -2,14 +2,14 @@
 
 namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
-    public class IntegerFormat
+    public class IntegerWithCommasModel
     {
-        [CellFormat(CellFormat.Integer)]
+        [CellFormat(CellFormat.IntegerWithCommas)]
         public int Value { get; set; }
 
-        public static implicit operator IntegerFormat(int i)
+        public static implicit operator IntegerWithCommasModel(int i)
         {
-            return new IntegerFormat
+            return new IntegerWithCommasModel
             {
                 Value = i
             };
