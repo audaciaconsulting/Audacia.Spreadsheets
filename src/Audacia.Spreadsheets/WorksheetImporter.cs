@@ -49,10 +49,6 @@ namespace Audacia.Spreadsheets
         /// </summary>
         public bool OverrideSpreadsheetColumnMapping { get; set; }
 
-        public IList<IImportError> ImportErrors { get; protected set; } = new List<IImportError>();
-
-        public bool IsValid => !ImportErrors.Any();
-
         /// <summary>
         /// Manually map an expected column to a property on the row model.
         /// </summary>
@@ -95,12 +91,6 @@ namespace Audacia.Spreadsheets
                 throw new InvalidCastException($"The worksheet being imported must inherit from {typeof(Worksheet).FullName}");
             }
 
-            // Reset import errors from previous import
-            if (ImportErrors.Any())
-            { 
-                ImportErrors.Clear();
-            }
-
             // Sets the expected column headers using the default column headers generated for the row model.
             if (!ExpectedColumns.Any())
             {
@@ -121,7 +111,10 @@ namespace Audacia.Spreadsheets
 
                 if (duplicateColumnNames.Any())
                 {
-                    ImportErrors.Add(new DuplicateColumnError(duplicateColumnNames));
+                    yield return new ImportRow<TRowModel>
+                    {
+                        ImportErrors = new[] { new DuplicateColumnError(duplicateColumnNames) }
+                    };
                     yield break;
                 }
 
@@ -135,7 +128,10 @@ namespace Audacia.Spreadsheets
 
                 if (missingColumnNames.Any())
                 {
-                    ImportErrors.Add(new MissingColumnError(missingColumnNames));
+                    yield return new ImportRow<TRowModel>
+                    {
+                        ImportErrors = new[] { new MissingColumnError(missingColumnNames) }
+                    };
                     yield break;
                 }
             }
@@ -144,20 +140,36 @@ namespace Audacia.Spreadsheets
             foreach (var row in Worksheet.Table.Rows)
             {
                 CurrentRow = row;
-                yield return ParseRow();
+                var rowParseErrors = ParseRow(out var rowModel);
+
+                // Allow for custom row validation if inherited
+                var customValidationErrors = rowParseErrors.Any()
+                    ? Enumerable.Empty<IImportError>()
+                    : ValidateRow(rowModel);
+
+                var importModel = new ImportRow<TRowModel>
+                {
+                    Data = rowModel,
+                    ImportErrors = rowParseErrors.Concat(customValidationErrors).ToArray()
+                };
+
+                // We're using yield return to allow for developers to design large imports where the memory can be garbage collected
+                // Obviously this is a band aid against the raging typhoon that is the DocumentFormat.OpenXml library
+                // Because of this design choice we can't have a global validation error list
+                yield return importModel;
             }
         }
 
         /// <summary>
         /// Handles the parsing of the CurrentRow, should add validation errors where necessary.
         /// </summary>
-        protected virtual ImportRow<TRowModel> ParseRow()
+        protected virtual IList<IImportError> ParseRow(out TRowModel model)
         {
             // For the application developer to override
             // Use either TryGetCell(), TryGetValue(), TryGetValueStr()
             // or var fields = CurrentRow.GetFields() and GetValue(fields, ...)
             var rowErrors = new List<IImportError>();
-            var model = new TRowModel();
+            model = new TRowModel();
 
             // Iterate through all properties and set them based on cell value
             foreach (var expectedProperty in ExpectedColumns)
@@ -185,14 +197,18 @@ namespace Audacia.Spreadsheets
                 
             }
 
-            // Add row errors to the main error list
-            ImportErrors.AddRange(rowErrors);
+            return rowErrors;
+        }
 
-            return new ImportRow<TRowModel>
-            {
-                Data = model,
-                ImportErrors = rowErrors
-            };
+        /// <summary>
+        /// Override to add further validation logic for the current row.
+        /// This function will not be called if the row is already considered to be invalid after parsing.
+        /// </summary>
+        /// <param name="row">A parsed row model</param>
+        /// <returns>An enumerable of identified validation errors</returns>
+        protected virtual IEnumerable<IImportError> ValidateRow(TRowModel row)
+        {
+            return Enumerable.Empty<IImportError>();
         }
 
         /// <summary>
