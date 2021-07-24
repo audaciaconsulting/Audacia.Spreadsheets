@@ -219,6 +219,11 @@ namespace Audacia.Spreadsheets.Tests
             Assert.True(output.All(t => t.IsValid));
         }
 
+        /// <summary>
+        /// Validate that a single row was unable to be parsed.
+        /// </summary>
+        /// <typeparam name="T">Row Model</typeparam>
+        /// <param name="output">Parsed row model</param>
         private static void ValidateUnableToParseRow<T>(ImportRow<T> output)
         {
             Assert.False(output.IsValid);
