@@ -191,19 +191,19 @@ namespace Audacia.Spreadsheets
                     continue;
                 }
 
-                var propertyType = expectedProperty.Value.PropertyType;
+                var classMember = expectedProperty.Value;
+                var propertyType = classMember.PropertyType;
                 var underlyingType = propertyType.GetUnderlyingTypeIfNullable();
-                var isNullable = expectedProperty.Value.PropertyType.IsNullable();
+                var isNullable = propertyType.IsNullable();
 
                 // Get the cell value and parse it
                 var parsedValue = ParseValue(columnName, underlyingType, isNullable, cell, rowErrors);
 
                 // Set cell value
-                if (isNullable || parsedValue != null)
+                if (classMember.CanWrite && (isNullable || parsedValue != null))
                 {
-                    expectedProperty.Value.SetValue(model, parsedValue);
+                    classMember.SetValue(model, parsedValue);
                 }
-                
             }
 
             return rowErrors;
