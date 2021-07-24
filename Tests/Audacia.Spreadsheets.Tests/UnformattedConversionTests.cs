@@ -154,8 +154,8 @@ namespace Audacia.Spreadsheets.Tests
         /// </summary>
         /// <typeparam name="T">Row Model</typeparam>
         /// <param name="source">Input Collection</param>
-        /// <param name="property">Property to compare</param>
-        private static void Validate<T>(IList<T> source, Func<T, object> property)
+        /// <param name="propertyFunc">Property to compare</param>
+        private static void Validate<T>(IList<T> source, Func<T, object> propertyFunc)
             where T : class, new()
         {
             // Export row models into spreadsheet file
@@ -164,18 +164,24 @@ namespace Audacia.Spreadsheets.Tests
             // Read and parse spreadsheet into row models
             var output = new WorksheetImporter<T>()
                 .ParseWorksheet(Spreadsheet.FromBytes(bytes).Worksheets[0])
+                .ToArray();
+
+            var actual = output
                 .Select(importRow => importRow.IsValid
-                    ? property(importRow.Data)
+                    ? propertyFunc(importRow.Data)
                     : default(T))
                 .ToArray();
 
             // Select out expected values to compare against
             var expected = source
-                .Select(property)
+                .Select(propertyFunc)
                 .ToArray();
 
             // Assert parsed collection matches the expected collection
-            Assert.Equal(expected, output);
+            Assert.Equal(expected, actual);
+
+            // Ensure that a parsing failure isn't ignored
+            Assert.True(output.All(t => t.IsValid));
         }
     }
 }

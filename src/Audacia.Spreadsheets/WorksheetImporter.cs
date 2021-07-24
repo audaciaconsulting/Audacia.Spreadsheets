@@ -17,10 +17,18 @@ namespace Audacia.Spreadsheets
     {
         private readonly string[] DateTimeFormats = new[]
         {
-            "dd/MM/yyyy HH:mm:ss",
-            "dd/MM/yyyy",
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy-MM-dd"
+            "dd/MM/yyyy HH:mm:ss K",    // DateTimeOffset
+            "dd/MM/yyyy HH:mm:ss",      // Long DateTime
+            "dd/MM/yyyy HH:mm",         // Short DateTime
+            "dd/MM/yyyy",               // Short Date
+            "yyyy-MM-dd HH:mm:ss K",    // Sortable DateTimeOffset
+            "yyyy-MM-dd HH:mm:ss",      // Sortable Long DateTime
+            "yyyy-MM-dd HH:mm",         // Sortable Short DateTime
+            "yyyy-MM-dd",               // Sortable Date
+            "yyyy-MM-ddTH:mm:ss.fffK",  // ISO8601
+            "O",                        // Round-trip DateTime
+            "R",                        // RFC1123
+            "u"                         // Universal Sortable DateTime
         };
 
         /// <summary>
@@ -149,6 +157,7 @@ namespace Audacia.Spreadsheets
 
                 var importModel = new ImportRow<TRowModel>
                 {
+                    RowId = row.Id ?? 0,
                     Data = rowModel,
                     ImportErrors = rowParseErrors.Concat(customValidationErrors).ToArray()
                 };
@@ -234,7 +243,8 @@ namespace Audacia.Spreadsheets
                 return cell.Value;
             }
 
-            var rowId = CurrentRow.Id.Value;
+            // Row ID will always exist when parsing spreadsheets read from file, it won't exist if someone attempts to parse a worksheet generated for export
+            var rowId = CurrentRow.Id ?? 0;
             var valueString = cell.GetValue();
 
             // Skip parsing if empty value and nullable type
@@ -251,7 +261,7 @@ namespace Audacia.Spreadsheets
                 {
                     return dt;
                 }
-                else
+                else if (valueString.ToCharArray().All(c => char.IsDigit(c) || c == '.')) // Only parse number formats
                 {
                     try
                     {
@@ -270,7 +280,7 @@ namespace Audacia.Spreadsheets
                 {
                     return dtoff;
                 }
-                else 
+                else if (valueString.ToCharArray().All(c => char.IsDigit(c) || c == '.')) // Only parse number formats
                 {
                     try
                     {
@@ -346,13 +356,23 @@ namespace Audacia.Spreadsheets
             {
                 try
                 {
-                    return Enum.Parse(propertyType, valueString, ignoreCase: true);
+                    // No option to tryparse without being strongly typed
+                    var enumValue = Enum.Parse(propertyType, valueString, ignoreCase: true);
+
+                    // Ensure that the parsed value is in the defined enum values
+                    if (Enum.IsDefined(propertyType, enumValue))
+                    {
+                        return enumValue;
+                    }
                 }
                 catch
                 {
-                    // No option to tryparse without being strongly typed
                     // Import error is raised below
                 }
+
+                // Override the default import error to include possible values
+                importErrors.Add(new FieldParseError(rowId, columnName, valueString, Enum.GetNames(propertyType)));
+                return null;
             }
 
             importErrors.Add(new FieldParseError(rowId, columnName, valueString));
