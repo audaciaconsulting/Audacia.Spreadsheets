@@ -57,7 +57,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
             var spreadsheet = Spreadsheet.FromBytes(fileBytes);
 
             // Parse first worksheet on the spreadsheet
-            Console.WriteLine("Converting from spreadsheet back to collection of \"nAppointments\"");
+            Console.WriteLine("Converting from spreadsheet back to collection of \"Appointments\"");
             var accountImporter = new AppointmentImporter();
             var importRows = accountImporter
                 .ParseWorksheet(spreadsheet.Worksheets[0])

@@ -17,6 +17,11 @@ namespace Audacia.Spreadsheets.Demo.Importers
             model = null;
             var importErrors = new List<IImportError>();
 
+            if (!TryGetString(x => x.Reference, out var reference))
+            {
+                importErrors.Add(new FieldParseError(GetRowNumber(), GetColumnHeader(x => x.Reference)));
+            }
+
             if (!TryGetDateTime(x => x.StartDateTime, out var start))
             {
                 importErrors.Add(new FieldParseError(GetRowNumber(), GetColumnHeader(x => x.StartDateTime)));
@@ -41,6 +46,7 @@ namespace Audacia.Spreadsheets.Demo.Importers
             {
                 model = new Appointment
                 {
+                    Reference = reference,
                     StartDateTime = start,
                     DurationInMinutes = duration,
                     EmployeeName = employee,
