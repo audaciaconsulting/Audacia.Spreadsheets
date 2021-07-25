@@ -3,7 +3,6 @@
 _**Note to future maintainers:**
 Don't change the enum values of OpenXml CellFormats._
 
-
 | ID   | Enum Name            | Description               |  Format Example  |
 |:----:| -------------------- | ------------------------- | :--------------: |
 |  0   | Text                 | Default format            |     wibble       |
@@ -20,6 +19,7 @@ Don't change the enum values of OpenXml CellFormats._
 |  20  | TimeSpanHours        | Hours, minutes            |      01:30       |
 |  21  | TimeSpanFull         | Hours, minutes, seconds   |     01:30:00     |
 |  22  | DateTime             | dd/mm/yyyy H:mm           | 10/02/2019 21:04 |
+|  30  | DateVariant          | dd/mm/yyyy                |    10/02/2019    |
 |  44  | Currency             | Deal with it              |      £10.00      |
 |  45  | TimeSpanMinutes      | Minutes, seconds          |       30:00      |
 |  164 | AccountingGBP        | Pounds Sterling           |      £10.00      |

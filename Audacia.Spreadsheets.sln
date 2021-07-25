@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Demo", "Samples\Audacia.Spreadsheets.Demo\Audacia.Spreadsheets.Demo.csproj", "{A97E8BDE-1D35-417C-AA10-10FA6F0EE053}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audacia.Spreadsheets.Tests", "Tests\Audacia.Spreadsheets.Tests\Audacia.Spreadsheets.Tests.csproj", "{CF2BF33F-2F4E-4036-AAFE-73D091FBBB3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Tests", "Tests\Audacia.Spreadsheets.Tests\Audacia.Spreadsheets.Tests.csproj", "{CF2BF33F-2F4E-4036-AAFE-73D091FBBB3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

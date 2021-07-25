@@ -8,7 +8,7 @@ You can add freeze panes to worksheets.
 
 If you create a new Freeze Pane it will automatically be setup to freeze the top row.
 
-```
+```csharp
 public class HouseReport : Worksheet
 {
     public HouseReport(...)
@@ -23,7 +23,7 @@ public class HouseReport : Worksheet
 Change the starting cell to move the freeze pane about.
 Change the FrozenColumn & FrozenRow properties to change the size of the frozen pane.
 
-```
+```csharp
 public class BookReport : Worksheet
 {
     public BookReport(...)

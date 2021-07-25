@@ -3,6 +3,8 @@
 This library does not support importing colours.
 
 ## Table Headers
+
+
 By default table headers are a sky blue colour.
 If you or your client don't like this you can replace it using a `TableHeaderStyle`.
 
@@ -24,6 +26,7 @@ public class BookReport : Worksheet
 
 The default fill colour for a new TableHeaderStyle is White.
 Colours can be defined as hex codes.
+
 ```csharp
 public class TableHeaderStyle
 {
@@ -44,6 +47,7 @@ For more information on creating worksheets see [Imports](./Imports.md).
 
 Currently there are no extra options other than customising cell colours.
 This library does not currently support making specific cells **Bold** or *Italic*.
+
 ```csharp
 new TableCell("Some interesting coloured text"),
 {

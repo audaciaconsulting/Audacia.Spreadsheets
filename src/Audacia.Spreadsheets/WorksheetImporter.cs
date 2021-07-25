@@ -47,10 +47,18 @@ namespace Audacia.Spreadsheets
         /// </summary>
         protected TableRow CurrentRow { get; private set; }
 
+
         /// <summary>
-        /// Current worksheet being parsed by the importer.
+        /// Manually map an expected column to a property on the row model.
         /// </summary>
-        protected Worksheet Worksheet { get; private set; }
+        /// <param name="propertyExpression">Property on row model</param>
+        public WorksheetImporter<TRowModel> MapColumn(Expression<Func<TRowModel, object>> propertyExpression)
+        {
+            var propertyInfo = ExpressionExtensions.GetPropertyInfo(propertyExpression);
+            var columnHeader = propertyInfo.GetDataAnnotationDisplayName();
+
+            return MapColumn(columnHeader, propertyExpression);
+        }
 
         /// <summary>
         /// Manually map an expected column to a property on the row model.
@@ -81,15 +89,15 @@ namespace Audacia.Spreadsheets
 
         /// <summary>
         /// Parses the worksheet, is only able to handle data table style worksheets with column headers.
-        /// If there are no column headers on the sheet, you will need to manuall configure ColumnMap to use this.
+        /// If there are no column headers on the sheet, you will need to manually configure the expected columns to use this.
         /// </summary>
         /// <param name="worksheet">Worksheet to be parsed</param>
         /// <param name="ignoreProperties">Properties to ignore when generating expected column headers</param>
         public IEnumerable<ImportRow<TRowModel>> ParseWorksheet(WorksheetBase worksheet, params string[] ignoreProperties)
         {
             // We only support single worksheets
-            Worksheet = worksheet as Worksheet;
-            if (Worksheet == null)
+            var sheet = worksheet as Worksheet;
+            if (sheet == null)
             {
                 throw new InvalidCastException($"The worksheet being imported must inherit from {typeof(Worksheet).FullName}");
             }
@@ -112,9 +120,9 @@ namespace Audacia.Spreadsheets
                 }
 
                 // Check for duplicate column names in spreadsheet
-                var duplicateColumnNames = Worksheet.Table.Columns
+                var duplicateColumnNames = sheet.Table.Columns
                     .Where(c => !string.IsNullOrWhiteSpace(c.Name))
-                    .Where(c => Worksheet.Table.Columns.Count(tc => tc.Name == c.Name) > 1)
+                    .Where(c => sheet.Table.Columns.Count(tc => tc.Name == c.Name) > 1)
                     .Select(c => c.Name)
                     .ToArray();
 
@@ -128,7 +136,7 @@ namespace Audacia.Spreadsheets
                 }
 
                 // Convert column headers on spreadsheet into mapping dictionary
-                SpreadsheetColumns = Worksheet.Table.Columns.ToDictionary();
+                SpreadsheetColumns = sheet.Table.Columns.ToDictionary();
 
                 // Check for missing column headers
                 var missingColumnNames = ExpectedColumns.Keys
@@ -146,7 +154,7 @@ namespace Audacia.Spreadsheets
             }
 
             // Iterate over and parse all rows
-            foreach (var row in Worksheet.Table.Rows)
+            foreach (var row in sheet.Table.Rows)
             {
                 CurrentRow = row;
                 var rowParseErrors = ParseRow(out var rowModel);
@@ -284,15 +292,15 @@ namespace Audacia.Spreadsheets
         /// Cell.Value can be a string, decimal, or DateTime.
         /// Cell.FillColour is also parsed.
         /// </summary>
-        /// <param name="columnName">Column Header</param>
+        /// <param name="columnHeader">Column Header</param>
         /// <param name="cell">Cell Data</param>
-        protected bool TryGetCell(string columnName, out TableCell cell)
+        protected bool TryGetCell(string columnHeader, out TableCell cell)
         {
             cell = null;
 
-            if (!SpreadsheetColumns.ContainsKey(columnName)) return false;
+            if (!SpreadsheetColumns.ContainsKey(columnHeader)) return false;
 
-            var columnIndex = SpreadsheetColumns[columnName];
+            var columnIndex = SpreadsheetColumns[columnHeader];
 
             if (CurrentRow.Cells.Count <= columnIndex) return false;
 

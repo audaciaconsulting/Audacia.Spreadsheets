@@ -114,16 +114,16 @@ namespace Audacia.Spreadsheets
         /// <summary>
         /// Writes the spreadsheet to the specified filepath as an Excel Workbook (*.xlsx).
         /// </summary>
-        public void Export(string filepath)
+        public void Export(string filePath)
         {
-            if (string.IsNullOrEmpty(filepath))
-                throw new ArgumentNullException(filepath);
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentNullException(filePath);
 
-            var directory = Path.GetDirectoryName(filepath);
+            var directory = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                 throw new DirectoryNotFoundException(directory);
 
-            using (var fileStream = new FileStream(filepath, FileMode.OpenOrCreate))
+            using (var fileStream = new FileStream(filePath, FileMode.OpenOrCreate))
             {
                 Write(fileStream);
                 fileStream.Close();
@@ -141,6 +141,20 @@ namespace Audacia.Spreadsheets
             using (var ms = new MemoryStream(bytes))
             {
                 return FromStream(ms, includeHeaders, hasSubtotals);
+            }
+        }
+
+        /// <summary>
+        /// Reads the spreadsheet from the provided file location, supports Excel Workbook (*.xlsx).
+        /// </summary>
+        /// <param name="filePath">Path to spreadsheet file</param>
+        /// <param name="includeHeaders">Declare if column header row is included on the spreadsheet</param>
+        /// <param name="hasSubtotals">Declare if subtotal row exists above column header row</param>
+        public static Spreadsheet FromFilePath(string filePath, bool includeHeaders = true, bool hasSubtotals = false)
+        {
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                return FromStream(fs, includeHeaders, hasSubtotals);
             }
         }
 

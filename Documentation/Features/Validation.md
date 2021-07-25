@@ -1,8 +1,10 @@
 # Validation
+
 Some built in validation models, you don't have to use them.
 It's up to you to write your own validation logic.
 
 All validation models implement `IImportError`.
+
 ```csharp
 public interface IImportError
 {
@@ -11,9 +13,11 @@ public interface IImportError
 ```
 
 ## Sheet Validation
+
 - **MissingWorksheetError** - For one or more missing worksheets.
 
 ## Column Validation
+
 - **DuplicateColumnError** - For when there are multiple columns with the same name.
 
 - **MissingColumnError** - For one or more missing columns.
