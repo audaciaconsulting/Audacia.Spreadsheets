@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Audacia.Spreadsheets.Validation
 {
@@ -9,6 +10,13 @@ namespace Audacia.Spreadsheets.Validation
     {
         public string KeyName { get; }
         public string DuplicateKey { get; }
+
+        public DuplicateKeyError(int rowNumber, string keyName, string duplicateKey)
+            : base(new[] { rowNumber })
+        {
+            KeyName = keyName;
+            DuplicateKey = duplicateKey;
+        }
 
         public DuplicateKeyError(IEnumerable<int> rowNumbers, string keyName, string duplicateKey) 
             : base(rowNumbers)

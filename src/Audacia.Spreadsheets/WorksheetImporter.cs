@@ -90,7 +90,7 @@ namespace Audacia.Spreadsheets
         /// </summary>
         /// <param name="worksheet">Worksheet to be parsed</param>
         /// <param name="ignoreProperties">Properties to ignore when generating expected column headers</param>
-        public virtual IEnumerable<ImportRow<TRowModel>> ParseWorksheet(WorksheetBase worksheet, params string[] ignoreProperties)
+        public IEnumerable<ImportRow<TRowModel>> ParseWorksheet(WorksheetBase worksheet, params string[] ignoreProperties)
         {
             // We only support single worksheets
             Worksheet = worksheet as Worksheet;
@@ -170,6 +170,32 @@ namespace Audacia.Spreadsheets
         }
 
         /// <summary>
+        /// Gets the column header for a property.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <exception cref="InvalidOperationException">When the property is not an expected worksheet column</exception>
+        protected string GetColumnHeader(Expression<Func<TRowModel, object>> propertyExpression)
+        {
+            var propertyInfo = ExpressionExtensions.GetPropertyInfo(propertyExpression);
+
+            if (!ExpectedColumns.Values.Contains(propertyInfo))
+            {
+                throw new InvalidOperationException($"Property '{propertyInfo.Name}' is not an expected worksheet column.");
+            }
+
+            return ExpectedColumns.Single(kvp => kvp.Value == propertyInfo).Key;
+        }
+
+        /// <summary>
+        /// Returns the ID of the current row (defaults to zero).
+        /// </summary>
+        protected int GetRowNumber() 
+        {
+            // Row ID will always exist when parsing spreadsheets read from file, it won't exist if someone attempts to parse a worksheet generated for export
+            return CurrentRow.Id ?? 0;
+        }
+
+        /// <summary>
         /// Handles the parsing of the CurrentRow, should add validation errors where necessary.
         /// </summary>
         protected virtual IEnumerable<IImportError> ParseRow(out TRowModel model)
@@ -187,7 +213,7 @@ namespace Audacia.Spreadsheets
                 var columnName = expectedProperty.Key;
                 if (!TryGetCell(columnName, out var cell))
                 {
-                    rowErrors.Add(new FieldMissingError(CurrentRow.Id.Value, columnName));
+                    rowErrors.Add(new FieldMissingError(GetRowNumber(), columnName));
                     continue;
                 }
 
@@ -207,6 +233,322 @@ namespace Audacia.Spreadsheets
             }
 
             return rowErrors;
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="bool"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetBoolean(Expression<Func<TRowModel, object>> propertyExpression, out bool value)
+        {
+            value = false;
+            return TryGetString(propertyExpression, out var str) &&
+                   Bool.TryParse(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell data from the current row.
+        /// Cell.Value can be a string, decimal, or DateTime.
+        /// Cell.FillColour is also parsed.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="cell">Cell Data</param>
+        protected bool TryGetCell(Expression<Func<TRowModel, object>> propertyExpression, out TableCell value)
+        {
+            try
+            {
+                var column = GetColumnHeader(propertyExpression);
+                return TryGetCell(column, out value);
+            }
+            catch
+            {
+                value = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Try get cell data from the current row.
+        /// Cell.Value can be a string, decimal, or DateTime.
+        /// Cell.FillColour is also parsed.
+        /// </summary>
+        /// <param name="columnName">Column Header</param>
+        /// <param name="cell">Cell Data</param>
+        protected bool TryGetCell(string columnName, out TableCell cell)
+        {
+            cell = null;
+
+            if (!SpreadsheetColumns.ContainsKey(columnName)) return false;
+
+            var columnIndex = SpreadsheetColumns[columnName];
+
+            if (CurrentRow.Cells.Count <= columnIndex) return false;
+
+            cell = CurrentRow.Cells[columnIndex];
+
+            return true;
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="DateTime"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetDateTime(Expression<Func<TRowModel, object>> propertyExpression, out DateTime value)
+        {
+            // Further optimisation possible can be done but code makes code look overly complex
+            // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
+            value = DateTime.MinValue;
+            return TryGetString(propertyExpression, out var str) &&
+                   TryParseDateTime(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="DateTimeOffset"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetDateTimeOffset(Expression<Func<TRowModel, object>> propertyExpression, out DateTimeOffset value)
+        {
+            // Further optimisation possible can be done but code makes code look overly complex
+            // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
+            value = DateTimeOffset.MinValue;
+            return TryGetString(propertyExpression, out var str) &&
+                   TryParseDateTimeOffset(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="decimal"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetDecimal(Expression<Func<TRowModel, object>> propertyExpression, out decimal value)
+        {
+            // Further optimisation possible can be done but code makes code look overly complex
+            // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
+            value = 0m;
+            return TryGetString(propertyExpression, out var str) &&
+                   decimal.TryParse(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="double"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetDouble(Expression<Func<TRowModel, object>> propertyExpression, out double value)
+        {
+            // Further optimisation possible can be done but code makes code look overly complex
+            // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
+            value = 0d;
+            return TryGetString(propertyExpression, out var str) &&
+                   double.TryParse(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="{TEnum}"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetEnum<TEnum>(Expression<Func<TRowModel, object>> propertyExpression, out TEnum value)
+        {
+            // Further optimisation possible can be done but code makes code look overly complex
+            // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
+            value = default(TEnum);
+            return TryGetString(propertyExpression, out var str) &&
+                   TryParseEnum<TEnum>(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="float"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetFloat(Expression<Func<TRowModel, object>> propertyExpression, out float value)
+        {
+            // Further optimisation possible can be done but code makes code look overly complex
+            // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
+            value = 0f;
+            return TryGetString(propertyExpression, out var str) &&
+                   float.TryParse(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="int"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetInteger(Expression<Func<TRowModel, object>> propertyExpression, out int value)
+        {
+            // Further optimisation possible can be done but code makes code look overly complex
+            // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
+            value = 0;
+            return TryGetString(propertyExpression, out var str) &&
+                   int.TryParse(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="TimeSpan"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetTimespan(Expression<Func<TRowModel, object>> propertyExpression, out TimeSpan value)
+        {
+            // Further optimisation possible can be done but code makes code look overly complex
+            // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
+            value = default(TimeSpan);
+            return TryGetString(propertyExpression, out var str) &&
+                   TryParseTimeSpan(str, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="string"/>.
+        /// </summary>
+        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetString(Expression<Func<TRowModel, object>> propertyExpression, out string value)
+        {
+            var propertyInfo = ExpressionExtensions.GetPropertyInfo(propertyExpression);
+
+            if (!ExpectedColumns.Values.Contains(propertyInfo))
+            {
+                throw new InvalidOperationException($"Property '{propertyInfo.Name}' is not an expected column in the spreadsheet.");
+            }
+
+            var columnHeader = ExpectedColumns.Single(kvp => kvp.Value == propertyInfo).Key;
+
+            return TryGetString(columnHeader, out value);
+        }
+
+        /// <summary>
+        /// Try get cell value from the current row as a <see cref="string"/>.
+        /// </summary>
+        /// <param name="columnName">Column Header</param>
+        /// <param name="value">Cell Value</param>
+        protected bool TryGetString(string columnName, out string value)
+        {
+            var foundCell = TryGetCell(columnName, out var cell);
+            value = cell?.Value.ToString() ?? string.Empty;
+            return foundCell;
+        }
+
+        /// <summary>
+        /// Attempts to parse a <see cref="DateTime"/> from a <see cref="string"/> using a predefined set of datetime formats.
+        /// </summary>
+        /// <param name="valueString">Formatted string</param>
+        /// <param name="value">Output value</param>
+        /// <returns><see cref="true"/> if successful</returns>
+        protected bool TryParseDateTime(string valueString, out DateTime value)
+        {
+            // Could be datetime, or number format
+            if (DateTime.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out value))
+            {
+                return true;
+            }
+            else if (valueString.IsNumeric() &&
+                double.TryParse(valueString, out var oaDate) &&
+                oaDate > 0)
+            {
+                value = DateTimes.FromOADatePrecise(oaDate);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to parse a <see cref="DateTimeOffset"/> from a <see cref="string"/> using a predefined set of datetime formats.
+        /// </summary>
+        /// <param name="valueString">Formatted string</param>
+        /// <param name="value">Output value</param>
+        /// <returns><see cref="true"/> if successful</returns>
+        protected bool TryParseDateTimeOffset(string valueString, out DateTimeOffset value)
+        {
+            // Could be datetime, or number format
+            if (DateTimeOffset.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out value))
+            {
+                return true;
+            }
+            else if (valueString.IsNumeric() &&
+                double.TryParse(valueString, out var oaDate) &&
+                oaDate > 0)
+            {
+                value = new DateTimeOffset(DateTimes.FromOADatePrecise(oaDate));
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to parse an Enum from a <see cref="string"/>.
+        /// </summary>
+        /// <param name="enumType">Enum value type</param>
+        /// <param name="valueString">Formatted string</param>
+        /// <param name="value">Output value</param>
+        protected bool TryParseEnum(Type enumType, string valueString, out object value)
+        {
+            try
+            {
+                // No option to tryparse without being strongly typed
+                value = Enum.Parse(enumType, valueString, ignoreCase: true);
+
+                // Ensure that the parsed value is in the defined enum values
+                if (Enum.IsDefined(enumType, value))
+                {
+                    return true;
+                }
+
+                // Parse failed, will return below
+            }
+            catch
+            {
+                // Parse failed, will return below
+            }
+
+            value = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to parse a <see cref="{TEnum}"/> from a <see cref="string"/>.
+        /// </summary>
+        /// <param name="valueString">Formatted string</param>
+        /// <param name="value">Output value</param>
+        protected bool TryParseEnum<TEnum>(string valueString, out TEnum value)
+        {
+            var type = typeof(TEnum);
+            if (type.IsEnum && TryParseEnum(type, valueString, out var enumValue))
+            {
+                value = (TEnum)enumValue;
+                return true;
+            }
+
+            value = default(TEnum);
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to parse a <see cref="TimeSpan"/> from a <see cref="string"/>.
+        /// </summary>
+        /// <param name="valueString">Formatted string</param>
+        /// <param name="value">Output value</param>
+        /// <returns><see cref="true"/> if successful</returns>
+        protected bool TryParseTimeSpan(string valueString, out TimeSpan value)
+        {
+            // Could be datetime, timespan, or number format
+            if (TimeSpan.TryParseExact(valueString, "g", CultureInfo.InvariantCulture, out value))
+            {
+                return true;
+            }
+            else if (TryParseDateTime(valueString, out var dt))
+            {
+                value = dt.TimeOfDay;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -243,8 +585,6 @@ namespace Audacia.Spreadsheets
                 return cell.Value;
             }
 
-            // Row ID will always exist when parsing spreadsheets read from file, it won't exist if someone attempts to parse a worksheet generated for export
-            var rowId = CurrentRow.Id ?? 0;
             var valueString = cell.GetValue();
 
             // Skip parsing if empty value and nullable type
@@ -256,65 +596,23 @@ namespace Audacia.Spreadsheets
             // Fallback parser based on the output property type for when the number format isn't parsed
             if (propertyType == typeof(DateTime))
             {
-                // Could be datetime, or number format
-                if (DateTime.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                if (TryParseDateTime(valueString, out var dt))
                 {
                     return dt;
-                }
-                else if (valueString.ToCharArray().All(c => char.IsDigit(c) || c == '.')) // Only parse number formats
-                {
-                    try
-                    {
-                        return DateTimes.FromOADatePrecise(double.Parse(valueString));
-                    }
-                    catch
-                    {
-                        // Import error is raised below
-                    }
                 }
             }
             else if (propertyType == typeof(DateTimeOffset))
             {
-                // Could be datetime, or number format
-                if (DateTimeOffset.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dtoff))
+                if (TryParseDateTimeOffset(valueString, out var dto))
                 {
-                    return dtoff;
-                }
-                else if (valueString.ToCharArray().All(c => char.IsDigit(c) || c == '.')) // Only parse number formats
-                {
-                    try
-                    {
-                        var datetime = DateTimes.FromOADatePrecise(double.Parse(valueString));
-                        return new DateTimeOffset(datetime);
-                    }
-                    catch
-                    {
-                        // Import error is raised below
-                    }
+                    return dto;
                 }
             }
             else if (propertyType == typeof(TimeSpan))
             {
-                // Could be datetime, timespan, or number format
-                if (TimeSpan.TryParseExact(valueString, "g", CultureInfo.InvariantCulture, out var t))
+                if (TryParseTimeSpan(valueString, out var t))
                 {
                     return t;
-                }
-                else if (DateTime.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
-                {
-                    return new TimeSpan(dt.Hour, dt.Minute, dt.Second, dt.Millisecond);
-                }
-                else
-                {
-                    try
-                    {
-                        var datetime = DateTimes.FromOADatePrecise(double.Parse(valueString));
-                        return datetime.TimeOfDay;
-                    }
-                    catch
-                    {
-                        // Import error is raised below
-                    }
                 }
             }
             else if (propertyType == typeof(decimal))
@@ -354,80 +652,19 @@ namespace Audacia.Spreadsheets
             }
             else if (propertyType.IsEnum)
             {
-                try
+                if (TryParseEnum(propertyType, valueString, out var enumValue))
                 {
-                    // No option to tryparse without being strongly typed
-                    var enumValue = Enum.Parse(propertyType, valueString, ignoreCase: true);
-
-                    // Ensure that the parsed value is in the defined enum values
-                    if (Enum.IsDefined(propertyType, enumValue))
-                    {
-                        return enumValue;
-                    }
-                }
-                catch
-                {
-                    // Import error is raised below
+                    return enumValue;
                 }
 
                 // Override the default import error to include possible values
-                importErrors.Add(new FieldParseError(rowId, columnName, valueString, Enum.GetNames(propertyType)));
+                importErrors.Add(new FieldParseError(GetRowNumber(), columnName, valueString, Enum.GetNames(propertyType)));
                 return null;
             }
 
-            importErrors.Add(new FieldParseError(rowId, columnName, valueString));
+            importErrors.Add(new FieldParseError(GetRowNumber(), columnName, valueString));
 
             return null;
-        }
-
-        /// <summary>
-        /// Try get cell data from the current row.
-        /// Cell.Value can be a string, decimal, or DateTime.
-        /// Cell.FillColour is also parsed.
-        /// </summary>
-        /// <param name="columnName">Column Header</param>
-        /// <param name="cell">Cell Data</param>
-        protected bool TryGetCell(string columnName, out TableCell cell)
-        {
-            cell = null;
-
-            if (!SpreadsheetColumns.ContainsKey(columnName)) return false;
-
-            var columnIndex = SpreadsheetColumns[columnName];
-
-            if (CurrentRow.Cells.Count <= columnIndex) return false;
-
-            cell = CurrentRow.Cells[columnIndex];
-
-            return true;
-        }
-
-        /// <summary>
-        /// Try get cell value from the current row as a string.
-        /// </summary>
-        /// <param name="columnName">Column Header</param>
-        /// <param name="value">Cell Value</param>
-        protected bool TryGetValueStr(string columnName, out string value)
-        {
-            var foundCell = TryGetCell(columnName, out var cell);
-            value = cell?.Value.ToString() ?? string.Empty;
-            return foundCell;
-        }
-
-        /// <summary>
-        /// Gets the cell value by name from the provided fields.
-        /// </summary>
-        /// <param name="fields">Cell values</param>
-        /// <param name="columnName">Column header</param>
-        protected string GetValueStr(string[] fields, string columnName)
-        {
-            if (!SpreadsheetColumns.ContainsKey(columnName)) return string.Empty;
-
-            var columnIndex = SpreadsheetColumns[columnName];
-
-            if (fields.Length <= columnIndex) return string.Empty;
-
-            return fields[columnIndex];
         }
     }
 }

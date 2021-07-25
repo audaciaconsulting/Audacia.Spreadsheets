@@ -10,7 +10,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
     /// <summary>
     /// Example of exporting and importing a dataset with generic logic.
     /// </summary>
-    public class AccountsTask
+    public class GenericExportImportTask
     {
         private Account[] Dataset { get; } = new[]
         {
@@ -57,7 +57,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
 
         public byte[] Export()
         {
-            Console.WriteLine("\r\nAccountsTask: Export() Started");
+            Console.WriteLine("\r\nAccounts: Export() Started");
 
             // Print out data that will be exported
             Console.WriteLine("Printing dataset.");
@@ -79,13 +79,13 @@ namespace Audacia.Spreadsheets.Demo.Tasks
             Console.WriteLine("Exporting spreadsheet to a byte array.");
             var bytes = spreadsheet.Export();
 
-            Console.WriteLine("AccountsTask: Export() Completed\r\n");
+            Console.WriteLine("Accounts: Export() Completed\r\n");
             return bytes;
         }
 
         public ICollection<Account> Import(byte[] fileBytes)
         {
-            Console.WriteLine("\r\nAccountsTask: Import() Started");
+            Console.WriteLine("\r\nAccounts: Import() Started");
 
             // Read in spreadsheet, supports .FromBytes() and .FromStream()
             Console.WriteLine("Reading spreadsheet from bytes.");
@@ -94,8 +94,26 @@ namespace Audacia.Spreadsheets.Demo.Tasks
             // Parse first worksheet on the spreadsheet
             Console.WriteLine("Converting from spreadsheet back to collection of \"Accounts\"");
             var accountImporter = new WorksheetImporter<Account>();
-            var accounts = accountImporter
+            var importRows = accountImporter
                 .ParseWorksheet(spreadsheet.Worksheets[0])
+                .ToArray();
+
+            // Print validation errors from failure to parse data
+            if (importRows.Any(r => !r.IsValid)) 
+            {
+                Console.WriteLine("Import Failed: see below errors");
+                foreach (var invalidRow in importRows.Where(r => !r.IsValid)) 
+                {
+                    Console.WriteLine("Row {0}:", invalidRow.RowId);
+
+                    foreach (var fieldError in invalidRow.ImportErrors)
+                    {
+                        Console.WriteLine("\t{0}", fieldError.GetMessage());
+                    }
+                }
+            }
+
+            var accounts = importRows
                 .Where(r => r.IsValid)
                 .Select(r => r.Data)
                 .ToList();
@@ -107,7 +125,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
                 Console.WriteLine(a);
             }
 
-            Console.WriteLine("AccountsTask: Import() Completed\r\n");
+            Console.WriteLine("Accounts: Import() Completed\r\n");
             return accounts;
         }
     }

@@ -9,7 +9,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
     /// <summary>
     /// Example of exporting and importing a dataset with customisable logic.
     /// </summary>
-    public class BooksTask
+    public class CustomExportImportTask
     {
         private Book[] Dataset { get; } = new[]
         {
@@ -22,7 +22,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
 
         public byte[] Export()
         {
-            Console.WriteLine("\r\nBooksTask: Export() Started");
+            Console.WriteLine("\r\nBooks: Export() Started");
 
             // Print out data that will be exported
             Console.WriteLine("Printing dataset.");
@@ -44,13 +44,13 @@ namespace Audacia.Spreadsheets.Demo.Tasks
             Console.WriteLine("Exporting spreadsheet to a byte array.");
             var bytes = spreadsheet.Export();
 
-            Console.WriteLine("BooksTask: Export() Completed");
+            Console.WriteLine("Books: Export() Completed");
             return bytes;
         }
 
         public ICollection<Book> Import(byte[] fileBytes)
         {
-            Console.WriteLine("\r\nBooksTask: Import() Started");
+            Console.WriteLine("\r\nBooks: Import() Started");
 
             // Read in spreadsheet, supports .FromBytes() and .FromStream()
             Console.WriteLine("Reading spreadsheet from bytes.");
@@ -68,7 +68,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
                 Console.WriteLine(b);
             }
 
-            Console.WriteLine("BooksTask: Import() Completed\r\n");
+            Console.WriteLine("Books: Import() Completed\r\n");
             return books;
         }
     }
