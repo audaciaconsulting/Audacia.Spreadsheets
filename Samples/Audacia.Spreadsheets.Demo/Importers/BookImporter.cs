@@ -8,9 +8,7 @@ using Audacia.Spreadsheets.Extensions;
 namespace Audacia.Spreadsheets.Demo.Importers
 {
     /// <summary>
-    /// Example Book Importer.
-    /// This is a barebones importer and does not contain validation,
-    /// I would recommend validating the content of your spreadsheet as you parse it.
+    /// Example barebones importer, does not contain validation.
     /// </summary>
     public class BookImporter
     {

@@ -4,7 +4,6 @@ This library does not support importing colours.
 
 ## Table Headers
 
-
 By default table headers are a sky blue colour.
 If you or your client don't like this you can replace it using a `TableHeaderStyle`.
 

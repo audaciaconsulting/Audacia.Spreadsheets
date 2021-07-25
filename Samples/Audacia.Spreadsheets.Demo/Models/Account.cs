@@ -29,7 +29,7 @@ namespace Audacia.Spreadsheets.Demo.Models
         public DateTime StartDate { get; set; }
 
         [Display(Name = "Working Hours")]
-        [CellFormat(CellFormat.TimeSpanFull)] // TODO JP: Parse using the format on the property
+        [CellFormat(CellFormat.TimeSpanFull)]
         public TimeSpan WorkingHours { get; set; }
 
         [Display(Name = "Hourly Rate")]
