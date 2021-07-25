@@ -30,6 +30,7 @@ namespace Audacia.Spreadsheets
             "R",                        // RFC1123
             "u"                         // Universal Sortable DateTime
         };
+        private bool skipWorksheetColumnMapping;
 
         /// <summary>
         /// Maps expected column headers to properties on the row model.
@@ -52,12 +53,6 @@ namespace Audacia.Spreadsheets
         protected Worksheet Worksheet { get; private set; }
 
         /// <summary>
-        /// Set to true before manually mapping columns to skip automatic column header mapping.
-        /// To be used in situations where a spreadsheet has no column headers.
-        /// </summary>
-        public bool OverrideSpreadsheetColumnMapping { get; set; }
-
-        /// <summary>
         /// Manually map an expected column to a property on the row model.
         /// </summary>
         /// <param name="columnHeader">Expected column header or display name</param>
@@ -73,7 +68,7 @@ namespace Audacia.Spreadsheets
             ExpectedColumns.Add(columnHeader, propertyInfo);
 
             // Manually append spreadsheet cell mapping in the case where no column headers exist
-            if (OverrideSpreadsheetColumnMapping)
+            if (skipWorksheetColumnMapping)
             {
                 var previousColumnIndex = SpreadsheetColumns.Any()
                     ? SpreadsheetColumns.Values.LastOrDefault()
@@ -110,6 +105,12 @@ namespace Audacia.Spreadsheets
             // Create column headers map, if not manually setup
             if (!SpreadsheetColumns.Any())
             {
+                if (skipWorksheetColumnMapping)
+                {
+                    throw new InvalidOperationException(
+                        $"Incorrect usage, .{nameof(SkipColumnHeaderMapping)}() should be called before .{nameof(MapColumn)}() when no column headers are expected.");
+                }
+
                 // Check for duplicate column names in spreadsheet
                 var duplicateColumnNames = Worksheet.Table.Columns
                     .Where(c => !string.IsNullOrWhiteSpace(c.Name))
@@ -167,6 +168,16 @@ namespace Audacia.Spreadsheets
                 // Because of this design choice we can't have a global validation error list
                 yield return importModel;
             }
+        }
+
+        /// <summary>
+        /// Overrides automatic column header mapping when parsing the worksheet.
+        /// This should be used in situations where a worksheet has no column headers.
+        /// </summary>
+        public WorksheetImporter<TRowModel> SkipColumnHeaderMapping()
+        {
+            skipWorksheetColumnMapping = true;
+            return this;
         }
 
         /// <summary>

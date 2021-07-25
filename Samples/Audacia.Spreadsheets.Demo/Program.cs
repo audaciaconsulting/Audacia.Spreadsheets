@@ -6,23 +6,25 @@ namespace Audacia.Spreadsheets.Demo
     {
         static void Main(string[] args)
         {
-            // Creating custom importers & exporters
-            var customImporterTask = new CustomExportImportTask();
-            var bookFileBytes = customImporterTask.Export();
-            var books = customImporterTask.Import(bookFileBytes);
+            // Create custom worksheet exports & import by accessing the spreadsheet directly
+            var customExample = new CustomExportImportTask();
+            var bookFileBytes = customExample.Export();
+            var books = customExample.Import(bookFileBytes);
 
-            // Creating a generic datasheet export
-            var genericImporterTask = new GenericExportImportTask();
-            var accountFileBytes = genericImporterTask.Export();
-            var accounts = genericImporterTask.Import(accountFileBytes);
+            // Create a generic datasheet export and import
+            var genericExample = new GenericExportImportTask();
+            var accountFileBytes = genericExample.Export();
+            var accounts = genericExample.Import(accountFileBytes);
 
-            // Creating a generic export with extended validation when importing
-            var extendedImporterTask = new ExtendedExportImportTask();
-            var appointmentFileBytes = extendedImporterTask.Export();
-            var appointments = extendedImporterTask.Import(appointmentFileBytes);
+            // Create a generic export with extended validation when importing
+            var extendedExample = new ExtendedExportImportTask();
+            var appointmentFileBytes = extendedExample.Export();
+            var appointments = extendedExample.Import(appointmentFileBytes);
 
-            // Creating a generic export and import without column headers
-
+            // Create a generic export and import without column headers
+            var noHeadersExample = new NoHeadersExportImportTask();
+            var stockFileBytes = noHeadersExample.Export();
+            var stock = noHeadersExample.Import(stockFileBytes);
 
             // Creating an export with multiple tables
         }
