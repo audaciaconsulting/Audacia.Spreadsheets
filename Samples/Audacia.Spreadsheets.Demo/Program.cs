@@ -25,8 +25,6 @@ namespace Audacia.Spreadsheets.Demo
             var noHeadersExample = new NoHeadersExportImportTask();
             var stockFileBytes = noHeadersExample.Export();
             var stock = noHeadersExample.Import(stockFileBytes);
-
-            // Creating an export with multiple tables
         }
     }
 }
