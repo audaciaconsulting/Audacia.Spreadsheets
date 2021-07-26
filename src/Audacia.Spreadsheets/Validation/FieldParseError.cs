@@ -9,17 +9,30 @@ namespace Audacia.Spreadsheets.Validation
         public string Value { get; }
         public string PossibleValues { get; }
 
-        public FieldParseError(int rowNumber, string fieldName, string value, string possibleValues = null) 
+        public FieldParseError(int rowNumber, string fieldName)
+            : base(rowNumber)
+        {
+            FieldName = fieldName;
+        }
+
+        public FieldParseError(int rowNumber, string fieldName, string value, params string[] possibleValues) 
             : base(rowNumber)
         {
             FieldName = fieldName;
             Value = value;
-            PossibleValues = possibleValues;
+            PossibleValues = possibleValues != null && possibleValues.Length > 0
+                ? string.Join(", ", possibleValues)
+                : null;
         }
 
         public string GetMessage()
         {
-            return $"{FieldName} is invalid{(!string.IsNullOrEmpty(PossibleValues) ? $", please use {PossibleValues}" : string.Empty)}.";
+            if (Value == null && PossibleValues == null)
+            {
+                return $"Unable to parse field \"{FieldName}\".";
+            }
+
+            return $"Unable to parse field \"{FieldName}\" of \"{Value}\"{(!string.IsNullOrEmpty(PossibleValues) ? $", please use {PossibleValues}" : string.Empty)}.";
         }
     }
 }

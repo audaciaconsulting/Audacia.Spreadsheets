@@ -1,7 +1,9 @@
 ﻿# Exporting a spreadsheet
+
 Step by step instructions to create and export a worksheet.
 
-### Have an entity to export
+## Have an entity to export
+
 ```csharp
 using System;
 using Audacia.Spreadsheets;
@@ -13,15 +15,11 @@ public class Book
     public string IsbnNumber { get; set; }
     public DateTime Published { get; set; }
     public decimal Price { get; set; }
-
-    public override string ToString()
-    {
-        return $"{Name}, {Author}, {Published:d}, {Price:C}, {IsbnNumber}";
-    }
 }
 ```
 
-### Define a worksheet model
+## Define a worksheet model
+
 ```csharp
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +31,7 @@ public class BookReport : Worksheet
 {
     public BookReport(ICollection<Book> source)
     {
-        SheetName = "Good Books";
+        SheetName = "Books";
         var table = new Table(includeHeaders: true);
         var rows = source.Select(FromBook);
         
@@ -67,7 +65,8 @@ public class BookReport : Worksheet
 }
 ```
 
-### Populate the worksheet and export it
+## Populate the worksheet and export it
+
 ```csharp
 using System;
 using System.IO;
@@ -91,13 +90,8 @@ static void Main(string[] args)
     
     Console.WriteLine("Creating a spreadsheet.");
     var spreadsheet = Spreadsheet.FromWorksheets(worksheet);
-    
-    // If you need to write to the file system you can pass it a stream
-    Console.WriteLine("Writing spreadsheet to a stream.");
-    using (var fileStream = new FileStream(@".\Books.xlsx", FileMode.OpenOrCreate))
-    {
-        spreadsheet.Write(fileStream);
-        fileStream.Close();
-    }
+
+    Console.WriteLine("Writing spreadsheet to a file.");
+    spreadsheet.Export(@".\Books.xlsx");
 }
 ```

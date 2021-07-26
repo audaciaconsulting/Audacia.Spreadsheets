@@ -99,8 +99,10 @@ namespace Audacia.Spreadsheets
                         var c = matchedCells.First();
                         if (c.DataType != null && c.DataType.HasValue && c.DataType.Value == CellValues.SharedString)
                         {
+                            // Read value from shared string table
                             newCell.Value = stringTable.SharedStringTable.ElementAt(int.Parse(c.CellValue.Text)).InnerText;
 
+                            // Read cell colour
                             if (c.StyleIndex != null)
                             {
                                 var styleIndex = (int)c.StyleIndex.Value;
@@ -119,8 +121,10 @@ namespace Audacia.Spreadsheets
                         }
                         else
                         {
+                            // Read value from worksheet
                             var valueAdded = false;
 
+                            // If a cell format is defined
                             if (c.StyleIndex != null)
                             {
                                 var styleIndex = (int)c.StyleIndex.Value;
@@ -129,6 +133,7 @@ namespace Audacia.Spreadsheets
                                 var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
                                 var patternFill = fill?.PatternFill;
 
+                                // Parse DateTime
                                 if (IsDateFormat(cellFormat.NumberFormatId) ||
                                     dateFormatIds.Contains(cellFormat.NumberFormatId))
                                 {
@@ -136,12 +141,22 @@ namespace Audacia.Spreadsheets
                                     {
                                         var date = DateTime.FromOADate(parsedValue);
 
-                                        newCell.Value = date;
+                                        // Breaking Change: Cut down to timespan if required
+                                        if (IsTimespanFormat(cellFormat.NumberFormatId))
+                                        {
+                                            newCell.Value = date.TimeOfDay;
+                                        }
+                                        else
+                                        {
+                                            newCell.Value = date;
+                                        }
+
                                         cellData.Add(newCell);
                                         valueAdded = true;
                                     }
                                 }
 
+                                // Parse Numbers
                                 if (!valueAdded && IsNumberFormat(cellFormat.NumberFormatId))
                                 {
                                     if (!valueAdded && decimal.TryParse(c.CellValue.Text, out var value))
@@ -152,15 +167,16 @@ namespace Audacia.Spreadsheets
                                     }
                                 }
 
+                                // Read cell colour
                                 newCell.FillColour = GetColor(spreadSheet, patternFill);
                             }
 
+                            // Read cell value as string
                             if (!valueAdded)
                             {
                                 newCell.Value = c.CellValue.Text;
                                 cellData.Add(newCell);
                             }
-
 
                         }
                     }
@@ -229,7 +245,8 @@ namespace Audacia.Spreadsheets
             // So first check the ones we do
             if ((numberFormatId >= (uint)CellFormat.Date 
               && numberFormatId <= (uint)CellFormat.DateTime) 
-              || numberFormatId == 30U)
+              || numberFormatId == (uint)CellFormat.DateVariant
+              || numberFormatId == (uint)CellFormat.TimeSpanMinutes) // Covering edgecase standard parser 
             {
                 return true;
             }
@@ -254,6 +271,14 @@ namespace Audacia.Spreadsheets
             // Then check if it contains date formatting or year formatting
             return formatCode != null && (formatCode.Contains("mmm") || formatCode.Contains("yy"));
         }
+
+        public static bool IsTimespanFormat(uint numberFormatId)
+        {
+            return (numberFormatId >= (uint)CellFormat.Time
+                && numberFormatId <= (uint)CellFormat.TimeSpanFull)
+                || numberFormatId == (uint)CellFormat.TimeSpanMinutes;
+        }
+
         private static ICollection<uint> GetDateFormatsInFile(WorkbookStylesPart stylePart)
         {
             var formatIds = new Collection<uint>();

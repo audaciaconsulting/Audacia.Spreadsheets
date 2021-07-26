@@ -1,11 +1,14 @@
 # Audacia.Spreadsheets
+
 Utilities for importing and generating spreadsheets.
 
 ## Pre-Installation
+
 Make sure you have setup the Audacia VSTS nuget registry.
 Either use the [adc tool](https://dev.azure.com/audacia/Audacia.DevOps/_git/Audacia.CommandLine?path=%2FREADME.md&version=GBmaster) or follow the instructions [here](https://docs.microsoft.com/en-gb/azure/devops/artifacts/nuget/consume?view=azure-devops&viewFallbackFrom=vsts&tabs=new-nav)
 
 ## Installation
+
 If you are using the current template project you can skip this step.
 Now that you have the registries setup you can install the package.
 
@@ -14,44 +17,59 @@ Now that you have the registries setup you can install the package.
 Install-Package Audacia.Spreadsheets
 ```
 
-### Basic Exports:
-For more info [see Exports](./Features/Exports.md).
+### Basic Exports
+
+For more info [see Exports](./Features/Exports.md), or the **Audacia.Spreadsheets.Demo** project.
+
 ```csharp
-var books = new [] { ... books ... };
+using Audacia.Spreadsheets;
+using Audacia.Spreadsheets.Extensions;
+...
+
+var books = new Book[] { ... };
 
 // Create an exportable worksheet
-var worksheet = new BookReport(books);
+var worksheet = books.ToWorksheet();
 
-// Create a spreadsheet
-var spreadsheet = Spreadsheet.FromWorksheets(worksheet1, worksheet2);
+// Add all your worksheets into a spreadsheet
+var spreadsheet = Spreadsheet.FromWorksheets(worksheet);
 
- // If you are a web project you can write to a byte array
-var bytes = spreadsheet.Export();
-
-// If you need to write to the file system you can pass it a stream
-using (var fileStream = new FileStream(@".\Books.xlsx", FileMode.OpenOrCreate))
-{
-    spreadsheet.Write(fileStream);
-    fileStream.Close();
-}
-
+// .Export() can write to a byte[] or a filepath, alternatively use .Write() to write to a stream
+spreadsheet.Export("./books.xlsx");
 ```
 
-### Basic Imports:
-For more info [see Imports](./Features/Imports.md).
+### Basic Imports
+
+For more info [see Imports](./Features/Imports.md), or the **Audacia.Spreadsheets.Demo** project.
+
 ```csharp
-// Read from a stream.
-var spreadsheet = default(Spreadsheet);
-using (var fileStream = new FileStream(@".\Houses.xlsx", FileMode.Open, FileAccess.Read))
+using System.Linq;
+using Audacia.Spreadsheets;
+...
+
+// Alternatively you can read from a byte[] using .FromBytes() or stream using .FromStream()
+var spreadsheet = Spreadsheet.FromFilePath("./books.xlsx");
+
+// Inherit from WorksheetImporter<T> to implement your own custom parsing and/or validation logic per row
+var importer = new WorksheetImporter<Book>();
+
+var importedRows = importer.ParseWorksheet(spreadsheet.Worksheet[0]).ToArray();
+
+// Handle rows that failed to map to an object...
+if (importedRows.Any(x => !x.IsValid))
 {
-    spreadsheet = Spreadsheet.FromStream(fileStream);
-    fileStream.Close();
+    var invalidRows = importedRows
+        .Where(x => !x.IsValid);
+    ...
+
+    return;
 }
 
-// Create your own importer logic
-var importer = new HouseImporter();
-var houses = importer.Import(spreadsheet);
-
+// Get parsed data from imported rows
+var books = importedRows
+    .Where(b => b.IsValid)
+    .Select(b => b.Data)
+    .ToArray();
 ```
 
 ### Migrating from previous libraries
@@ -59,7 +77,7 @@ var houses = importer.Import(spreadsheet);
 Meaning Audacia.Spreadsheets.Export, please don't use this on newer projects.
 Here are the names and namespaces for classes so your code can continue to work.
 
-#### Data Attributes
+#### Legacy Data Attributes
 
 `using Audacia.Spreadsheets.Attributes;`
 
@@ -70,19 +88,3 @@ Here are the names and namespaces for classes so your code can continue to work.
 - IgnoreDataMember
 - HideHeader
 - SubtotalHeader
-
-#### Creating a worksheet from a collection
-
-```csharp
-using Audacia.Spreadsheets;
-using Audacia.Spreadsheets.Extensions;
-
-var books = new [] { ... books ... };
-
-var legacyWorksheet = books.ToWorksheet("Naughty Books");
-
-var spreadsheet = Spreadsheet.FromWorksheets(legacyWorksheet);
-
-var bytes = spreadsheet.Export();
-```
-

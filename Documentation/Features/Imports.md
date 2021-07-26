@@ -1,79 +1,81 @@
 ﻿# Importing a spreadsheet
+
 Step by step instructions to import data from a spreadsheet.
 
-### Create an Importer class
+## Create an Importer class
+
 ```csharp
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Audacia.Spreadsheets;
-using Audacia.Spreadsheets.Extensions;
+using Audacia.Spreadsheets.Validation;
 
-public class BookImporter
+public class BookImporter : WorksheetImporter<Book>
 {
-    private IDictionary<string, number> _columnMap;
-    
-    public ICollection<Book> Import(Spreadsheet spreadsheet)
+    private readonly IDatabaseContext _dbContext;
+    private readonly HashSet<int> _isbnChecksums = new HashSet<int>();
+
+    public BookImporter(IDatabaseContext dbContext)
     {
-        var books = new List<Book>();
+        _dbContext = dbContext;
+    }
 
-        // Look at index or sheet name
-        var sheet = spreadsheet.Worksheets[0];
-        
-        // Only one table
-        var table = sheet.Table;
+    protected override IEnumerable<IImportError> ValidateRow(Book model)
+    {
+        var importErrors = new List<IImportError>();
 
-        _columnMap = table.Columns.ToDictionary();
-        
-        foreach (var row in table.Rows)
+        if (string.IsNullOrWhiteSpace(model.Name))
         {
-            var fields = row.GetFields();
-            var publishDate = GetValue(item, "Published");
-            
-            var book = new Book
+            importErrors.Add(new FieldValidationError(GetRowNumber(), new[]
             {
-                Name = GetValue(item, "Name"),
-                Author = GetValue(item, "Author"),
-                Published = DateTime.ParseExact(publishDate, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture),
-                Price = decimal.Parse(GetValue(item, "Price (£)")),
-                IsbnNumber = GetValue(item, "ISBN Number")
-            };
-
-            books.Add(book);
+                new ValidationResult(GetColumnHeader(x => x.Name), "This field is required.")
+            }));
         }
 
-        return books;
-    }
-    
-    private string GetValue(string[] cellValues, string columnName)
-    {
-        if (!_columnMap.ContainsKey(columnName)) return string.Empty;
-        
-        var columnIndex = _columnMap[columnName];
-        
-        if (cellValues.Length <= columnIndex) return string.Empty;
-        
-        return cellValues[columnIndex];
+        var checksum = row.IsbnNumber.GetHashCode();
+        if (!_isbnChecksums.Add(checksum))
+        {
+            importErrors.Add(new DuplicateKeyError(GetRowNumber(), GetColumnHeader(x => x.IsbnNumber), row.IsbnNumber));
+        }
+        else if (_dbContext.Books.Any(b => b.IsbnNumber == model.IsbnNumber)) 
+        {
+            importErrors.Add(new RecordExistsError(GetRowNumber(), GetColumnHeader(x => x.IsbnNumber), row.IsbnNumber));
+        }
+
+        return importErrors;
     }
 }
 ```
 
-### Use the importer
-```csharp
-using System;
-using System.IO;
-using Audacia.Spreadsheets;
-using Audacia.Spreadsheets.Extensions;
+## Use the importer
 
-var spreadsheet2 = default(Spreadsheet);
-using (var fileStream = new FileStream(@".\Books.xlsx", FileMode.Open, FileAccess.Read))
+```csharp
+using System.Linq;
+using Audacia.Spreadsheets;
+...
+
+var spreadsheet = Spreadsheet.FromFilePath("./books.xlsx");
+
+var worksheet = spreadsheet.Worksheets.FirstOrDefault(w => w.SheetName == "Books");
+
+var importedRows = new BookImporter(dbContext)
+    .ParseWorksheet(worksheet)
+    .ToArray();
+
+// Handle rows that failed to map to an object...
+if (importedRows.Any(x => !x.IsValid))
 {
-    spreadsheet2 = Spreadsheet.FromStream(fileStream, includeHeaders: true, hasSubtotals: true);
-    fileStream.Close();
+    var invalidRows = importedRows
+        .Where(x => !x.IsValid);
+    ...
+
+    return;
 }
 
-var bookImporter = new BookImporter();
-var importedBooks = bookImporter.Import(spreadsheet2);
-
+// Get parsed data from imported rows
+var books = importedRows
+    .Where(b => b.IsValid)
+    .Select(b => b.Data)
+    .ToArray();
 ```

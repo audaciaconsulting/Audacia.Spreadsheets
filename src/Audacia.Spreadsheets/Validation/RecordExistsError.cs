@@ -10,6 +10,13 @@ namespace Audacia.Spreadsheets.Validation
         public string KeyName { get; }
         public string DuplicateKey { get; }
 
+        public RecordExistsError(int rowNumber, string keyName, string duplicateKey)
+            : base(new[] { rowNumber })
+        {
+            KeyName = keyName;
+            DuplicateKey = duplicateKey;
+        }
+
         public RecordExistsError(IEnumerable<int> rowNumbers, string keyName, string duplicateKey) 
             : base(rowNumbers)
         {
