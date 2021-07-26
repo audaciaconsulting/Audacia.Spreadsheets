@@ -1,4 +1,4 @@
-# WorksheetImporter`<TRowModel`>
+# WorksheetImporter&lt;TRowModel&gt;
 
 Worksheet importer is a generic worksheet parser, which attempts to convert each row in the worksheet to a row model object.
 
@@ -167,7 +167,7 @@ Try get cell value from the current row as a double.
 
 **Returns:** `bool`
 
-### TryGetEnum`<TEnum`>
+### TryGetEnum&lt;TEnum&gt;
 
 Try get cell value from the current row as a typed enum.
 
@@ -274,7 +274,7 @@ Attempts to parse a Enum from a string.
 
 **Returns:** `bool`
 
-### TryParseEnum`<TEnum`>
+### TryParseEnum&lt;TEnum&gt;
 
 Attempts to parse a Enum from a string.
 
