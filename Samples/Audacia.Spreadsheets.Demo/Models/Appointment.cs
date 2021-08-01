@@ -1,27 +1,27 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 using Audacia.Spreadsheets.Attributes;
 
 namespace Audacia.Spreadsheets.Demo.Models
 {
     public class Appointment
     {
-        [Display(Name = "Customer Reference")]
+        [DisplayName("Customer Reference")]
         public string Reference { get; set; }
 
-        [Display(Name = "Start Date"), CellFormat(CellFormat.Date)]
+        [DisplayName("Start Date"), CellFormat(CellFormat.Date)]
         public DateTime StartDateTime { get; set; }
 
-        [Display(Name = "Start Time")]
+        [DisplayName("Start Time")]
         public TimeSpan Time => StartDateTime.TimeOfDay;
 
-        [Display(Name = "Duration")]
+        [DisplayName("Duration")]
         public int DurationInMinutes { get; set; }
 
-        [Display(Name = "Employee Name")]
+        [DisplayName("Employee Name")]
         public string EmployeeName { get; set; }
 
-        [Display(Name = "Customer Name")]
+        [DisplayName("Customer Name")]
         public string CustomerName { get; set; }
 
         public override string ToString()
