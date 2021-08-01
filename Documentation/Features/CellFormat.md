@@ -31,3 +31,7 @@ Don't change the enum values of OpenXml CellFormats._
 | 1100 | BooleanTrueFalse     | TRUE or FALSE             |      TRUE        |
 | 1200 | BooleanYesNo         | Yes or No                 |       Yes        |
 | 1300 | BooleanYN            | Y or N                    |       Y          |
+| 1500 | EnumDescription      | Value from [Description()]|                  |
+| 1525 | EnumMember           | Value from [EnumMember()] |                  |
+| 1550 | EnumName             | Field Name for the value  |                  |
+| 1575 | EnumValue            | Value as an Integer       |                  |
