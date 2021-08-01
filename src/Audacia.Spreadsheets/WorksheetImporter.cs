@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Audacia.Core;
 using Audacia.Core.Extensions;
 using Audacia.Spreadsheets.Extensions;
 using Audacia.Spreadsheets.Validation;
@@ -371,12 +372,13 @@ namespace Audacia.Spreadsheets
         /// <param name="propertyExpression">Expected property</param>
         /// <param name="value">Cell Value</param>
         protected bool TryGetEnum<TEnum>(Expression<Func<TRowModel, object>> propertyExpression, out TEnum value)
+            where TEnum : struct
         {
             // Further optimisation possible can be done but code makes code look overly complex
             // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
             value = default(TEnum);
             return TryGetString(propertyExpression, out var str) &&
-                   TryParseEnum<TEnum>(str, out value);
+                   EnumMember.TryParse<TEnum>(str, out value);
         }
 
         /// <summary>
@@ -497,54 +499,6 @@ namespace Audacia.Spreadsheets
                 return true;
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// Attempts to parse an Enum from a <see cref="string"/>.
-        /// </summary>
-        /// <param name="enumType">Enum value type</param>
-        /// <param name="valueString">Formatted string</param>
-        /// <param name="value">Output value</param>
-        protected bool TryParseEnum(Type enumType, string valueString, out object value)
-        {
-            try
-            {
-                // No option to tryparse without being strongly typed
-                value = Enum.Parse(enumType, valueString, ignoreCase: true);
-
-                // Ensure that the parsed value is in the defined enum values
-                if (Enum.IsDefined(enumType, value))
-                {
-                    return true;
-                }
-
-                // Parse failed, will return below
-            }
-            catch
-            {
-                // Parse failed, will return below
-            }
-
-            value = null;
-            return false;
-        }
-
-        /// <summary>
-        /// Attempts to parse a <see cref="{TEnum}"/> from a <see cref="string"/>.
-        /// </summary>
-        /// <param name="valueString">Formatted string</param>
-        /// <param name="value">Output value</param>
-        protected bool TryParseEnum<TEnum>(string valueString, out TEnum value)
-        {
-            var type = typeof(TEnum);
-            if (type.IsEnum && TryParseEnum(type, valueString, out var enumValue))
-            {
-                value = (TEnum)enumValue;
-                return true;
-            }
-
-            value = default(TEnum);
             return false;
         }
 
@@ -671,13 +625,13 @@ namespace Audacia.Spreadsheets
             }
             else if (propertyType.IsEnum)
             {
-                if (TryParseEnum(propertyType, valueString, out var enumValue))
+                if (EnumMember.TryParse(propertyType, valueString, out var enumValue))
                 {
                     return enumValue;
                 }
 
                 // Override the default import error to include possible values
-                importErrors.Add(new FieldParseError(GetRowNumber(), columnName, valueString, Enum.GetNames(propertyType)));
+                importErrors.Add(new FieldParseError(GetRowNumber(), columnName, valueString, EnumMember.Options(propertyType).ToArray()));
                 return null;
             }
 

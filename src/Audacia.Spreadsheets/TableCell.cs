@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Audacia.Core;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -136,6 +137,8 @@ namespace Audacia.Spreadsheets
                     return new Tuple<DataType, string>(DataType.Number, i.ToString(CultureInfo.CurrentCulture));
                 case bool b:
                     return new Tuple<DataType, string>(DataType.String, FormatBooleanAsString(format, b));
+                case Enum e:
+                    return new Tuple<DataType, string>(DataType.String, FormatEnumAsString(format, e));
                 default:
                     return new Tuple<DataType, string>(DataType.String, Value?.ToString() ?? string.Empty);
             }
@@ -151,6 +154,31 @@ namespace Audacia.Spreadsheets
                 case CellFormat.BooleanTrueFalse: return value ? "True" : "False";
                 default: return value.ToString();
             }
+        }
+
+        private static string FormatEnumAsString(CellFormat format, object value)
+        {
+            string str;
+            switch (format)
+            {
+                case CellFormat.EnumDescription:
+                    str = EnumMember.GetDescription(value);
+                    break;
+                case CellFormat.EnumMember:
+                    str = EnumMember.GetEnumMemberValue(value);
+                    break;
+                case CellFormat.EnumName:
+                    str = EnumMember.GetName(value);
+                    break;
+                case CellFormat.EnumValue:
+                    str = EnumMember.GetValue(value);
+                    break;
+                default:
+                    str = EnumMember.GetOption(value);
+                    break;
+            }
+
+            return str ?? value.ToString();
         }
 
         private static string FormatDateTimeAsString(DateTime value)
