@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Audacia.Core" Version="0.1.19042.31539" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.9.0" />
+    <PackageReference Include="Audacia.Core" Version="0.2.21221.1" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.13.0" />
   </ItemGroup>
 
 </Project>
