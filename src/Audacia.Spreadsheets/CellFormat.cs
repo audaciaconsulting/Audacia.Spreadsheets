@@ -1,4 +1,7 @@
-﻿namespace Audacia.Spreadsheets
+﻿using System.ComponentModel;
+using System.Runtime.Serialization;
+
+namespace Audacia.Spreadsheets
 {
     /// <summary>
     /// Format codes for cell values.
@@ -173,6 +176,27 @@
         /// Formats a boolean as a string.
         /// Values Y or N.
         /// </summary>
-        BooleanYN = 1300
+        BooleanYN = 1300,
+
+        /// <summary>
+        /// Uses the <see cref="DescriptionAttribute"/> on the enum field if configured.
+        /// </summary>
+        EnumDescription = 1500,
+
+        /// <summary>
+        /// Uses the <see cref="EnumMemberAttribute"/> on the enum field if configured.
+        /// </summary>
+        EnumMember = 1525,
+
+        /// <summary>
+        /// Uses the field name of the enum value.
+        /// </summary>
+        EnumName = 1550,
+
+        /// <summary>
+        /// Uses the enum value as an integer.
+        /// </summary>
+        EnumValue = 1575,
+
     }
 }
