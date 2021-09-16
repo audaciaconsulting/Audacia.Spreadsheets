@@ -36,6 +36,10 @@ namespace Audacia.Spreadsheets.Extensions
                 var columnName =  cellHeader?.Name?.PascalToTitleCase()
                                   ?? property.GetDataAnnotationDisplayName();
 
+                // Use the provided cellformat or calculate it based on the property type
+                var cellFormatValue = cellFormat?.CellFormat
+                                ?? property.PropertyType.GetCellFormat();
+
                 var column = new TableColumn
                 {
                     PropertyInfo = property,
@@ -43,13 +47,9 @@ namespace Audacia.Spreadsheets.Extensions
                     DisplaySubtotal = displaySubtotal,
                     CellBackgroundFormat = backgroundColour,
                     CellTextFormat = textColour,
-                    Width = columnWidth?.Width
+                    Width = columnWidth?.Width,
+                    Format = cellFormatValue
                 };
-
-                if (cellFormat != null)
-                {
-                    column.Format = cellFormat.CellFormat;
-                }
 
                 tableColumns.Add(column);
             }
