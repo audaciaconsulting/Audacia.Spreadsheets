@@ -36,7 +36,7 @@ public class BookReport : Worksheet
         var rows = source.Select(FromBook);
         
         table.Columns.AddRange(Columns);
-        table.Rows.AddRange(rows);
+        table.Rows = rows;
         Table = table;
     }
 
