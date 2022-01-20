@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Audacia.Core" Version="0.2.21221.1" />
+    <PackageReference Include="Audacia.Core" Version="1.0.22020.2" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.13.0" />
   </ItemGroup>
 
