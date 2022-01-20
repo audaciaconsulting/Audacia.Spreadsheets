@@ -51,23 +51,33 @@ namespace Audacia.Spreadsheets.Extensions
                 });
         }
 
-        /* Keeping on the off chance we still want to use this when creating TableColumns...
-           We were originally using this, and then this calls the method above. 
-        internal static IEnumerable<PropertyInfo> GetBaseProps(this Type classType, params string[] ignoreProperties)
+        /// <summary>
+        /// Gets the default cell format for a property.
+        /// This is intended to be used to auto configure datetime columns that have not been explicitly setup.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Occurs when <see cref="propertyType"/> is <see langword="null"/>.</exception>
+        internal static CellFormat GetCellFormat(this Type propertyType)
         {
-            var baseType = classType.BaseType;
-            if (baseType != null && baseType.IsClass)
+            if (propertyType == null)
             {
-                var parentProperties = GetBaseProps(baseType, ignoreProperties).ToArray();
-                var parentPropertyNames = parentProperties.Select(p => p.Name).ToArray();
-                var childProperties = GetProps(classType, ignoreProperties)
-                    .Where(p => !parentPropertyNames.Contains(p.Name)).ToArray();
-
-                return parentProperties.Union(childProperties);
+                throw new ArgumentNullException(nameof(propertyType));
             }
 
-            return GetProps(classType, ignoreProperties);
+            var underlyingType = propertyType.GetUnderlyingTypeIfNullable();
+
+            if (underlyingType == typeof(DateTime) ||
+                underlyingType == typeof(DateTimeOffset)) 
+            {
+                return CellFormat.DateTime;
+            }
+
+            if (underlyingType == typeof(TimeSpan)) 
+            {
+                return CellFormat.TimeSpanFull;
+            }
+
+            // It's fine for booleans, numbers, and enums to be text, altering this would cause breaking changes to other projects.
+            return CellFormat.Text;
         }
-        */
     }
 }

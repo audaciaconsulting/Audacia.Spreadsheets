@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Version>1.1.0.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <Authors>John Penny</Authors>
     <Company>Audacia</Company>
     <Copyright>Copyright © Audacia 2019</Copyright>
@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Audacia.Core" Version="1.0.22020.2" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.9.0" />
+    <PackageReference Include="Audacia.Core" Version="0.2.21221.1" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.13.0" />
   </ItemGroup>
 
 </Project>

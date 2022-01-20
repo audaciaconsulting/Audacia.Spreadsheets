@@ -5,6 +5,10 @@ namespace Audacia.Spreadsheets.Extensions
 {
     public static class TableColumns
     {
+        /// <summary>
+        /// Creates a dictionary that maps column header to column index.
+        /// </summary>
+        /// <param name="columns">Worksheet table columns</param>
         public static IDictionary<string, int> ToDictionary(this IEnumerable<TableColumn> columns)
         {
             return columns

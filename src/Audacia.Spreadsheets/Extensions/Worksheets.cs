@@ -7,6 +7,15 @@ namespace Audacia.Spreadsheets.Extensions
     public static class Worksheets
     {
         /// <summary>
+        /// Returns the first tables on the current worksheet.
+        /// When importing a spreadsheet there will only be one table per worksheet.
+        /// </summary>
+        public static Table GetTable(this WorksheetBase worksheet)
+        {
+            return GetTables(worksheet).FirstOrDefault();
+        }
+
+        /// <summary>
         /// Returns all tables on the current worksheet. 
         /// </summary>
         public static IEnumerable<Table> GetTables(this WorksheetBase worksheet)

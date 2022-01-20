@@ -4,7 +4,7 @@ Cell borders are enabled by default.
 Borders may be disabled on a cell by cell basis.
 
 If a cell has a border then it will surround the entire cell.
-There is currently no ability to configure individual borders on a cell. 
+There is currently no ability to configure individual borders on a cell.
 
 ```csharp
 using Audacia.Spreadsheets;
@@ -24,7 +24,7 @@ var cell2 = new TableCell()
 };
 ```
 
-# Gridlines
+## Gridlines
 
 Gridlines may be enabled or disabled on worksheets.
 Gridlines are disabled by default.
