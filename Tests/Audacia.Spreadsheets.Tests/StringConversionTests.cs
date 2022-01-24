@@ -212,6 +212,17 @@ namespace Audacia.Spreadsheets.Tests
                     : default(N))
                 .ToArray();
 
+            if (output.Any(o => !o.IsValid))
+            {
+                foreach (var item in output.Where(o => !o.IsValid))
+                {
+                    foreach (var error in item.ImportErrors)
+                    {
+                        Console.WriteLine(error.GetMessage());
+                    }
+                }
+            }
+
             // Assert parsed collection matches the expected collection
             Assert.Equal(expected, actual);
 
