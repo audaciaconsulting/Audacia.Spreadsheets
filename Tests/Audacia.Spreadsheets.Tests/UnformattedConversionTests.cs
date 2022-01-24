@@ -172,17 +172,6 @@ namespace Audacia.Spreadsheets.Tests
                     : default(T))
                 .ToArray();
 
-            if (output.Any(o => !o.IsValid))
-            {
-                foreach (var item in output.Where(o => !o.IsValid))
-                {
-                    foreach (var error in item.ImportErrors)
-                    {
-                        Console.WriteLine(error.GetMessage());
-                    }
-                }
-            }
-
             // Select out expected values to compare against
             var expected = source
                 .Select(propertyFunc)

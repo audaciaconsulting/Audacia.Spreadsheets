@@ -558,6 +558,13 @@ namespace Audacia.Spreadsheets
                 return cell.Value;
             }
 
+            // If a DateTimeOffset is expected and we have a DateTime then wrap the DateTime and return it straight away
+            if (cell.Value.GetType() == typeof(DateTime) &&
+                propertyType == typeof(DateTimeOffset))
+            {
+                return new DateTimeOffset((DateTime)cell.Value);
+            }
+
             var valueString = cell.GetValue();
 
             // Skip parsing if empty value and nullable type
