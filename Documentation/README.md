@@ -9,7 +9,6 @@ Either use the [adc tool](https://dev.azure.com/audacia/Audacia.DevOps/_git/Auda
 
 ## Installation
 
-If you are using the current template project you can skip this step.
 Now that you have the registries setup you can install the package.
 
 ```powershell
@@ -70,6 +69,31 @@ var books = importedRows
     .Where(b => b.IsValid)
     .Select(b => b.Data)
     .ToArray();
+```
+
+### Integration with ASP.NET Core `IFormFile`
+
+You can convert an ASP.NET Core `IFormFile` instance to a `Spreadsheet` object using the following extension method:
+```csharp
+public static Spreadsheet ToSpreadsheet(this IFormFile formFile)
+{
+    if (formFile == null)
+    {
+        throw new ArgumentNullException(nameof(formFile));
+    }
+
+    var fileExtension = Path.GetExtension(formFile.FileName);
+    if (fileExtension != ".xlsx")
+    {
+        throw new NotSupportedException($"Converting from file extension '{fileExtension}' is not supported.");
+    }
+
+    using var fileStream = formFile.OpenReadStream();
+    var spreadsheet = Spreadsheet.FromStream(fileStream);
+    fileStream.Close();
+
+    return spreadsheet;
+}
 ```
 
 ### Migrating from previous libraries
