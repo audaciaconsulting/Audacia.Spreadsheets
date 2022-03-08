@@ -133,19 +133,28 @@ namespace Audacia.Spreadsheets
         {
             // Get column headers
             var cellReference = new CellReference("A1");
-            
+
             if (hasSubtotals) cellReference.NextRow();
-            
-            string newHeader;
-            do
+
+            // Get the ColumnLetter of the last cell with a value so that we can carry on 
+            // processing columns until we reach that ColumnLetter
+            var lastColumn = worksheetPart.Worksheet.Descendants<Cell>()
+               .Select(cell => new CellReference(cell.CellReference.Value))
+               .Where(c => c.RowNumber == cellReference.RowNumber)
+               .Last().ColumnLetter;
+
+            // Return the first column header
+            var column = new TableColumn(GetColumnHeading(spreadSheet, worksheetPart, cellReference));
+            yield return column;
+
+            // Continue returing headers until we reach lastColumn
+            // So that we can handle spreadsheets with empty columns in amongst real ones
+            while (cellReference.ColumnLetter != lastColumn)
             {
-                newHeader = GetColumnHeading(spreadSheet, worksheetPart, cellReference);
-                if (!string.IsNullOrWhiteSpace(newHeader))
-                {
-                    yield return new TableColumn(newHeader.Trim());
-                }
                 cellReference.NextColumn();
-            } while (!string.IsNullOrWhiteSpace(newHeader));
+                column = new TableColumn(GetColumnHeading(spreadSheet, worksheetPart, cellReference));
+                yield return column;
+            }
         }
         
         // Given a document name, a worksheet name, and a cell name, gets the column of the cell and returns
@@ -174,19 +183,21 @@ namespace Audacia.Spreadsheets
             if (headCell == default(Cell))
             {
                 // The specified column does not exist.
-                return null;
+                // Return the column letter as a substitute for the column name
+                // so that we can handle empty columns
+                return cellReference.ColumnLetter;
             }
 
             // If the content of the first cell is stored as a shared string, get the text of the first cell
             // from the SharedStringTablePart and return it. Otherwise, return the string value of the cell.
             if (headCell.DataType == null || headCell.DataType.Value != CellValues.SharedString)
             {
-                return headCell.CellValue == null ? string.Empty : headCell.CellValue.Text;
+                return headCell.CellValue == null ? cellReference.ColumnLetter : headCell.CellValue.Text.Trim();
             }
 
             var shareStringPart = document.WorkbookPart.GetPartsOfType<SharedStringTablePart>().First();
             var items = shareStringPart.SharedStringTable.Elements<SharedStringItem>().ToArray();
-            return items[int.Parse(headCell.CellValue.Text)].InnerText;
+            return items[int.Parse(headCell.CellValue.Text)].InnerText.Trim();
         }
     }
 }
