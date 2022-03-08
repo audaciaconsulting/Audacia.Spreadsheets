@@ -149,12 +149,12 @@ namespace Audacia.Spreadsheets
 
             // Continue returing headers until we reach lastColumn
             // So that we can handle spreadsheets with empty columns in amongst real ones
-            do
+            while (cellReference.ColumnLetter != lastColumn)
             {
                 cellReference.NextColumn();
                 column = new TableColumn(GetColumnHeading(spreadSheet, worksheetPart, cellReference));
                 yield return column;
-            } while (cellReference.ColumnLetter != lastColumn);
+            }
         }
         
         // Given a document name, a worksheet name, and a cell name, gets the column of the cell and returns
