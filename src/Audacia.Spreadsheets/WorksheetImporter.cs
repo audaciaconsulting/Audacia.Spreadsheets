@@ -450,7 +450,7 @@ namespace Audacia.Spreadsheets
         protected bool TryGetString(string columnName, out string value)
         {
             var foundCell = TryGetCell(columnName, out var cell);
-            value = cell?.Value.ToString() ?? string.Empty;
+            value = cell?.Value?.ToString() ?? string.Empty;
             return foundCell;
         }
 
