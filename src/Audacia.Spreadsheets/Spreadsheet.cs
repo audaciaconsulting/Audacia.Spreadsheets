@@ -189,7 +189,7 @@ namespace Audacia.Spreadsheets
                 var descendants = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>();
                 if (ignoreSheets != null && ignoreSheets.Any())
                 {
-                    descendants = descendants.Where(d => !ignoreSheets.Contains(d.Name));
+                    descendants = descendants.Where(d => !ignoreSheets.Contains(d.Name?.ToString()));
                 }
                 
                 var worksheets = descendants
