@@ -136,11 +136,12 @@ namespace Audacia.Spreadsheets
         /// <param name="bytes">Spreadsheet file bytes</param>
         /// <param name="includeHeaders">Declare if column header row is included on the spreadsheet</param>
         /// <param name="hasSubtotals">Declare if subtotal row exists above column header row</param>
-        public static Spreadsheet FromBytes(byte[] bytes, bool includeHeaders = true, bool hasSubtotals = false)
+        /// <param name="ignoreSheets">Declare if sheets should be skipped, filters by name</param>
+        public static Spreadsheet FromBytes(byte[] bytes, bool includeHeaders = true, bool hasSubtotals = false, IEnumerable<string> ignoreSheets = default)
         {
             using (var ms = new MemoryStream(bytes))
             {
-                return FromStream(ms, includeHeaders, hasSubtotals);
+                return FromStream(ms, includeHeaders, hasSubtotals, ignoreSheets);
             }
         }
 
@@ -150,11 +151,12 @@ namespace Audacia.Spreadsheets
         /// <param name="filePath">Path to spreadsheet file</param>
         /// <param name="includeHeaders">Declare if column header row is included on the spreadsheet</param>
         /// <param name="hasSubtotals">Declare if subtotal row exists above column header row</param>
-        public static Spreadsheet FromFilePath(string filePath, bool includeHeaders = true, bool hasSubtotals = false)
+        /// <param name="ignoreSheets">Declare if sheets should be skipped, filters by name</param>
+        public static Spreadsheet FromFilePath(string filePath, bool includeHeaders = true, bool hasSubtotals = false, IEnumerable<string> ignoreSheets = default)
         {
             using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
-                return FromStream(fs, includeHeaders, hasSubtotals);
+                return FromStream(fs, includeHeaders, hasSubtotals, ignoreSheets);
             }
         }
 
@@ -179,11 +181,18 @@ namespace Audacia.Spreadsheets
         /// <param name="bytes">Spreadsheet file bytes</param>
         /// <param name="includeHeaders">Declare if column header row is included on the spreadsheet</param>
         /// <param name="hasSubtotals">Declare if subtotal row exists above column header row</param>
-        public static Spreadsheet FromStream(Stream stream, bool includeHeaders = true, bool hasSubtotals = false)
+        /// <param name="ignoreSheets">Declare if sheets should be skipped, filters by name</param>
+        public static Spreadsheet FromStream(Stream stream, bool includeHeaders = true, bool hasSubtotals = false, IEnumerable<string> ignoreSheets = default)
         {
             using (var spreadSheet = SpreadsheetDocument.Open(stream, false))
             {
-                var worksheets = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>()
+                var descendants = spreadSheet.WorkbookPart.Workbook.Descendants<Sheet>();
+                if (ignoreSheets != null && ignoreSheets.Any())
+                {
+                    descendants = descendants.Where(d => !ignoreSheets.Contains(d.Name?.ToString()));
+                }
+                
+                var worksheets = descendants
                     .Select(sheet => Worksheet.FromOpenXml(sheet, spreadSheet, includeHeaders, hasSubtotals))
                     .ToArray();
 
