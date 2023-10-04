@@ -112,3 +112,6 @@ Here are the names and namespaces for classes so your code can continue to work.
 - IgnoreDataMember
 - HideHeader
 - SubtotalHeader
+
+# Contributing
+We welcome contributions! Please feel free to check our [Contribution Guidlines](https://github.com/audaciaconsulting/.github/blob/main/CONTRIBUTING.md) for feature requests, issue reporting and guidelines.
