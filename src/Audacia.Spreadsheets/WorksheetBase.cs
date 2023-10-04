@@ -11,12 +11,12 @@ namespace Audacia.Spreadsheets
 {
     public abstract class WorksheetBase
     {
-        public string SheetName { get; set; }
-        public FreezePane FreezePane { get; set; }
+        public string SheetName { get; set; } = string.Empty;
+        public FreezePane? FreezePane { get; set; }
         public SheetStateValues Visibility { get; set; } = SheetStateValues.Visible;
         public bool ShowGridLines { get; set; } = false;
         public bool HasAutofilter { get; set; } = false;
-        public WorksheetProtection WorksheetProtection { get; set; }
+        public WorksheetProtection? WorksheetProtection { get; set; }
         public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
         public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
 
@@ -225,7 +225,7 @@ namespace Audacia.Spreadsheets
                 // NOTE: We cannot use Workbook protection, as the resulting OpenXML file is marked as corrupted
                 // by OpenXML when attempting to open it - the Productivity tool does the same thing.
                 // So we'll just do worksheet protection
-                sheetProtection.Password = HexPasswordConversion(WorksheetProtection.Password);
+                sheetProtection.Password = HexPasswordConversion(WorksheetProtection.Password!);
                 sheetProtection.SelectLockedCells = false;
             }
         }
@@ -256,7 +256,7 @@ namespace Audacia.Spreadsheets
                 var lastCell = row.Elements<Cell>().LastOrDefault();
                 if (lastCell == default(Cell)) continue;
 
-                var rowIndex = lastCell.CellReference.Value.GetRowNumber();
+                var rowIndex = lastCell.CellReference?.Value?.GetRowNumber();
                 if (rowIndex > maxWidth)
                 {
                     maxWidth = (int)rowIndex;

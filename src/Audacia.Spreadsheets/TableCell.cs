@@ -12,18 +12,18 @@ namespace Audacia.Spreadsheets
     {
         public TableCell() { }
 
-        public TableCell(object value)
+        public TableCell(object? value)
         {
             Value = value;
         }
         
-        public TableCell(object value, bool isFormula)
+        public TableCell(object? value, bool isFormula)
         {
             Value = value;
             IsFormula = isFormula;
         }
         
-        public TableCell(object value = null, bool isFormula = false, bool hasBorders = true, bool isBold = false)
+        public TableCell(object? value = null, bool isFormula = false, bool hasBorders = true, bool isBold = false)
         {
             Value = value;
             IsFormula = isFormula;
@@ -31,11 +31,11 @@ namespace Audacia.Spreadsheets
             IsBold = isBold;
         }
 
-        public object Value { get; set; }
+        public object? Value { get; set; }
 
-        public string FillColour { get; set; }
+        public string? FillColour { get; set; }
 
-        public string TextColour { get; set; }
+        public string? TextColour { get; set; }
 
         public bool IsFormula { get; set; }
 
@@ -83,14 +83,19 @@ namespace Audacia.Spreadsheets
             WriteCell(writer, styleIndex, reference, dataType, value, IsFormula);
         }
 
-        public static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex,
+        public static void WriteCell(OpenXmlWriter writer, UInt32Value? styleIndex,
             string reference, DataType dataType, string value, bool isFormula)
         {
+            if (styleIndex?.Value == default)
+            {
+                throw new ArgumentNullException(nameof(styleIndex));
+            }
+
             var attributes = new List<OpenXmlAttribute>
             {
-                new OpenXmlAttribute("r", null, reference),
-                new OpenXmlAttribute("s", null, styleIndex),
-                new OpenXmlAttribute("t", null, dataType)
+                new OpenXmlAttribute("r", nameof(reference), reference),
+                new OpenXmlAttribute("s", nameof(styleIndex), styleIndex),
+                new OpenXmlAttribute("t", nameof(dataType), dataType)
             };
 
             writer.WriteStartElement(new Cell(), attributes);

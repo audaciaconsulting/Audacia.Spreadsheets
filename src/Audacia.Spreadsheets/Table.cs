@@ -15,13 +15,13 @@ namespace Audacia.Spreadsheets
 
         public string StartingCellRef { get; set; } = "A1";
 
-        public TableHeaderStyle HeaderStyle { get; set; }
+        public TableHeaderStyle? HeaderStyle { get; set; }
 
         public bool IncludeHeaders { get; set; }
 
         public List<TableColumn> Columns { get; set; } = new List<TableColumn>();
 
-        public IEnumerable<TableRow> Rows { get; set; }
+        public IEnumerable<TableRow> Rows { get; set; } = new List<TableRow>();
 
         public virtual CellReference Write(SharedDataTable sharedData, OpenXmlWriter writer)
         {
@@ -56,16 +56,19 @@ namespace Audacia.Spreadsheets
                 {
                     var isFirstColumn = column == Columns.ElementAt(0);
                     var isLastColumn = column == Columns.ElementAt(Columns.Count - 1);
-                    column.Write(HeaderStyle, headerCellRef, isFirstColumn, isLastColumn, sharedData, writer);
-                    headerCellRef.NextColumn();
+                    if (HeaderStyle != null)
+                    {
+                        column.Write(HeaderStyle, headerCellRef, isFirstColumn, isLastColumn, sharedData, writer);
+                        headerCellRef.NextColumn();
+                    }
                 }
 
                 writer.WriteEndElement();
                 rowReference.NextRow();
             }
             
-            // Enumerate over all rows and write them using an openxmlwriter
-            // This puts them into a memorystream, to improve this we would need to update the openxml library we are using
+            // Enumerate over all rows and write them using an OpenXMLWriter
+            // This puts them into a MemoryStream, to improve this we would need to update the OpenXML library we are using
             foreach (var row in Rows)
             {
                 row.Write(rowReference.Clone(), Columns, sharedData, writer);
@@ -101,7 +104,7 @@ namespace Audacia.Spreadsheets
                         .Select(r =>
                         {
                             var value = r.Cells.ElementAt(columnIndex).Value;
-                            var isNumeric = value.GetType().IsNumeric();
+                            var isNumeric = value?.GetType().IsNumeric() ?? false;
                             return isNumeric ? Convert.ToDecimal(value) : 0;
                         })
                         .DefaultIfEmpty(0)
@@ -118,7 +121,7 @@ namespace Audacia.Spreadsheets
             for (var i = 0; i < cells.Count; i++)
             {
                 var cell = cells[i];
-                var cellValue = cell.Value?.ToString() ?? string.Empty;
+                var cellValue = cell?.Value?.ToString() ?? string.Empty;
                 var cellTextLength = cellValue.Length;
 
                 if (cellTextLength > current)
@@ -127,7 +130,7 @@ namespace Audacia.Spreadsheets
                 }
             }
 
-            //  75 is chosen as a maximum length to prevent the column becoming too monsterous
+            //  While arbitrary, 75 has been tested to be a sufficient max width for columns.
             if (current > 75)
             {
                 current = 75;

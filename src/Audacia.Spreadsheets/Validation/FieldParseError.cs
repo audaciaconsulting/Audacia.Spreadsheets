@@ -6,8 +6,8 @@ namespace Audacia.Spreadsheets.Validation
     public class FieldParseError : RowImportError, IImportError
     {
         public string FieldName { get; }
-        public string Value { get; }
-        public string PossibleValues { get; }
+        public string? Value { get; }
+        public string? PossibleValues { get; }
 
         public FieldParseError(int rowNumber, string fieldName)
             : base(rowNumber)

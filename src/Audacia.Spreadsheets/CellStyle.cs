@@ -4,7 +4,7 @@ namespace Audacia.Spreadsheets
 {
     public class CellStyle
     {
-        public UInt32Value Index { get; set; }
+        public UInt32Value? Index { get; set; }
         
         public bool BorderTop { get; set; }
         public bool BorderRight { get; set; }

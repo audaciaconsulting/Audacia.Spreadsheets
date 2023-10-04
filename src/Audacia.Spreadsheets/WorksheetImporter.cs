@@ -46,7 +46,7 @@ namespace Audacia.Spreadsheets
         /// <summary>
         /// Current row being parsed by the importer.
         /// </summary>
-        protected TableRow CurrentRow { get; private set; }
+        protected TableRow? CurrentRow { get; private set; }
 
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace Audacia.Spreadsheets
         protected int GetRowNumber() 
         {
             // Row ID will always exist when parsing spreadsheets read from file, it won't exist if someone attempts to parse a worksheet generated for export
-            return CurrentRow.Id ?? 0;
+            return CurrentRow?.Id ?? 0;
         }
 
         /// <summary>
@@ -274,7 +274,7 @@ namespace Audacia.Spreadsheets
         /// </summary>
         /// <param name="propertyExpression">Expected property</param>
         /// <param name="cell">Cell Data</param>
-        protected bool TryGetCell(Expression<Func<TRowModel, object>> propertyExpression, out TableCell value)
+        protected bool TryGetCell(Expression<Func<TRowModel, object>> propertyExpression, out TableCell? value)
         {
             try
             {
@@ -295,7 +295,7 @@ namespace Audacia.Spreadsheets
         /// </summary>
         /// <param name="columnHeader">Column Header</param>
         /// <param name="cell">Cell Data</param>
-        protected bool TryGetCell(string columnHeader, out TableCell cell)
+        protected bool TryGetCell(string columnHeader, out TableCell? cell)
         {
             cell = null;
 
@@ -303,9 +303,9 @@ namespace Audacia.Spreadsheets
 
             var columnIndex = SpreadsheetColumns[columnHeader];
 
-            if (CurrentRow.Cells.Count <= columnIndex) return false;
+            if (CurrentRow?.Cells.Count <= columnIndex) return false;
 
-            cell = CurrentRow.Cells[columnIndex];
+            cell = CurrentRow?.Cells[columnIndex];
 
             return true;
         }
@@ -544,7 +544,7 @@ namespace Audacia.Spreadsheets
         /// <param name="cell">Spreadsheet cell containing value</param>
         /// <param name="importErrors">Row import errors</param>
         /// <returns>Parsed cell value</returns>
-        private object ParseValue(string columnName, Type propertyType, bool isNullable, TableCell cell, List<IImportError> importErrors)
+        private object? ParseValue(string columnName, Type propertyType, bool isNullable, TableCell? cell, List<IImportError> importErrors)
         {
             // Don't bother parsing if null
             if (cell?.Value == null)

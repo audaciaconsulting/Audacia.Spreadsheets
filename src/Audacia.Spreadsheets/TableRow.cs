@@ -30,12 +30,12 @@ namespace Audacia.Spreadsheets
 
                 if (!string.IsNullOrWhiteSpace(cell.FillColour))
                 {
-                    cellStyle.BackgroundColour = sharedData.FillColours[cell.FillColour];
+                    cellStyle.BackgroundColour = sharedData.FillColours[cell.FillColour!];
                 }
 
                 if (!string.IsNullOrWhiteSpace(cell.TextColour))
                 {
-                    cellStyle.TextColour = sharedData.TextColours[cell.TextColour];
+                    cellStyle.TextColour = sharedData.TextColours[cell.TextColour!];
                 }
 
                 var styleIndex = sharedData.GetOrCreateCellFormat(cellStyle).Index;
@@ -66,13 +66,13 @@ namespace Audacia.Spreadsheets
         public static IEnumerable<TableRow> FromOpenXml(WorksheetPart worksheetPart, 
             SpreadsheetDocument spreadSheet, int columnsCount, int startingRowIndex = 0)
         {
-            var stylesheet = spreadSheet.WorkbookPart.WorkbookStylesPart.Stylesheet;
-            var cellFormats = stylesheet.CellFormats;
-            var dateFormatIds = GetDateFormatsInFile(spreadSheet.WorkbookPart.WorkbookStylesPart);
+            var stylesheet = spreadSheet.WorkbookPart?.WorkbookStylesPart?.Stylesheet;
+            var cellFormats = stylesheet?.CellFormats;
+            var dateFormatIds = GetDateFormatsInFile(spreadSheet.WorkbookPart?.WorkbookStylesPart!);
 
             // Read each row and add to table
             var rows = worksheetPart.Worksheet.Elements<SheetData>().First().Elements<Row>().ToList();
-            var stringTable = spreadSheet.WorkbookPart.GetPartsOfType<SharedStringTablePart>().First();
+            var stringTable = spreadSheet.WorkbookPart?.GetPartsOfType<SharedStringTablePart>().First();
 
             var rowPointer = new CellReference("A1").MutateBy(0, startingRowIndex);
             
@@ -82,11 +82,11 @@ namespace Audacia.Spreadsheets
                 var cells = row.Elements<Cell>().ToArray();
                 var cellData = new List<TableCell>();
                 
-                for (var j = 0; j < columnsCount; j++)
+                for (var columnIndex = 0; columnIndex < columnsCount; columnIndex++)
                 {
                     var cellReference = cellRef.ToString();
                     var matchedCells = cells.Where(c =>
-                        string.Compare(cellReference, c.CellReference.Value, StringComparison.OrdinalIgnoreCase) == 0)
+                        string.Compare(cellReference, c.CellReference?.Value, StringComparison.OrdinalIgnoreCase) == 0)
                         .ToList();
                     var newCell = new TableCell(null);
 
@@ -96,20 +96,22 @@ namespace Audacia.Spreadsheets
                     }
                     else
                     {
-                        var c = matchedCells.First();
-                        if (c.DataType != null && c.DataType.HasValue && c.DataType.Value == CellValues.SharedString)
+                        var matchedCell = matchedCells.First();
+                        if (matchedCell.DataType is {Value: CellValues.SharedString} && 
+                            !string.IsNullOrEmpty(matchedCell.CellValue?.Text))
                         {
                             // Read value from shared string table
-                            newCell.Value = stringTable.SharedStringTable.ElementAt(int.Parse(c.CellValue.Text)).InnerText;
+                            var integerCellValue = int.Parse(matchedCell.CellValue!.Text);
+                            newCell.Value = stringTable?.SharedStringTable.ElementAt(integerCellValue).InnerText;
 
                             // Read cell colour
-                            if (c.StyleIndex != null)
+                            if (matchedCell.StyleIndex?.HasValue != null)
                             {
-                                var styleIndex = (int)c.StyleIndex.Value;
+                                var styleIndex = (int)matchedCell.StyleIndex.Value;
                                 var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
 
-                                var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
-                                var patternFill = fill?.PatternFill;
+                                var fill = (Fill)stylesheet!.Fills!.ChildElements[(int)cellFormat.FillId!.Value];
+                                var patternFill = fill.PatternFill;
 
                                 if (patternFill != null)
                                 {
@@ -125,9 +127,9 @@ namespace Audacia.Spreadsheets
                             var valueAdded = false;
 
                             // If a cell format is defined
-                            if (c.StyleIndex != null)
+                            if (matchedCell.StyleIndex != null)
                             {
-                                var styleIndex = (int)c.StyleIndex.Value;
+                                var styleIndex = (int)matchedCell.StyleIndex.Value;
                                 var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
 
                                 var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
@@ -137,7 +139,7 @@ namespace Audacia.Spreadsheets
                                 if (IsDateFormat(cellFormat.NumberFormatId) ||
                                     dateFormatIds.Contains(cellFormat.NumberFormatId))
                                 {
-                                    if (double.TryParse(c.CellValue.InnerXml, out var parsedValue))
+                                    if (double.TryParse(matchedCell.CellValue.InnerXml, out var parsedValue))
                                     {
                                         var date = DateTime.FromOADate(parsedValue);
 
@@ -159,7 +161,7 @@ namespace Audacia.Spreadsheets
                                 // Parse Numbers
                                 if (!valueAdded && IsNumberFormat(cellFormat.NumberFormatId))
                                 {
-                                    if (!valueAdded && decimal.TryParse(c.CellValue.Text, out var value))
+                                    if (!valueAdded && decimal.TryParse(matchedCell.CellValue.Text, out var value))
                                     {
                                         newCell.Value = value;
                                         cellData.Add(newCell);
@@ -174,7 +176,7 @@ namespace Audacia.Spreadsheets
                             // Read cell value as string
                             if (!valueAdded)
                             {
-                                newCell.Value = c.CellValue.Text;
+                                newCell.Value = matchedCell.CellValue!.Text;
                                 cellData.Add(newCell);
                             }
 
@@ -196,23 +198,23 @@ namespace Audacia.Spreadsheets
             }
         }
 
-        private static string GetColor(SpreadsheetDocument sd, PatternFill fill)
+        private static string? GetColor(SpreadsheetDocument sd, PatternFill fill)
         {
-            var ct = fill.ForegroundColor;
-            if (ct == null)
+            var colour = fill.ForegroundColor;
+            if (colour == null)
             {
                 return null;
             }
 
-            if (ct.Auto != null)
+            if (!colour.Auto!.HasValue)
             {
                 return null;
             }
 
-            if (ct.Rgb != null)
+            if (colour.Rgb!.HasValue)
             {
                 //  ct.Rgb gives "FF######" so need to take off the first 2 characters. Thanks OpenXml
-                return ct.Rgb.Value.Substring(2);
+                return colour.Rgb!.Value!.Substring(2);
             }
 
             //  These 3 are too difficult to understand...Code stolen from:
@@ -239,7 +241,7 @@ namespace Audacia.Spreadsheets
         }
 
 
-        private static bool IsDateFormat(uint numberFormatId, string formatCode = null)
+        private static bool IsDateFormat(uint? numberFormatId, string? formatCode = null)
         {
             // Microsoft only give limited format information, there's no entire list of format codes online
             // So first check the ones we do
@@ -255,7 +257,7 @@ namespace Audacia.Spreadsheets
             return formatCode != null && (formatCode.Contains("mmm") || formatCode.Contains("yy"));
         }
 
-        private static bool IsNumberFormat(uint numberFormatId, string formatCode = null)
+        private static bool IsNumberFormat(uint? numberFormatId, string? formatCode = null)
         {
             // Microsoft only give limited format information, there's no entire list of format codes online
             // So first check the ones we do
@@ -281,6 +283,11 @@ namespace Audacia.Spreadsheets
 
         private static ICollection<uint> GetDateFormatsInFile(WorkbookStylesPart stylePart)
         {
+            if (stylePart == null)
+            {
+                throw new ArgumentNullException(nameof(stylePart));
+            }
+
             var formatIds = new Collection<uint>();
 
             var numFormatsParentNodes = stylePart.Stylesheet.ChildElements.OfType<NumberingFormats>();
@@ -290,9 +297,9 @@ namespace Audacia.Spreadsheets
                 var formatNodes = numFormatParentNode.ChildElements.OfType<NumberingFormat>();
                 foreach (var formatNode in formatNodes)
                 {
-                    if (IsDateFormat(formatNode.NumberFormatId.Value, formatNode.FormatCode))
+                    if (IsDateFormat(formatNode.NumberFormatId?.Value, formatNode.FormatCode))
                     {
-                        formatIds.Add(formatNode.NumberFormatId.Value);
+                        formatIds.Add(formatNode.NumberFormatId!.Value);
                     }
                 }
             }

@@ -40,9 +40,9 @@ namespace Audacia.Spreadsheets
             HasBorders = hasBorders;
         }
 
-        public PropertyInfo PropertyInfo { get; set; }
+        public PropertyInfo? PropertyInfo { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public bool DisplaySubtotal { get; set; }
 
@@ -52,9 +52,9 @@ namespace Audacia.Spreadsheets
         
         public CellFormat Format { get; set; } = CellFormat.Text;
 
-        public CellBackgroundColourAttribute CellBackgroundFormat { get; set; }
+        public CellBackgroundColourAttribute? CellBackgroundFormat { get; set; }
 
-        public CellTextColourAttribute CellTextFormat { get; set; }
+        public CellTextColourAttribute? CellTextFormat { get; set; }
 
         /// <summary>
         /// Writes a subtotal formulae above the current column header.
@@ -102,12 +102,12 @@ namespace Audacia.Spreadsheets
         {
             var noHeaderStyle = headerStyle == default(TableHeaderStyle);
             
-            if (noHeaderStyle || !sharedData.Fonts.TryGetValue($"{headerStyle.FontName}:{headerStyle.TextColour}", out var font))
+            if (noHeaderStyle || !sharedData.Fonts.TryGetValue($"{headerStyle!.FontName}:{headerStyle.TextColour}", out var font))
             {
                 font = 1u;
             }
 
-            if (noHeaderStyle || !sharedData.FillColours.TryGetValue(headerStyle.FillColour, out var fillColour))
+            if (noHeaderStyle || !sharedData.FillColours.TryGetValue(headerStyle!.FillColour, out var fillColour))
             {
                 fillColour = 2u;
             }
@@ -126,22 +126,28 @@ namespace Audacia.Spreadsheets
 
             var styleIndex = sharedData.GetOrCreateCellFormat(cellStyle).Index;
 
-            TableCell.WriteCell(writer, styleIndex, cellReference, DataType.String, Name, false);
+            TableCell.WriteCell(writer, styleIndex, cellReference, DataType.String, Name!, false);
         }
         
-        public static IEnumerable<TableColumn> FromOpenXml(WorksheetPart worksheetPart, SpreadsheetDocument spreadSheet, bool hasSubtotals)
+        public static IEnumerable<TableColumn> FromOpenXml(WorksheetPart? worksheetPart, SpreadsheetDocument spreadSheet, bool hasSubtotals)
         {
             // Get column headers
+            if (worksheetPart == null)
+            {
+                throw new ArgumentNullException(nameof(worksheetPart));
+            }
+
             var cellReference = new CellReference("A1");
 
             if (hasSubtotals) cellReference.NextRow();
 
             // Get the ColumnLetter of the last cell with a value so that we can carry on 
             // processing columns until we reach that ColumnLetter
-            var lastColumn = worksheetPart.Worksheet.Descendants<Cell>()
-               .Select(cell => new CellReference(cell.CellReference.Value))
-               .Where(c => c.RowNumber == cellReference.RowNumber)
-               .Last().ColumnLetter;
+            var lastColumn = worksheetPart.Worksheet
+                .Descendants<Cell>()
+                .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value))
+                .Select(cell => new CellReference(cell.CellReference!.Value!))
+                .Last(c => c.RowNumber == cellReference.RowNumber).ColumnLetter;
 
             // Return the first column header
             var column = new TableColumn(GetColumnHeading(spreadSheet, worksheetPart, cellReference));
@@ -167,7 +173,8 @@ namespace Audacia.Spreadsheets
 
             // Get the cells in the specified column and order them by row.
             var cells = worksheetPart.Worksheet.Descendants<Cell>()
-                .Select(cell => (new CellReference(cell.CellReference.Value), cell))
+                .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value))
+                .Select(cell => (new CellReference(cell.CellReference!.Value!), cell))
                 .Where(c =>
                 {
                     var columnLetter = c.Item1.ColumnLetter;
@@ -195,9 +202,9 @@ namespace Audacia.Spreadsheets
                 return headCell.CellValue == null ? cellReference.ColumnLetter : headCell.CellValue.Text.Trim();
             }
 
-            var shareStringPart = document.WorkbookPart.GetPartsOfType<SharedStringTablePart>().First();
-            var items = shareStringPart.SharedStringTable.Elements<SharedStringItem>().ToArray();
-            return items[int.Parse(headCell.CellValue.Text)].InnerText.Trim();
+            var shareStringPart = document.WorkbookPart?.GetPartsOfType<SharedStringTablePart>().First();
+            var items = shareStringPart!.SharedStringTable.Elements<SharedStringItem>().ToArray();
+            return items![int.Parse(headCell.CellValue!.Text)].InnerText.Trim();
         }
     }
 }

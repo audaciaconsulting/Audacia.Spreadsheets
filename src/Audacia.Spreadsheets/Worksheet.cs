@@ -1,15 +1,15 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using OpenXmlWorksheet = DocumentFormat.OpenXml.Spreadsheet.Worksheet;
 
 namespace Audacia.Spreadsheets
 {
     public class Worksheet : WorksheetBase
     {
-        public Table Table { get; set; }
-        
+        public Table Table { get; set; } = null!;
+
         protected override void WriteSheetData(SharedDataTable sharedData, OpenXmlWriter writer)
         {
             Table.Write(sharedData, writer);
@@ -17,8 +17,13 @@ namespace Audacia.Spreadsheets
         
         public static Worksheet FromOpenXml(Sheet worksheet, SpreadsheetDocument spreadSheet, bool includeHeaders, bool hasSubtotals)
         {
-            var worksheetPart = (WorksheetPart) spreadSheet.WorkbookPart.GetPartById(worksheet.Id);
+            if (spreadSheet.WorkbookPart == null || string.IsNullOrEmpty(worksheet.Id?.Value))
+            {
+                throw new InvalidOperationException(
+                    $"{nameof(spreadSheet.WorkbookPart)} and {nameof(worksheet)} must be provided.");
+            }
 
+            var worksheetPart = (WorksheetPart?) spreadSheet.WorkbookPart?.GetPartById(worksheet.Id!.Value!);
             var table = new Table
             {
                 StartingCellRef = "A1",
@@ -51,7 +56,7 @@ namespace Audacia.Spreadsheets
 
             return new Worksheet
             {
-                SheetName = worksheet.Name,
+                SheetName = worksheet.Name!,
                 Table = table,
                 Visibility = worksheet.State ?? SheetStateValues.Visible
             };
