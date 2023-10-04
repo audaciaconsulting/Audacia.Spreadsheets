@@ -4,6 +4,6 @@ namespace Audacia.Spreadsheets.Attributes
 {
     public class CellHeaderNameAttribute : Attribute
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }
