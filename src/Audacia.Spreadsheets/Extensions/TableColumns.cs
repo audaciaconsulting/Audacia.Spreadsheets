@@ -13,7 +13,7 @@ namespace Audacia.Spreadsheets.Extensions
         {
             return columns
                 .Select((col, index) => (index, col.Name.Trim()))
-                .ToDictionary(c => c.Item2, c => c.Item1);
+                .ToDictionary(c => c.Item2, c => c.index);
         }
     }
 }

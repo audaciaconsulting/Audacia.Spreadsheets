@@ -175,7 +175,7 @@ namespace Audacia.Spreadsheets
                     var isInRow = c.Item1.RowNumber == cellReference.RowNumber;
                     return isInColumn && isInRow;
                 })
-                .Select(c => c.Item2);
+                .Select(c => c.cell);
 
             // Get the first cell in the column.
             var headCell = cells.FirstOrDefault();

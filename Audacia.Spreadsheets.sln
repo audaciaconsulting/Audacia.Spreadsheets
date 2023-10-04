@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31402.337
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets", "src\Audacia.Spreadsheets\Audacia.Spreadsheets.csproj", "{02840067-1EB1-4A7E-B3B1-BEE753F29F82}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Demo", "Samples\Audacia.Spreadsheets.Demo\Audacia.Spreadsheets.Demo.csproj", "{A97E8BDE-1D35-417C-AA10-10FA6F0EE053}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audacia.Spreadsheets.Tests", "Tests\Audacia.Spreadsheets.Tests\Audacia.Spreadsheets.Tests.csproj", "{CF2BF33F-2F4E-4036-AAFE-73D091FBBB3F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DAD4E381-6E12-4D3B-942A-FD097916BEC7}"
+	ProjectSection(SolutionItems) = preProject
+		build.yaml = build.yaml
+		..\AudaciaRepos\Audacia.Spreadsheets\LICENSE.txt = ..\AudaciaRepos\Audacia.Spreadsheets\LICENSE.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

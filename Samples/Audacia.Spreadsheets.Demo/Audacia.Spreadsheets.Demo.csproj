@@ -3,7 +3,16 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+	<Nullable>enable</Nullable>
+	<LangVersion>8.0</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Audacia.CodeAnalysis" Version="1.5.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Audacia.Spreadsheets\Audacia.Spreadsheets.csproj" />
