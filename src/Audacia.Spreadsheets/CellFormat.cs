@@ -1,5 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Runtime.Serialization;
+//#pragma warning disable AV1704
+//#pragma warning disable CA1720 // Field 'Decimal2Dp' contains one or more digits in its name
+
 
 namespace Audacia.Spreadsheets
 {

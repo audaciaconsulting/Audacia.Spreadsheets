@@ -1,4 +1,9 @@
-﻿namespace Audacia.Spreadsheets
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.ComponentModel;
+
+namespace Audacia.Spreadsheets
 {
     /// <summary>
     /// Cell Data Type. This is a copy of
@@ -8,8 +13,6 @@
     public class DataType
     {
         private readonly string _value;
-
-        private DataType() { }
 
         private DataType(string value) => _value = value;
         
@@ -28,7 +31,9 @@
         public static DataType Number { get; } = new DataType("n");
         
         public static DataType SharedString { get; } = new DataType("s");
-        
+
+#pragma warning disable CA1720 // Identifier 'String' contains type name
         public static DataType String { get; } = new DataType("str");
+#pragma warning restore CA1720
     }
 }

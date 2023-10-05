@@ -1,9 +1,6 @@
-﻿using DocumentFormat.OpenXml;
+﻿using Audacia.Spreadsheets.Extensions;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Spreadsheet;
-using Audacia.Spreadsheets.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Audacia.Spreadsheets
 {

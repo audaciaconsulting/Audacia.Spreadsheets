@@ -11,7 +11,7 @@ namespace Audacia.Spreadsheets
 {
     public abstract class WorksheetBase
     {
-        public string SheetName { get; set; } = string.Empty;
+        public string? SheetName { get; set; } = string.Empty;
         public FreezePane? FreezePane { get; set; }
         public SheetStateValues Visibility { get; set; } = SheetStateValues.Visible;
         public bool ShowGridLines { get; set; } = false;
@@ -41,7 +41,7 @@ namespace Audacia.Spreadsheets
             // Write meta data for the worksheet
             // Sheet view, Columns, and Sheet Data should only ever be written once per worksheet
             AddSheetView(writer);
-            
+
             var allTables = this.GetTables().ToArray();
 
             DefineColumnsIfRequired(allTables);
@@ -49,16 +49,17 @@ namespace Audacia.Spreadsheets
             AddColumns(allTables, writer);
 
             // Create a place to store sheet data
-            writer.WriteStartElement(new SheetData());
+            var newSheetData = new SheetData();
+            writer.WriteStartElement(newSheetData);
 
             // write the sheet data
             WriteSheetData(sharedData, writer);
 
             // Close SheetData tag
             writer.WriteEndElement();
-            
+
             AddProtection(writer);
-            
+
             // We don't currently support autofilters for multi-table worksheets
             if (HasAutofilter && allTables.Any())
             {
@@ -66,8 +67,16 @@ namespace Audacia.Spreadsheets
             }
 
             // Add data validation if required
+            WriteDataValidation(writer);
+
+            // Close the worksheet
+            writer.WriteEndElement();
+        }
+
+        private void WriteDataValidation(OpenXmlWriter writer)
+        {
             var dataValidations = new DataValidations();
-            
+
             // Add Static Data Validation
             if (StaticDataValidations != null && StaticDataValidations.Any())
             {
@@ -76,7 +85,7 @@ namespace Audacia.Spreadsheets
                     val.Write(dataValidations);
                 }
             }
-            
+
             // Add Dynamic Data Validation
             if (DependentDataValidations != null && DependentDataValidations.Any())
             {
@@ -91,9 +100,6 @@ namespace Audacia.Spreadsheets
             {
                 writer.WriteElement(dataValidations);
             }
-            
-            // Close the worksheet
-            writer.WriteEndElement();
         }
 
         protected void AddAutoFilter(Table table, DefinedNames definedNames, OpenXmlWriter writer)

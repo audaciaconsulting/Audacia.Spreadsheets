@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Audacia.Spreadsheets.Attributes;
@@ -7,12 +8,17 @@ using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+#pragma warning disable ACL1002
+#pragma warning disable AV1564
+#pragma warning disable ACL1003
 
 namespace Audacia.Spreadsheets
 {
     public class TableColumn
     {
-        public TableColumn() { }
+        public TableColumn()
+        {
+        }
 
         public TableColumn(string name)
         {
@@ -24,15 +30,16 @@ namespace Audacia.Spreadsheets
             Name = name;
             Format = format;
         }
-        
+
         public TableColumn(string name, CellFormat format, bool displaySubtotal)
         {
             Name = name;
             Format = format;
             DisplaySubtotal = displaySubtotal;
         }
-        
-        public TableColumn(string name, CellFormat format = CellFormat.Text, bool displaySubtotal = false, bool hasBorders = true)
+
+        public TableColumn(string name, CellFormat format = CellFormat.Text, bool displaySubtotal = false,
+            bool hasBorders = true)
         {
             Name = name;
             Format = format;
@@ -49,7 +56,7 @@ namespace Audacia.Spreadsheets
         public int? Width { get; set; }
 
         public bool HasBorders { get; set; } = true;
-        
+
         public CellFormat Format { get; set; } = CellFormat.Text;
 
         public CellBackgroundColourAttribute? CellBackgroundFormat { get; set; }
@@ -57,9 +64,15 @@ namespace Audacia.Spreadsheets
         public CellTextColourAttribute? CellTextFormat { get; set; }
 
         /// <summary>
-        /// Writes a subtotal formulae above the current column header.
+        /// Writes a subtotal formula above the current column header.
         /// </summary>
-        public void WriteSubtotal(CellReference cellReference, bool isFirstColumn, bool isLastColumn, int totalRows, SharedDataTable sharedData, OpenXmlWriter writer)
+        public void WriteSubtotal(
+            CellReference cellReference,
+            bool isFirstColumn,
+            bool isLastColumn,
+            int totalRows,
+            SharedDataTable sharedData,
+            OpenXmlWriter writer)
         {
             var cellStyle = new CellStyle
             {
@@ -76,7 +89,7 @@ namespace Audacia.Spreadsheets
             var styleIndex = sharedData.GetOrCreateCellFormat(cellStyle).Index;
             var dataType = DataType.String;
             var formula = string.Empty;
-            
+
             if (DisplaySubtotal)
             {
                 // Increment by 2 so that the formula starts after the header row & the current row
@@ -91,18 +104,25 @@ namespace Audacia.Spreadsheets
                 formula = $"SUBTOTAL(9,{firstRow}:{lastRow})";
                 dataType = DataType.Number;
             }
-            
+
             TableCell.WriteCell(writer, styleIndex, cellReference, dataType, formula, DisplaySubtotal);
         }
-        
+
         /// <summary>
         /// Writes the current column header.
         /// </summary>
-        public void Write(TableHeaderStyle headerStyle, CellReference cellReference, bool isFirstColumn, bool isLastColumn, SharedDataTable sharedData, OpenXmlWriter writer)
+        public void Write(
+            TableHeaderStyle? headerStyle,
+            CellReference cellReference,
+            bool isFirstColumn,
+            bool isLastColumn,
+            SharedDataTable sharedData,
+            OpenXmlWriter writer)
         {
             var noHeaderStyle = headerStyle == default(TableHeaderStyle);
-            
-            if (noHeaderStyle || !sharedData.Fonts.TryGetValue($"{headerStyle!.FontName}:{headerStyle.TextColour}", out var font))
+
+            if (noHeaderStyle ||
+                !sharedData.Fonts.TryGetValue($"{headerStyle!.FontName}:{headerStyle.TextColour}", out var font))
             {
                 font = 1u;
             }
@@ -128,21 +148,26 @@ namespace Audacia.Spreadsheets
 
             TableCell.WriteCell(writer, styleIndex, cellReference, DataType.String, Name!, false);
         }
-        
-        public static IEnumerable<TableColumn> FromOpenXml(WorksheetPart? worksheetPart, SpreadsheetDocument spreadSheet, bool hasSubtotals)
+
+        public static IEnumerable<TableColumn> FromOpenXml(
+            WorksheetPart? worksheetPart,
+            SpreadsheetDocument spreadSheet,
+            bool hasSubtotals)
         {
-            // Get column headers
+            // Get column headers.
             if (worksheetPart == null)
             {
                 throw new ArgumentNullException(nameof(worksheetPart));
             }
 
             var cellReference = new CellReference("A1");
+            if (hasSubtotals)
+            {
+                cellReference.NextRow();
+            }
 
-            if (hasSubtotals) cellReference.NextRow();
-
-            // Get the ColumnLetter of the last cell with a value so that we can carry on 
-            // processing columns until we reach that ColumnLetter
+            // Get the ColumnLetter of the last cell with a value so that we can carry on
+            // processing columns until we reach that ColumnLetter.
             var lastColumn = worksheetPart.Worksheet
                 .Descendants<Cell>()
                 .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value))
@@ -150,19 +175,21 @@ namespace Audacia.Spreadsheets
                 .Last(c => c.RowNumber == cellReference.RowNumber).ColumnLetter;
 
             // Return the first column header
-            var column = new TableColumn(GetColumnHeading(spreadSheet, worksheetPart, cellReference));
+            var heading = GetColumnHeading(spreadSheet, worksheetPart, cellReference);
+            var column = new TableColumn(heading);
             yield return column;
 
             // Continue returing headers until we reach lastColumn
-            // So that we can handle spreadsheets with empty columns in amongst real ones
+            // So that we can handle spreadsheets with empty columns in amongst real ones.
             while (cellReference.ColumnLetter != lastColumn)
             {
                 cellReference.NextColumn();
-                column = new TableColumn(GetColumnHeading(spreadSheet, worksheetPart, cellReference));
+                heading = GetColumnHeading(spreadSheet, worksheetPart, cellReference);
+                column = new TableColumn(heading);
                 yield return column;
             }
         }
-        
+
         // Given a document name, a worksheet name, and a cell name, gets the column of the cell and returns
         // the content of the first cell in that column.
         private static string GetColumnHeading(SpreadsheetDocument document, WorksheetPart worksheetPart,
@@ -182,7 +209,7 @@ namespace Audacia.Spreadsheets
                     var isInRow = c.Item1.RowNumber == cellReference.RowNumber;
                     return isInColumn && isInRow;
                 })
-                .Select(c => c.Item2);
+                .Select(c => c.cell);
 
             // Get the first cell in the column.
             var headCell = cells.FirstOrDefault();
@@ -191,7 +218,7 @@ namespace Audacia.Spreadsheets
             {
                 // The specified column does not exist.
                 // Return the column letter as a substitute for the column name
-                // so that we can handle empty columns
+                // so that we can handle empty columns.
                 return cellReference.ColumnLetter;
             }
 
@@ -204,7 +231,8 @@ namespace Audacia.Spreadsheets
 
             var shareStringPart = document.WorkbookPart?.GetPartsOfType<SharedStringTablePart>().First();
             var items = shareStringPart!.SharedStringTable.Elements<SharedStringItem>().ToArray();
-            return items![int.Parse(headCell.CellValue!.Text)].InnerText.Trim();
+            var itemIndex = int.Parse(headCell.CellValue!.Text, CultureInfo.CurrentCulture.NumberFormat);
+            return items[itemIndex].InnerText.Trim();
         }
     }
 }
