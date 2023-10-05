@@ -2,12 +2,13 @@ using System;
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class ColumnWidthAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class ColumnWidthAttribute : Attribute
     {
         public ColumnWidthAttribute() { }
 
-        public ColumnWidthAttribute(int value) => Width = value;
+        public ColumnWidthAttribute(int width) => Width = width;
         
-        public int Width { get; set; }
+        public int Width { get; }
     }
 }

@@ -2,13 +2,11 @@
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class CellFormatAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class CellFormatAttribute : Attribute
     {
-        public CellFormatAttribute(CellFormat type)
-        {
-            CellFormat = type;
-        }
-        
-        public CellFormat CellFormat { get; set; }
+        public CellFormatAttribute(CellFormat cellFormat) => CellFormat = cellFormat;
+
+        public CellFormat CellFormat { get; }
     }
 }
