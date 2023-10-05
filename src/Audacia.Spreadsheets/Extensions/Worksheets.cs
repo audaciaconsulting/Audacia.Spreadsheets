@@ -4,7 +4,9 @@ using System.Linq;
 
 namespace Audacia.Spreadsheets.Extensions
 {
+#pragma warning disable AV1745
     public static class Worksheets
+#pragma warning restore AV1745
     {
         /// <summary>
         /// Returns the first tables on the current worksheet.
@@ -42,16 +44,23 @@ namespace Audacia.Spreadsheets.Extensions
         /// </summary>
         public static IEnumerable<Table> GetTables(this IEnumerable<WorksheetBase> worksheets)
         {
-            return worksheets.SelectMany(GetTables);
+            return worksheets.SelectMany(GetTables).ToList();
         }
 
         /// <summary>
         /// Creates a worksheet from an enumerable.
         /// </summary>
-        public static Worksheet ToWorksheet<TEntity>(this IEnumerable<TEntity> source, 
-            string sheetName = null, 
+#pragma warning disable ACL1003
+        public static Worksheet ToWorksheet<TEntity>(
+            this IEnumerable<TEntity> source, 
+#pragma warning restore ACL1003
+#pragma warning disable AV1553
+            string? sheetName = null, 
+#pragma warning restore AV1553
+#pragma warning disable AV1564
             bool includeHeaders = true,
-            TableHeaderStyle headerStyle = null,
+#pragma warning restore AV1564
+            TableHeaderStyle? headerStyle = null,
             params string[] ignoreProperties)
             where TEntity : class
         {

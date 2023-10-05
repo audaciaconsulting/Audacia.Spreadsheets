@@ -8,7 +8,9 @@ using Audacia.Spreadsheets.Attributes;
 
 namespace Audacia.Spreadsheets.Extensions
 {
+#pragma warning disable AV1745
     internal static class Types
+#pragma warning restore AV1745
     {
         /// <summary>
         /// Returns an enumerable of properties that should display on the worksheet.
