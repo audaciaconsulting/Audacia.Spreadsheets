@@ -9,7 +9,7 @@ namespace Audacia.Spreadsheets.Validation
     public class DuplicateColumnError : IImportError
     {
         public ICollection<string> ColumnNames { get; }
-        
+
         public DuplicateColumnError(IEnumerable<string> duplicateColumns)
         {
             ColumnNames = new HashSet<string>(duplicateColumns);
@@ -17,7 +17,8 @@ namespace Audacia.Spreadsheets.Validation
 
         public string GetMessage()
         {
-            return $"The following columns are duplicated; {string.Join(", ", ColumnNames.Distinct())}";
+            var columnNames = ColumnNames.Distinct();
+            return $"The following columns are duplicated; {string.Join(", ", columnNames)}";
         }
     }
 }

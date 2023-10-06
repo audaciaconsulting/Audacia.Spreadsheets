@@ -8,6 +8,7 @@ namespace Audacia.Spreadsheets.Validation
     public class RecordMissingError : RowGroupImportError, IImportError
     {
         private string Type { get; set; }
+
         private string MissingName { get; set; }
 
         public RecordMissingError(string type, string missingName, IEnumerable<int> rowNumbers) 

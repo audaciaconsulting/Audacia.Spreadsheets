@@ -9,6 +9,7 @@ namespace Audacia.Spreadsheets.Validation
     public class DuplicateKeyError : RowGroupImportError, IImportError
     {
         public string KeyName { get; }
+
         public string DuplicateKey { get; }
 
         public DuplicateKeyError(int rowNumber, string keyName, string duplicateKey)

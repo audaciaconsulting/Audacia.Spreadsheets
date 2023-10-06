@@ -8,6 +8,7 @@ namespace Audacia.Spreadsheets.Validation
     public class RecordExistsError : RowGroupImportError, IImportError
     {
         public string KeyName { get; }
+
         public string DuplicateKey { get; }
 
         public RecordExistsError(int rowNumber, string keyName, string duplicateKey)

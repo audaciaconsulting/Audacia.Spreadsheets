@@ -9,7 +9,7 @@ namespace Audacia.Spreadsheets.Validation
     {
         public ICollection<int> RowNumbers { get; }
 
-        public RowGroupImportError(IEnumerable<int> rowNumbers)
+        protected RowGroupImportError(IEnumerable<int> rowNumbers)
         {
             RowNumbers = new HashSet<int>(rowNumbers);
         }
