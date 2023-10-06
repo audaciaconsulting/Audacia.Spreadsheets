@@ -11,7 +11,9 @@ namespace Audacia.Spreadsheets.Extensions
         /// Creates a dictionary that maps column header to column index.
         /// </summary>
         /// <param name="columns">Worksheet table columns</param>
-        public static IReadOnlyDictionary<string, int> ToDictionary(this IEnumerable<TableColumn> columns)
+#pragma warning disable AV1130
+        public static IDictionary<string, int> ToDictionary(this IEnumerable<TableColumn> columns)
+#pragma warning restore AV1130
         {
             return columns
                 .Where(col => !string.IsNullOrEmpty(col.Name))
