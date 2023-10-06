@@ -1,9 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
-using System.ComponentModel;
-
-namespace Audacia.Spreadsheets
+﻿namespace Audacia.Spreadsheets
 {
     /// <summary>
     /// Cell Data Type. This is a copy of

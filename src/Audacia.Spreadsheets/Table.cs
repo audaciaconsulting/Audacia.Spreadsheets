@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Audacia.Core.Extensions;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Audacia.Spreadsheets
@@ -11,7 +13,9 @@ namespace Audacia.Spreadsheets
     {
         public Table() { }
 
+#pragma warning disable AV1564
         public Table(bool includeHeaders) => IncludeHeaders = includeHeaders;
+#pragma warning restore AV1564
 
         public string StartingCellRef { get; set; } = "A1";
 
@@ -23,7 +27,9 @@ namespace Audacia.Spreadsheets
 
         public IEnumerable<TableRow> Rows { get; set; } = new List<TableRow>();
 
+#pragma warning disable ACL1002
         public virtual CellReference Write(SharedDataTable sharedData, OpenXmlWriter writer)
+#pragma warning restore ACL1002
         {
             var rowReference = new CellReference(StartingCellRef);
 
@@ -32,7 +38,8 @@ namespace Audacia.Spreadsheets
             {
                 var rowCount = Rows.Count();
                 var subtotalCellRef = rowReference.Clone();
-                writer.WriteStartElement(new Row());
+                var newRow = new Row();
+                writer.WriteStartElement(newRow);
 
                 foreach (var column in Columns)
                 {
@@ -50,19 +57,9 @@ namespace Audacia.Spreadsheets
             if (IncludeHeaders && Columns.Any())
             {
                 var headerCellRef = rowReference.Clone();
-                writer.WriteStartElement(new Row());
-
-                foreach (var column in Columns)
-                {
-                    var isFirstColumn = column == Columns.ElementAt(0);
-                    var isLastColumn = column == Columns.ElementAt(Columns.Count - 1);
-                    if (HeaderStyle != null)
-                    {
-                        column.Write(HeaderStyle, headerCellRef, isFirstColumn, isLastColumn, sharedData, writer);
-                        headerCellRef.NextColumn();
-                    }
-                }
-
+                var newRow = new Row();
+                writer.WriteStartElement(newRow);
+                WriteHeaders(sharedData, writer, headerCellRef);
                 writer.WriteEndElement();
                 rowReference.NextRow();
             }
@@ -71,19 +68,36 @@ namespace Audacia.Spreadsheets
             // This puts them into a MemoryStream, to improve this we would need to update the OpenXML library we are using
             foreach (var row in Rows)
             {
-                row.Write(rowReference.Clone(), Columns, sharedData, writer);
+                var clonedRowReference = rowReference.Clone();
+                row.Write(clonedRowReference, Columns, sharedData, writer);
                 rowReference.NextRow();
             }
 
             // Return the cell ref at end of the table
             return rowReference;
         }
-        
+
+        private void WriteHeaders(SharedDataTable sharedData, OpenXmlWriter writer, CellReference headerCellRef)
+        {
+            foreach (var column in Columns)
+            {
+                var isFirstColumn = column == Columns.ElementAt(0);
+                var isLastColumn = column == Columns.ElementAt(Columns.Count - 1);
+                if (HeaderStyle != null)
+                {
+                    column.Write(HeaderStyle, headerCellRef, isFirstColumn, isLastColumn, sharedData, writer);
+                    headerCellRef.NextColumn();
+                }
+            }
+        }
+
+#pragma warning disable ACL1002
         public virtual int GetMaxCharacterWidth(int columnIndex)
+#pragma warning restore ACL1002
         {
             var column = Columns[columnIndex];
 
-            if (column.Width.HasValue)
+            if (column.Width != null)
             {
                 return column.Width.Value;
             }
@@ -93,27 +107,30 @@ namespace Audacia.Spreadsheets
 
             if (IncludeHeaders)
             {
-                cells.Add(new TableCell(column.Name));
+                var tableCell = new TableCell(column.Name);
+                cells.Add(tableCell);
             }
 
             // Create a Cell for Rollup if necessary
             if (column.DisplaySubtotal)
             {
                 var total = Rows
-                        .Where(r => r.Cells.Count > columnIndex)
-                        .Select(r =>
-                        {
-                            var value = r.Cells.ElementAt(columnIndex).Value;
-                            var isNumeric = value?.GetType().IsNumeric() ?? false;
-                            return isNumeric ? Convert.ToDecimal(value) : 0;
-                        })
-                        .DefaultIfEmpty(0)
-                        .Sum(v => v);
-                cells.Add(new TableCell
+                    .Where(r => r.Cells.Count > columnIndex)
+                    .Select(r =>
+                    {
+                        var value = r.Cells.ElementAt(columnIndex).Value;
+                        var isNumeric = value?.GetType().IsNumeric() ?? false;
+                        return isNumeric ? Convert.ToDecimal(value, NumberFormatInfo.InvariantInfo) : 0;
+                    })
+                    .DefaultIfEmpty(0)
+                    .Sum(v => v);
+                var totalCell = new TableCell
                 {
                     // Format as currency because the number value alone just isn't long enough
                     Value = $"{total:C}"
-                });
+                };
+
+                cells.Add(totalCell);
             }
 
             // Find the max cell width of supplied column           

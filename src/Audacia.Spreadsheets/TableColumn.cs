@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Audacia.Spreadsheets.Attributes;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
@@ -154,10 +155,14 @@ namespace Audacia.Spreadsheets
             SpreadsheetDocument spreadSheet,
             bool hasSubtotals)
         {
-            // Get column headers.
             if (worksheetPart == null)
             {
                 throw new ArgumentNullException(nameof(worksheetPart));
+            }
+
+            if (spreadSheet == null)
+            {
+                throw new ArgumentNullException(nameof(spreadSheet));
             }
 
             var cellReference = new CellReference("A1");
@@ -174,25 +179,37 @@ namespace Audacia.Spreadsheets
                 .Select(cell => new CellReference(cell.CellReference!.Value!))
                 .Last(c => c.RowNumber == cellReference.RowNumber).ColumnLetter;
 
-            // Return the first column header
-            var heading = GetColumnHeading(spreadSheet, worksheetPart, cellReference);
-            var column = new TableColumn(heading);
-            yield return column;
+            return ColumnIterator();
 
-            // Continue returing headers until we reach lastColumn
-            // So that we can handle spreadsheets with empty columns in amongst real ones.
-            while (cellReference.ColumnLetter != lastColumn)
+            IEnumerable<TableColumn> ColumnIterator()
             {
-                cellReference.NextColumn();
-                heading = GetColumnHeading(spreadSheet, worksheetPart, cellReference);
-                column = new TableColumn(heading);
+                var column = GetColumn(worksheetPart, spreadSheet, cellReference);
                 yield return column;
+
+                // Continue returning headers until we reach lastColumn
+                // So that we can handle spreadsheets with empty columns in amongst real ones.
+                while (cellReference.ColumnLetter != lastColumn)
+                {
+                    cellReference.NextColumn();
+                    column = GetColumn(worksheetPart, spreadSheet, cellReference);
+                    yield return column;
+                }
             }
+        }
+
+        private static TableColumn GetColumn(WorksheetPart worksheetPart, SpreadsheetDocument spreadSheet,
+            CellReference cellReference)
+        {
+            // Return the column header
+            var heading = GetColumnHeadingText(spreadSheet, worksheetPart, cellReference);
+            return new TableColumn(heading);
         }
 
         // Given a document name, a worksheet name, and a cell name, gets the column of the cell and returns
         // the content of the first cell in that column.
-        private static string GetColumnHeading(SpreadsheetDocument document, WorksheetPart worksheetPart,
+        private static string GetColumnHeadingText(
+            SpreadsheetDocument document,
+            WorksheetPart worksheetPart,
             CellReference cellReference)
         {
             // Get the column name for the specified cell.

@@ -7,36 +7,39 @@ namespace Audacia.Spreadsheets
 {
     public class NamedRangeModel
     {
-        private static Regex r = new Regex("^[a-zA-Z0-9_]*$");
-        private string _name;
+        private static readonly Regex _regex = new Regex("^[a-zA-Z0-9_]*$");
+        
+        private string _name = string.Empty;
+
         /// <summary>
-        /// Name for Named Range. Must only contain Alpha Numerics
+        /// Gets or sets the name for Named Range. Must only contain alpha numerical characters
         /// </summary>
-        public string Name {
-            get
-            {
-                return _name;
-            }
+        public string Name
+        {
+            get { return _name; }
+
             set
             {
-                
-                if (r.IsMatch(value))
+                if (_regex.IsMatch(value))
                 {
                     _name = value;
                 }
                 else
                 {
-                    throw new Exception("Named Range names must be alphanumeric");
+                    throw new ArgumentOutOfRangeException(nameof(Name), "Named Range names must be alphanumeric");
                 }
             }
         }
-        public string SheetName { get; set; }
-        public string StartCell { get; set; }
-        public string EndCell { get; set; }
 
-        public void Write()
+        public string SheetName { get; set; } = null!;
+        
+        public string StartCell { get; set; } = null!;
+        
+        public string EndCell { get; set; } = null!;
+
+        // ReSharper disable once UnusedMember.Global
+        public static void Write()
         {
-
         }
     }
 }

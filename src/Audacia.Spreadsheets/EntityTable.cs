@@ -8,11 +8,13 @@ namespace Audacia.Spreadsheets
 {
     public class EntityTable<TEntity> : Table where TEntity : class
     {
+        private const int DefaultMaxCharacterWidth = 75;
+
         public EntityTable() { }
 
         public EntityTable(IEnumerable<TEntity> source)
         { 
-            // Generate the column data if someone hasn't filled it in themselves.
+            // Generate the column data if not user provided.
             Columns = Extensions.Tables.GetColumns<TEntity>().ToList();
             Data = source;
             IncludeHeaders = true;
@@ -22,7 +24,7 @@ namespace Audacia.Spreadsheets
 
         public virtual TableRow FromEntity(TEntity entity)
         {
-            // Generate the row if someone hasn't defined it themselves.
+            // Generate the row if not user defined.
             return entity.GetRow(Columns);
         }
 
@@ -57,7 +59,9 @@ namespace Audacia.Spreadsheets
             }
         }
 
+#pragma warning disable ACL1002
         private void WriteHeaders(SharedDataTable sharedData, OpenXmlWriter writer, CellReference rowReference)
+#pragma warning restore ACL1002
         {
             if (IncludeHeaders)
             {
@@ -78,14 +82,17 @@ namespace Audacia.Spreadsheets
             }
         }
 
+#pragma warning disable ACL1002
         private void WriteSubTotalHeaders(SharedDataTable sharedData, OpenXmlWriter writer, CellReference rowReference)
+#pragma warning restore ACL1002
         {
             if (IncludeHeaders && Columns.Any(c => c.DisplaySubtotal))
             {
                 var rowCount = Data.Count();
                 var subtotalCellRef = rowReference.Clone();
-                writer.WriteStartElement(new Row());
-
+                var newRow = new Row();
+                writer.WriteStartElement(newRow);
+                
                 foreach (var column in Columns)
                 {
                     var isFirstColumn = column == Columns.ElementAt(0);
@@ -102,14 +109,7 @@ namespace Audacia.Spreadsheets
         public override int GetMaxCharacterWidth(int columnIndex)
         {
             var column = Columns[columnIndex];
-
-            if (column.Width.HasValue)
-            {
-                return column.Width.Value;
-            }
-            
-            // TODO: be better another day
-            return 75;
+            return column.Width ?? DefaultMaxCharacterWidth;
         }
     }
 }

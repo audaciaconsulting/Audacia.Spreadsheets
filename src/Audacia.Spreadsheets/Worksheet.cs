@@ -15,7 +15,11 @@ namespace Audacia.Spreadsheets
             Table.Write(sharedData, writer);
         }
         
+#pragma warning disable ACL1002
+#pragma warning disable AV1564
         public static Worksheet FromOpenXml(Sheet worksheet, SpreadsheetDocument spreadSheet, bool includeHeaders, bool hasSubtotals)
+#pragma warning restore AV1564
+#pragma warning restore ACL1002
         {
             if (spreadSheet.WorkbookPart == null || string.IsNullOrEmpty(worksheet.Id?.Value))
             {
@@ -23,7 +27,7 @@ namespace Audacia.Spreadsheets
                     $"{nameof(spreadSheet.WorkbookPart)} and {nameof(worksheet)} must be provided.");
             }
 
-            var worksheetPart = (WorksheetPart?) spreadSheet.WorkbookPart?.GetPartById(worksheet.Id!.Value!);
+            var worksheetPart = (WorksheetPart?)spreadSheet.WorkbookPart?.GetPartById(worksheet.Id!.Value!);
             var table = new Table
             {
                 StartingCellRef = "A1",
@@ -40,7 +44,7 @@ namespace Audacia.Spreadsheets
             else if (includeHeaders)
             {
                 // Rows start at i = 1 to skip header row IF headers are included
-                startingRowIndex += 1;
+                startingRowIndex++;
             }
 
             if (includeHeaders)
@@ -49,10 +53,10 @@ namespace Audacia.Spreadsheets
                 table.Columns.AddRange(columns);
             }
 
-            var maxRowWidth = includeHeaders ? table.Columns.Count : GetMaxRowWidth(worksheetPart);
+            var maxRowWidth = includeHeaders ? table.Columns.Count : GetMaxRowWidth(worksheetPart!);
 
             // Force enumeration of the content when reading the worksheet, otherwise the spreadsheet is disposed before we can read the data.
-            table.Rows = TableRow.FromOpenXml(worksheetPart, spreadSheet, maxRowWidth, startingRowIndex).ToArray();
+            table.Rows = TableRow.FromOpenXml(worksheetPart!, spreadSheet, maxRowWidth, startingRowIndex).ToArray();
 
             return new Worksheet
             {

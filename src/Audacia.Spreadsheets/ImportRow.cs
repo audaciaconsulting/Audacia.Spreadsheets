@@ -7,22 +7,22 @@ namespace Audacia.Spreadsheets
     public class ImportRow<TRowModel>
     {
         /// <summary>
-        /// The row number from the spreadsheet, defaults to zero for a column parsing errors.
+        /// Gets or sets the row number from the spreadsheet, defaults to zero for a column parsing errors.
         /// </summary>
         public int RowId { get; set; }
 
         /// <summary>
-        /// The parsed row data as a <see cref="{TRowModel}"/>.
+        /// Gets or sets the parsed row data as a <see cref="{TRowModel}"/>.
         /// </summary>
-        public TRowModel Data { get; set; }
+        public TRowModel Data { get; set; } = default!;
 
         /// <summary>
-        /// An array of validation errors from attempting to parse all expected cells.
+        /// Gets or sets an array of validation errors from attempting to parse all expected cells.
         /// </summary>
-        public IReadOnlyCollection<IImportError> ImportErrors { get; set; }
+        public IReadOnlyCollection<IImportError> ImportErrors { get; set; } = new List<IImportError>();
 
         /// <summary>
-        /// Returns <see cref="true"/> if there are no <see cref="ImportErrors"/>.
+        /// Gets a value indicating whether there are no <see cref="ImportErrors"/>.
         /// </summary>
         public bool IsValid => !ImportErrors.Any();
     }

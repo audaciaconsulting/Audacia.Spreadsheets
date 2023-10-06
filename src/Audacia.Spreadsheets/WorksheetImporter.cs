@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,44 +17,49 @@ namespace Audacia.Spreadsheets
     /// </summary>
     public class WorksheetImporter<TRowModel> where TRowModel : class, new()
     {
-        private readonly string[] DateTimeFormats = new[]
+        private readonly string[] _dateTimeFormats = new[]
         {
-            "dd/MM/yyyy HH:mm:ss K",    // DateTimeOffset
-            "dd/MM/yyyy HH:mm:ss",      // Long DateTime
-            "dd/MM/yyyy HH:mm",         // Short DateTime
-            "dd/MM/yyyy",               // Short Date
-            "yyyy-MM-dd HH:mm:ss K",    // Sortable DateTimeOffset
-            "yyyy-MM-dd HH:mm:ss",      // Sortable Long DateTime
-            "yyyy-MM-dd HH:mm",         // Sortable Short DateTime
-            "yyyy-MM-dd",               // Sortable Date
-            "yyyy-MM-ddTH:mm:ss.fffK",  // ISO8601
-            "O",                        // Round-trip DateTime
-            "R",                        // RFC1123
-            "u"                         // Universal Sortable DateTime
+            "dd/MM/yyyy HH:mm:ss K", // DateTimeOffset
+            "dd/MM/yyyy HH:mm:ss", // Long DateTime
+            "dd/MM/yyyy HH:mm", // Short DateTime
+            "dd/MM/yyyy", // Short Date
+            "yyyy-MM-dd HH:mm:ss K", // Sortable DateTimeOffset
+            "yyyy-MM-dd HH:mm:ss", // Sortable Long DateTime
+            "yyyy-MM-dd HH:mm", // Sortable Short DateTime
+            "yyyy-MM-dd", // Sortable Date
+            "yyyy-MM-ddTH:mm:ss.fffK", // ISO8601
+            "O", // Round-trip DateTime
+            "R", // RFC1123
+            "u" // Universal Sortable DateTime
         };
-        private bool skipWorksheetColumnMapping;
+
+        private bool _skipWorksheetColumnMapping;
 
         /// <summary>
-        /// Maps expected column headers to properties on the row model.
+        /// Gets expected column headers to properties on the row model.
         /// </summary>
-        protected IDictionary<string, PropertyInfo> ExpectedColumns { get; private set; } = new Dictionary<string, PropertyInfo>();
+        protected IDictionary<string, PropertyInfo> ExpectedColumns { get; private set; } =
+            new Dictionary<string, PropertyInfo>();
 
         /// <summary>
-        /// Maps actual column headers to field index on the spreadsheet.
+        /// Gets actual column headers to field index on the spreadsheet.
         /// </summary>
         protected IDictionary<string, int> SpreadsheetColumns { get; private set; } = new Dictionary<string, int>();
 
         /// <summary>
-        /// Current row being parsed by the importer.
+        /// Gets the current row being parsed by the importer.
         /// </summary>
         protected TableRow? CurrentRow { get; private set; }
-
 
         /// <summary>
         /// Manually map an expected column to a property on the row model.
         /// </summary>
         /// <param name="propertyExpression">Property on row model</param>
+#pragma warning disable ACL1009
+#pragma warning disable AV1551
         public WorksheetImporter<TRowModel> MapColumn(Expression<Func<TRowModel, object>> propertyExpression)
+#pragma warning restore AV1551
+#pragma warning restore ACL1009
         {
             var propertyInfo = ExpressionExtensions.GetPropertyInfo(propertyExpression);
             var columnHeader = propertyInfo.GetDataAnnotationDisplayName();
@@ -66,7 +72,9 @@ namespace Audacia.Spreadsheets
         /// </summary>
         /// <param name="columnHeader">Expected column header or display name</param>
         /// <param name="propertyExpression">Property on row model</param>
-        public WorksheetImporter<TRowModel> MapColumn(string columnHeader, Expression<Func<TRowModel, object>> propertyExpression)
+        public virtual WorksheetImporter<TRowModel> MapColumn(
+            string columnHeader,
+            Expression<Func<TRowModel, object>> propertyExpression)
         {
             if (ExpectedColumns.ContainsKey(columnHeader))
             {
@@ -77,7 +85,7 @@ namespace Audacia.Spreadsheets
             ExpectedColumns.Add(columnHeader, propertyInfo);
 
             // Manually append spreadsheet cell mapping in the case where no column headers exist
-            if (skipWorksheetColumnMapping)
+            if (_skipWorksheetColumnMapping)
             {
                 var previousColumnIndex = SpreadsheetColumns.Any()
                     ? SpreadsheetColumns.Values.LastOrDefault()
@@ -94,13 +102,20 @@ namespace Audacia.Spreadsheets
         /// </summary>
         /// <param name="worksheet">Worksheet to be parsed</param>
         /// <param name="ignoreProperties">Properties to ignore when generating expected column headers</param>
-        public IEnumerable<ImportRow<TRowModel>> ParseWorksheet(WorksheetBase worksheet, params string[] ignoreProperties)
+#pragma warning disable ACL1002
+        public IEnumerable<ImportRow<TRowModel>> ParseWorksheet(
+            WorksheetBase worksheet,
+            params string[] ignoreProperties)
+#pragma warning restore ACL1002
         {
             // We only support single worksheets
+#pragma warning disable RCS1221
             var sheet = worksheet as Worksheet;
+#pragma warning restore RCS1221
             if (sheet == null)
             {
-                throw new InvalidCastException($"The worksheet being imported must inherit from {typeof(Worksheet).FullName}");
+                throw new InvalidCastException(
+                    $"The worksheet being imported must inherit from {typeof(Worksheet).FullName}");
             }
 
             // Sets the expected column headers using the default column headers generated for the row model.
@@ -108,13 +123,14 @@ namespace Audacia.Spreadsheets
             {
                 ExpectedColumns = Tables
                     .GetColumns<TRowModel>(ignoreProperties)
-                    .ToDictionary(tc => tc.Name, tc => tc.PropertyInfo);
+                    .Where(tc => !string.IsNullOrEmpty(tc.Name) && tc.PropertyInfo != null)
+                    .ToDictionary(tc => tc.Name!, tc => tc.PropertyInfo!);
             }
 
             // Create column headers map, if not manually setup
             if (!SpreadsheetColumns.Any())
             {
-                if (skipWorksheetColumnMapping)
+                if (_skipWorksheetColumnMapping)
                 {
                     throw new InvalidOperationException(
                         $"Incorrect usage, .{nameof(SkipColumnHeaderMapping)}() should be called before .{nameof(MapColumn)}() when no column headers are expected.");
@@ -122,8 +138,8 @@ namespace Audacia.Spreadsheets
 
                 // Check for duplicate column names in spreadsheet
                 var duplicateColumnNames = sheet.Table.Columns
-                    .Where(c => !string.IsNullOrWhiteSpace(c.Name))
-                    .Where(c => sheet.Table.Columns.Count(tc => tc.Name == c.Name) > 1)
+                    .Where(c => !string.IsNullOrWhiteSpace(c.Name) &&
+                                sheet.Table.Columns.Count(tc => tc.Name == c.Name) > 1)
                     .Select(c => c.Name)
                     .ToArray();
 
@@ -131,14 +147,14 @@ namespace Audacia.Spreadsheets
                 {
                     yield return new ImportRow<TRowModel>
                     {
-                        ImportErrors = new[] { new DuplicateColumnError(duplicateColumnNames) }
+                        ImportErrors = new[] { new DuplicateColumnError(duplicateColumnNames!) }
                     };
                     yield break;
                 }
 
                 // Convert column headers on spreadsheet into mapping dictionary
+                //var columnDictionary = 
                 SpreadsheetColumns = sheet.Table.Columns.ToDictionary();
-
                 // Check for missing column headers
                 var missingColumnNames = ExpectedColumns.Keys
                     .Where(expected => !SpreadsheetColumns.ContainsKey(expected))
@@ -150,6 +166,7 @@ namespace Audacia.Spreadsheets
                     {
                         ImportErrors = new[] { new MissingColumnError(missingColumnNames) }
                     };
+
                     yield break;
                 }
             }
@@ -157,26 +174,30 @@ namespace Audacia.Spreadsheets
             // Iterate over and parse all rows
             foreach (var row in sheet.Table.Rows)
             {
-                CurrentRow = row;
-                var rowParseErrors = ParseRow(out var rowModel);
-
-                // Allow for custom row validation if inherited
-                var customValidationErrors = rowParseErrors.Any()
-                    ? Enumerable.Empty<IImportError>()
-                    : ValidateRow(rowModel);
-
-                var importModel = new ImportRow<TRowModel>
-                {
-                    RowId = row.Id ?? 0,
-                    Data = rowModel,
-                    ImportErrors = rowParseErrors.Concat(customValidationErrors).ToArray()
-                };
-
                 // We're using yield return to allow for developers to design large imports where the memory can be garbage collected
                 // Obviously this is a band aid against the raging typhoon that is the DocumentFormat.OpenXml library
                 // Because of this design choice we can't have a global validation error list
-                yield return importModel;
+                yield return ParseRows(row);
             }
+        }
+
+        private ImportRow<TRowModel> ParseRows(TableRow row)
+        {
+            CurrentRow = row;
+            var rowParseErrors = ParseRow(out var rowModel);
+
+            // Allow for custom row validation if inherited
+            var customValidationErrors = rowParseErrors.Any()
+                ? Enumerable.Empty<IImportError>()
+                : ValidateRow(rowModel);
+
+            var importModel = new ImportRow<TRowModel>
+            {
+                RowId = row.Id ?? 0,
+                Data = rowModel,
+                ImportErrors = rowParseErrors.Concat(customValidationErrors).ToArray()
+            };
+            return importModel;
         }
 
         /// <summary>
@@ -185,7 +206,7 @@ namespace Audacia.Spreadsheets
         /// </summary>
         public WorksheetImporter<TRowModel> SkipColumnHeaderMapping()
         {
-            skipWorksheetColumnMapping = true;
+            _skipWorksheetColumnMapping = true;
             return this;
         }
 
@@ -200,7 +221,8 @@ namespace Audacia.Spreadsheets
 
             if (!ExpectedColumns.Values.Contains(propertyInfo))
             {
-                throw new InvalidOperationException($"Property '{propertyInfo.Name}' is not an expected worksheet column.");
+                throw new InvalidOperationException(
+                    $"Property '{propertyInfo.Name}' is not an expected worksheet column.");
             }
 
             return ExpectedColumns.Single(kvp => kvp.Value == propertyInfo).Key;
@@ -209,7 +231,9 @@ namespace Audacia.Spreadsheets
         /// <summary>
         /// Returns the ID of the current row (defaults to zero).
         /// </summary>
-        protected int GetRowNumber() 
+#pragma warning disable CA1024
+        protected int GetRowNumber()
+#pragma warning restore CA1024
         {
             // Row ID will always exist when parsing spreadsheets read from file, it won't exist if someone attempts to parse a worksheet generated for export
             return CurrentRow?.Id ?? 0;
@@ -218,7 +242,9 @@ namespace Audacia.Spreadsheets
         /// <summary>
         /// Handles the parsing of the CurrentRow, should add validation errors where necessary.
         /// </summary>
+#pragma warning disable AV1562
         protected virtual IEnumerable<IImportError> ParseRow(out TRowModel model)
+#pragma warning restore AV1562
         {
             // For the application developer to override
             // Use either TryGetCell(), TryGetValue(), TryGetValueStr()
@@ -233,26 +259,45 @@ namespace Audacia.Spreadsheets
                 var columnName = expectedProperty.Key;
                 if (!TryGetCell(columnName, out var cell))
                 {
-                    rowErrors.Add(new FieldMissingError(GetRowNumber(), columnName));
+                    AddRowError(columnName, rowErrors);
                     continue;
                 }
 
-                var classMember = expectedProperty.Value;
-                var propertyType = classMember.PropertyType;
-                var underlyingType = propertyType.GetUnderlyingTypeIfNullable();
-                var isNullable = propertyType.IsNullable();
-
-                // Get the cell value and parse it
-                var parsedValue = ParseValue(columnName, underlyingType, isNullable, cell, rowErrors);
-
-                // Set cell value
-                if (classMember.CanWrite && (isNullable || parsedValue != null))
-                {
-                    classMember.SetValue(model, parsedValue);
-                }
+                SetCellValue(model, expectedProperty, columnName, cell, rowErrors);
             }
 
             return rowErrors;
+        }
+
+        private void AddRowError(string columnName, List<IImportError> rowErrors)
+        {
+            var rowNumber = GetRowNumber();
+            var missingFieldError = new FieldMissingError(rowNumber, columnName);
+            rowErrors.Add(missingFieldError);
+        }
+
+#pragma warning disable ACL1003
+        private void SetCellValue(
+            TRowModel model, 
+            KeyValuePair<string, PropertyInfo> expectedProperty, 
+            string columnName, 
+            TableCell? cell,
+            List<IImportError> rowErrors)
+#pragma warning restore ACL1003
+        {
+            var classMember = expectedProperty.Value;
+            var propertyType = classMember.PropertyType;
+            var underlyingType = propertyType.GetUnderlyingTypeIfNullable();
+            var isNullable = propertyType.IsNullable();
+
+            // Get the cell value and parse it
+            var parsedValue = ParseValue(columnName, underlyingType, isNullable, cell, rowErrors);
+
+            // Set cell value
+            if (classMember.CanWrite && (isNullable || parsedValue != null))
+            {
+                classMember.SetValue(model, parsedValue);
+            }
         }
 
         /// <summary>
@@ -260,7 +305,9 @@ namespace Audacia.Spreadsheets
         /// </summary>
         /// <param name="propertyExpression">Expected property</param>
         /// <param name="value">Cell Value</param>
+#pragma warning disable AV1564
         protected bool TryGetBoolean(Expression<Func<TRowModel, object>> propertyExpression, out bool value)
+#pragma warning restore AV1564
         {
             value = false;
             return TryGetString(propertyExpression, out var str) &&
@@ -272,8 +319,6 @@ namespace Audacia.Spreadsheets
         /// Cell.Value can be a string, decimal, or DateTime.
         /// Cell.FillColour is also parsed.
         /// </summary>
-        /// <param name="propertyExpression">Expected property</param>
-        /// <param name="cell">Cell Data</param>
         protected bool TryGetCell(Expression<Func<TRowModel, object>> propertyExpression, out TableCell? value)
         {
             try
@@ -281,7 +326,9 @@ namespace Audacia.Spreadsheets
                 var column = GetColumnHeader(propertyExpression);
                 return TryGetCell(column, out value);
             }
+#pragma warning disable CA1031
             catch
+#pragma warning restore CA1031
             {
                 value = null;
                 return false;
@@ -299,11 +346,17 @@ namespace Audacia.Spreadsheets
         {
             cell = null;
 
-            if (!SpreadsheetColumns.ContainsKey(columnHeader)) return false;
+            if (!SpreadsheetColumns.ContainsKey(columnHeader))
+            {
+                return false;
+            }
 
             var columnIndex = SpreadsheetColumns[columnHeader];
 
-            if (CurrentRow?.Cells.Count <= columnIndex) return false;
+            if (CurrentRow?.Cells.Count <= columnIndex)
+            {
+                return false;
+            }
 
             cell = CurrentRow?.Cells[columnIndex];
 
@@ -327,9 +380,13 @@ namespace Audacia.Spreadsheets
         /// <summary>
         /// Try get cell value from the current row as a <see cref="DateTimeOffset"/>.
         /// </summary>
-        /// <param name="propertyExpression">Expected property</param>
+        /// <param name="propertyExpression"> Expected property </param>
         /// <param name="value">Cell Value</param>
-        protected bool TryGetDateTimeOffset(Expression<Func<TRowModel, object>> propertyExpression, out DateTimeOffset value)
+#pragma warning disable SA1116
+        protected bool TryGetDateTimeOffset(
+            Expression<Func<TRowModel, object>> propertyExpression,
+            out DateTimeOffset value)
+#pragma warning restore SA1116
         {
             // Further optimisation possible can be done but code makes code look overly complex
             // Could use TryGetCell(), then checking if the date was already parsed like in ParseValue()
@@ -434,7 +491,8 @@ namespace Audacia.Spreadsheets
 
             if (!ExpectedColumns.Values.Contains(propertyInfo))
             {
-                throw new InvalidOperationException($"Property '{propertyInfo.Name}' is not an expected column in the spreadsheet.");
+                throw new InvalidOperationException(
+                    $"Property '{propertyInfo.Name}' is not an expected column in the spreadsheet.");
             }
 
             var columnHeader = ExpectedColumns.Single(kvp => kvp.Value == propertyInfo).Key;
@@ -463,15 +521,16 @@ namespace Audacia.Spreadsheets
         protected bool TryParseDateTime(string valueString, out DateTime value)
         {
             // Could be datetime, or number format
-            if (DateTime.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out value))
+            if (DateTime.TryParseExact(valueString, _dateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None,
+                    out value))
             {
                 return true;
             }
             else if (valueString.IsNumeric() &&
-                double.TryParse(valueString, out var oaDate) &&
-                oaDate > 0)
+                     double.TryParse(valueString, out var oleAutomationDate) &&
+                     oleAutomationDate > 0)
             {
-                value = DateTimes.FromOADatePrecise(oaDate);
+                value = oleAutomationDate.FromOADatePrecise();
                 return true;
             }
 
@@ -487,15 +546,18 @@ namespace Audacia.Spreadsheets
         protected bool TryParseDateTimeOffset(string valueString, out DateTimeOffset value)
         {
             // Could be datetime, or number format
-            if (DateTimeOffset.TryParseExact(valueString, DateTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out value))
+            if (DateTimeOffset.TryParseExact(valueString, _dateTimeFormats, CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out value))
             {
                 return true;
             }
-            else if (valueString.IsNumeric() &&
-                double.TryParse(valueString, out var oaDate) &&
-                oaDate > 0)
+
+            if (valueString.IsNumeric() &&
+                double.TryParse(valueString, out var oleAutomationDate) &&
+                oleAutomationDate > 0)
             {
-                value = new DateTimeOffset(DateTimes.FromOADatePrecise(oaDate));
+                var dateTime = oleAutomationDate.FromOADatePrecise();
+                value = new DateTimeOffset(dateTime);
                 return true;
             }
 
@@ -544,7 +606,14 @@ namespace Audacia.Spreadsheets
         /// <param name="cell">Spreadsheet cell containing value</param>
         /// <param name="importErrors">Row import errors</param>
         /// <returns>Parsed cell value</returns>
-        private object? ParseValue(string columnName, Type propertyType, bool isNullable, TableCell? cell, List<IImportError> importErrors)
+#pragma warning disable ACL1003
+#pragma warning disable ACL1002
+#pragma warning disable CA1502
+        private object? ParseValue(string columnName, Type propertyType, bool isNullable, TableCell? cell,
+            List<IImportError> importErrors)
+#pragma warning restore CA1502
+#pragma warning restore ACL1002
+#pragma warning restore ACL1003
         {
             // Don't bother parsing if null
             if (cell?.Value == null)
@@ -566,7 +635,8 @@ namespace Audacia.Spreadsheets
             }
 
             var valueString = cell.GetValue();
-
+            var rowNumber = GetRowNumber();
+            FieldParseError importError;
             // Skip parsing if empty value and nullable type
             if (isNullable && string.IsNullOrWhiteSpace(valueString))
             {
@@ -576,21 +646,21 @@ namespace Audacia.Spreadsheets
             // Fallback parser based on the output property type for when the number format isn't parsed
             if (propertyType == typeof(DateTime))
             {
-                if (TryParseDateTime(valueString, out var dt))
+                if (TryParseDateTime(valueString!, out var dt))
                 {
                     return dt;
                 }
             }
             else if (propertyType == typeof(DateTimeOffset))
             {
-                if (TryParseDateTimeOffset(valueString, out var dto))
+                if (TryParseDateTimeOffset(valueString!, out var dto))
                 {
                     return dto;
                 }
             }
             else if (propertyType == typeof(TimeSpan))
             {
-                if (TryParseTimeSpan(valueString, out var t))
+                if (TryParseTimeSpan(valueString!, out var t))
                 {
                     return t;
                 }
@@ -625,7 +695,7 @@ namespace Audacia.Spreadsheets
             }
             else if (propertyType == typeof(bool))
             {
-                if (Bool.TryParse(valueString, out var b))
+                if (Bool.TryParse(valueString!, out var b))
                 {
                     return b;
                 }
@@ -638,12 +708,14 @@ namespace Audacia.Spreadsheets
                 }
 
                 // Override the default import error to include possible values
-                importErrors.Add(new FieldParseError(GetRowNumber(), columnName, valueString, EnumMember.Options(propertyType).ToArray()));
+                var enumOptions = EnumMember.Options(propertyType).ToArray();
+                importError = new FieldParseError(rowNumber, columnName, valueString!, enumOptions);
+                importErrors.Add(importError);
                 return null;
             }
 
-            importErrors.Add(new FieldParseError(GetRowNumber(), columnName, valueString));
-
+            importError = new FieldParseError(rowNumber, columnName, valueString!);
+            importErrors.Add(importError);
             return null;
         }
     }
