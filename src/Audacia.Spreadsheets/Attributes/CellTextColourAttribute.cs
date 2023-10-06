@@ -2,7 +2,8 @@
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class CellTextColourAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class CellTextColourAttribute : Attribute
     {
         public CellTextColourAttribute() { }
         
@@ -10,6 +11,6 @@ namespace Audacia.Spreadsheets.Attributes
                 
         public string? ReferenceField { get; set; }
         
-        public string? Colour { get; set; }
+        public string? Colour { get; }
     }
 }
