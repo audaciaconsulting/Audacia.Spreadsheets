@@ -2,7 +2,8 @@
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class SubtotalHeaderAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class SubtotalHeaderAttribute : Attribute
     {
     }
 }

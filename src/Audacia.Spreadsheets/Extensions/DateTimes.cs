@@ -1,5 +1,5 @@
-﻿// ReSharper disable InconsistentNaming
-using System;
+﻿using System;
+#pragma warning disable AV1745
 
 namespace Audacia.Spreadsheets.Extensions
 {
@@ -15,21 +15,27 @@ namespace Audacia.Spreadsheets.Extensions
         */
         
         /// <summary>1900 Date System, Epoch is 30th December 1899.</summary>
+#pragma warning disable AV1704
         public static readonly DateTime EpochJan1900 = new DateTime(1899, 12, 30);
-        
+#pragma warning restore AV1704
+
         /// <summary>
         /// Converts an OADate to a DateTime
         /// .Net Standard doesn't support OADate (used by OpenXml)
         /// Ref: http://stackoverflow.com/a/13922172/1336654
         /// </summary>
-        /// <param name="d">Ticks since 30th December 1899</param>
+        /// <param name="source">Ticks since 30th December 1899</param>
         /// <returns>A DateTime</returns>
-        public static DateTime FromOADatePrecise(this double d)
+        public static DateTime FromOADatePrecise(this double source)
         {
-            if (!(d >= 0))
-                throw new ArgumentOutOfRangeException(); // NaN or negative d not supported
+            if (!(source >= 0))
+            {
+                // NaN or negative source not supported
+                throw new ArgumentOutOfRangeException(nameof(source));
+            }
 
-            return EpochJan1900 + TimeSpan.FromTicks(Convert.ToInt64(d * TimeSpan.TicksPerDay));
+            var ticks = Convert.ToInt64(source * TimeSpan.TicksPerDay);
+            return EpochJan1900 + TimeSpan.FromTicks(ticks);
         }
 
         /// <summary>
@@ -37,14 +43,16 @@ namespace Audacia.Spreadsheets.Extensions
         /// .Net Standard doesn't support OADate (used by OpenXml)
         /// Ref: http://stackoverflow.com/a/13922172/1336654
         /// </summary>
-        /// <param name="dt"></param>
+        /// <param name="dateTime"></param>
         /// <returns>An OADate (Ticks since 30th December 1899)</returns>
-        public static double ToOADatePrecise(this DateTime dt)
+        public static double ToOADatePrecise(this DateTime dateTime)
         {
-            if (dt < EpochJan1900)
-                throw new ArgumentOutOfRangeException();
+            if (dateTime < EpochJan1900)
+            {
+                throw new ArgumentOutOfRangeException(nameof(dateTime));
+            }
 
-            return Convert.ToDouble((dt - EpochJan1900).Ticks) / TimeSpan.TicksPerDay;
+            return Convert.ToDouble((dateTime - EpochJan1900).Ticks) / TimeSpan.TicksPerDay;
         }
     }
 }

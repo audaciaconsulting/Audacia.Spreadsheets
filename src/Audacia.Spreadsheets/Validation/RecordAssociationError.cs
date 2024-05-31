@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+#pragma warning disable AV1704
 
 namespace Audacia.Spreadsheets.Validation
 {
@@ -8,11 +9,16 @@ namespace Audacia.Spreadsheets.Validation
     public class RecordAssociationError : RowGroupImportError, IImportError
     {
         private string Type1 { get; }
+        
         private string Type2 { get; }
+        
         private string Value1 { get; }
+        
         private string Value2 { get; }
 
+#pragma warning disable ACL1003
         public RecordAssociationError(string type1, string type2, string value1, string value2, IEnumerable<int> rowNumbers) 
+#pragma warning restore ACL1003
             : base(rowNumbers)
         {
             Type1 = type1;

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OpenXmlCellFormat = DocumentFormat.OpenXml.Spreadsheet.CellFormat;
@@ -13,11 +16,15 @@ namespace Audacia.Spreadsheets
     public class TableRow
     {
         public int? Id { get; set; }
+
         public List<TableCell> Cells { get; } = new List<TableCell>();
 
+#pragma warning disable ACL1002
         public void Write(CellReference cellReference, IList<TableColumn> columns, SharedDataTable sharedData, OpenXmlWriter writer)
+#pragma warning restore ACL1002
         {
-            writer.WriteStartElement(new Row());
+            var newRow = new Row();
+            writer.WriteStartElement(newRow);
                 
             for (var columnIndex = 0; columnIndex < columns.Count; columnIndex++)
             {
@@ -28,15 +35,7 @@ namespace Audacia.Spreadsheets
                 
                 var cellStyle = cell.CellStyle(column);
 
-                if (!string.IsNullOrWhiteSpace(cell.FillColour))
-                {
-                    cellStyle.BackgroundColour = sharedData.FillColours[cell.FillColour];
-                }
-
-                if (!string.IsNullOrWhiteSpace(cell.TextColour))
-                {
-                    cellStyle.TextColour = sharedData.TextColours[cell.TextColour];
-                }
+                SetCellColours(sharedData, cell, cellStyle);
 
                 var styleIndex = sharedData.GetOrCreateCellFormat(cellStyle).Index;
 
@@ -46,6 +45,19 @@ namespace Audacia.Spreadsheets
             }
 
             writer.WriteEndElement();
+        }
+
+        private static void SetCellColours(SharedDataTable sharedData, TableCell cell, CellStyle cellStyle)
+        {
+            if (!string.IsNullOrWhiteSpace(cell.FillColour))
+            {
+                cellStyle.BackgroundColour = sharedData.FillColours[cell.FillColour!];
+            }
+
+            if (!string.IsNullOrWhiteSpace(cell.TextColour))
+            {
+                cellStyle.TextColour = sharedData.TextColours[cell.TextColour!];
+            }
         }
 
         public static TableRow FromCells(IEnumerable<TableCell> cells, int? id)
@@ -62,104 +74,83 @@ namespace Audacia.Spreadsheets
             
             return row;
         }
-        
-        public static IEnumerable<TableRow> FromOpenXml(WorksheetPart worksheetPart, 
-            SpreadsheetDocument spreadSheet, int columnsCount, int startingRowIndex = 0)
+
+#pragma warning disable ACL1002
+#pragma warning disable CA1502
+        public static IEnumerable<TableRow> FromOpenXml(
+            WorksheetPart worksheetPart, 
+            SpreadsheetDocument spreadSheet, 
+            int columnsCount, 
+            int startingRowIndex = 0)
+#pragma warning restore ACL1002
+#pragma warning restore CA1502
         {
-            var stylesheet = spreadSheet.WorkbookPart.WorkbookStylesPart.Stylesheet;
-            var cellFormats = stylesheet.CellFormats;
-            var dateFormatIds = GetDateFormatsInFile(spreadSheet.WorkbookPart.WorkbookStylesPart);
+            var stylesheet = spreadSheet.WorkbookPart?.WorkbookStylesPart?.Stylesheet;
+            var cellFormats = stylesheet?.CellFormats;
+            var dateFormatIds = GetDateFormatsInFile(spreadSheet.WorkbookPart?.WorkbookStylesPart!);
 
             // Read each row and add to table
             var rows = worksheetPart.Worksheet.Elements<SheetData>().First().Elements<Row>().ToList();
-            var stringTable = spreadSheet.WorkbookPart.GetPartsOfType<SharedStringTablePart>().First();
+            var stringTable = spreadSheet.WorkbookPart?.GetPartsOfType<SharedStringTablePart>().First();
 
             var rowPointer = new CellReference("A1").MutateBy(0, startingRowIndex);
-            
+
+#pragma warning disable ACL1011
             foreach (var row in rows.Skip(startingRowIndex))
             {
                 var cellRef = rowPointer.Clone();
                 var cells = row.Elements<Cell>().ToArray();
                 var cellData = new List<TableCell>();
                 
-                for (var j = 0; j < columnsCount; j++)
+                for (var columnIndex = 0; columnIndex < columnsCount; columnIndex++)
                 {
                     var cellReference = cellRef.ToString();
                     var matchedCells = cells.Where(c =>
-                        string.Compare(cellReference, c.CellReference.Value, StringComparison.OrdinalIgnoreCase) == 0)
+                        string.Compare(cellReference, c.CellReference?.Value, StringComparison.OrdinalIgnoreCase) == 0)
                         .ToList();
-                    var newCell = new TableCell(null);
 
                     if (!matchedCells.Any() || matchedCells.First().CellValue == null)
                     {
+                        var newCell = new TableCell(null);
                         cellData.Add(newCell);
                     }
                     else
                     {
-                        var c = matchedCells.First();
-                        if (c.DataType != null && c.DataType.HasValue && c.DataType.Value == CellValues.SharedString)
+                        var matchedCell = matchedCells.First();
+                        if (matchedCell.DataType is { Value: CellValues.SharedString } && 
+                            !string.IsNullOrEmpty(matchedCell.CellValue?.Text))
                         {
-                            // Read value from shared string table
-                            newCell.Value = stringTable.SharedStringTable.ElementAt(int.Parse(c.CellValue.Text)).InnerText;
-
-                            // Read cell colour
-                            if (c.StyleIndex != null)
-                            {
-                                var styleIndex = (int)c.StyleIndex.Value;
-                                var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
-
-                                var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
-                                var patternFill = fill?.PatternFill;
-
-                                if (patternFill != null)
-                                {
-                                    newCell.FillColour = GetColor(spreadSheet, patternFill);
-                                }
-                            }
-
+                            var newCell = CreateCellAsSharedString(spreadSheet, matchedCell, stringTable, cellFormats, stylesheet);
                             cellData.Add(newCell);
                         }
                         else
                         {
                             // Read value from worksheet
                             var valueAdded = false;
-
+                            var newCell = new TableCell(null);
                             // If a cell format is defined
-                            if (c.StyleIndex != null)
+                            if (matchedCell.StyleIndex?.Value != null)
                             {
-                                var styleIndex = (int)c.StyleIndex.Value;
+                                var styleIndex = (int)matchedCell.StyleIndex!.Value;
                                 var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
 
-                                var fill = (Fill)stylesheet.Fills.ChildElements[(int)cellFormat.FillId.Value];
-                                var patternFill = fill?.PatternFill;
+                                var fill = (Fill)stylesheet!.Fills!.ChildElements[(int)cellFormat!.FillId!.Value];
+                                var patternFill = fill.PatternFill;
 
                                 // Parse DateTime
-                                if (IsDateFormat(cellFormat.NumberFormatId) ||
+                                if (IsDateFormat(cellFormat.NumberFormatId!.Value) ||
                                     dateFormatIds.Contains(cellFormat.NumberFormatId))
                                 {
-                                    if (double.TryParse(c.CellValue.InnerXml, out var parsedValue))
+                                    if (double.TryParse(matchedCell.CellValue?.InnerXml, out var parsedValue))
                                     {
-                                        var date = DateTime.FromOADate(parsedValue);
-
-                                        // Breaking Change: Cut down to timespan if required
-                                        if (IsTimespanFormat(cellFormat.NumberFormatId))
-                                        {
-                                            newCell.Value = date.TimeOfDay;
-                                        }
-                                        else
-                                        {
-                                            newCell.Value = date;
-                                        }
-
+                                        ParseNewCellAsDate(parsedValue, cellFormat, newCell);
                                         cellData.Add(newCell);
                                         valueAdded = true;
                                     }
-                                }
-
-                                // Parse Numbers
-                                if (!valueAdded && IsNumberFormat(cellFormat.NumberFormatId))
+                                } // Parse Numbers
+                                else if (IsNumberFormat(cellFormat.NumberFormatId))
                                 {
-                                    if (!valueAdded && decimal.TryParse(c.CellValue.Text, out var value))
+                                    if (!valueAdded && decimal.TryParse(matchedCell.CellValue!.Text, out var value))
                                     {
                                         newCell.Value = value;
                                         cellData.Add(newCell);
@@ -168,21 +159,21 @@ namespace Audacia.Spreadsheets
                                 }
 
                                 // Read cell colour
-                                newCell.FillColour = GetColor(spreadSheet, patternFill);
+                                newCell.FillColour = GetColor(spreadSheet, patternFill!);
                             }
 
                             // Read cell value as string
                             if (!valueAdded)
                             {
-                                newCell.Value = c.CellValue.Text;
+                                newCell.Value = matchedCell.CellValue!.Text;
                                 cellData.Add(newCell);
                             }
-
                         }
                     }
                     
                     cellRef.NextColumn();
                 }
+#pragma warning restore ACL1011
 
                 var rowId = Convert.ToInt32(rowPointer.RowNumber);
                 rowPointer.NextRow();
@@ -196,57 +187,72 @@ namespace Audacia.Spreadsheets
             }
         }
 
-        private static string GetColor(SpreadsheetDocument sd, PatternFill fill)
+        private static void ParseNewCellAsDate(double parsedValue, OpenXmlCellFormat cellFormat, TableCell newCell)
         {
-            var ct = fill.ForegroundColor;
-            if (ct == null)
+            var date = DateTime.FromOADate(parsedValue);
+
+            // Breaking Change: Cut down to timespan if required
+            if (IsTimespanFormat(cellFormat.NumberFormatId!.Value))
             {
-                return null;
+                newCell.Value = date.TimeOfDay;
             }
-
-            if (ct.Auto != null)
+            else
             {
-                return null;
+                newCell.Value = date;
             }
-
-            if (ct.Rgb != null)
-            {
-                //  ct.Rgb gives "FF######" so need to take off the first 2 characters. Thanks OpenXml
-                return ct.Rgb.Value.Substring(2);
-            }
-
-            //  These 3 are too difficult to understand...Code stolen from:
-            //  https://stackoverflow.com/questions/10756206/getting-cell-backgroundcolor-in-excel-with-open-xml-2-0
-            //  
-            //if (ct.Indexed != null)
-            //{
-            //    return sd.WorkbookPart.WorkbookStylesPart.Stylesheet.Colors.IndexedColors.ChildElements[(int)ct.Indexed.Value].InnerText;
-            //}
-
-            //if (ct.Theme != null)
-            //{
-            //    var c2t = (DocumentFormat.OpenXml.Drawing.Color2Type)sd.WorkbookPart.ThemePart.Theme.ThemeElements.ColorScheme.ChildElements[(int)ct.Theme.Value];
-
-            //    return ((DocumentFormat.OpenXml.Drawing.SystemColor)c2t.FirstChild).LastColor;
-            //}
-
-            //if (ct.Tint != null)
-            //{
-            //    return ct.Tint.Value.ToString();
-            //}
-
-            return null;
         }
 
-
-        private static bool IsDateFormat(uint numberFormatId, string formatCode = null)
+#pragma warning disable ACL1003
+#pragma warning disable ACL1002
+        private static TableCell CreateCellAsSharedString(
+            SpreadsheetDocument spreadSheet, 
+            Cell matchedCell,
+            SharedStringTablePart? stringTable, 
+            CellFormats? cellFormats, 
+            Stylesheet? stylesheet)
+#pragma warning restore ACL1003
+#pragma warning restore ACL1002
         {
-            // Microsoft only give limited format information, there's no entire list of format codes online
-            // So first check the ones we do
-            if ((numberFormatId >= (uint)CellFormat.Date 
-              && numberFormatId <= (uint)CellFormat.DateTime) 
-              || numberFormatId == (uint)CellFormat.DateVariant
-              || numberFormatId == (uint)CellFormat.TimeSpanMinutes) // Covering edgecase standard parser 
+            // Read value from shared string table
+            var newCell = new TableCell(null);
+            var integerCellValue = int.Parse(matchedCell.CellValue!.Text, NumberFormatInfo.InvariantInfo);
+            newCell.Value = stringTable?.SharedStringTable.ElementAt(integerCellValue).InnerText;
+
+            // Read cell colour
+            if (matchedCell.StyleIndex?.HasValue != null)
+            {
+                var styleIndex = (int)matchedCell.StyleIndex.Value;
+                var cellFormat = (OpenXmlCellFormat)cellFormats.ElementAt(styleIndex);
+
+                var fill = (Fill)stylesheet!.Fills!.ChildElements[(int)cellFormat.FillId!.Value];
+                var patternFill = fill.PatternFill;
+
+                if (patternFill != null)
+                {
+                    newCell.FillColour = GetColor(spreadSheet, patternFill);
+                }
+            }
+
+            return newCell;
+        }
+
+        private static string? GetColor(SpreadsheetDocument sd, PatternFill fill)
+        {
+            var colour = fill.ForegroundColor;
+            // Due to OpenXml limitations, colour.Rgb gives "FF######" so the first 2 characters are removed.
+            return colour != null && colour!.Auto!.HasValue && colour.Rgb!.HasValue ? colour.Rgb!.Value!.Substring(2) : null;
+        }
+
+#pragma warning disable AV1553
+        private static bool IsDateFormat(uint? numberFormatId, string? formatCode = null)
+#pragma warning restore AV1553
+        {
+            // Microsoft only gives limited format information, there isn't an entire list of format codes online
+            // So first check the ones we do know.
+            if ((numberFormatId >= (uint)CellFormat.Date
+                 && numberFormatId <= (uint)CellFormat.DateTime)
+                || numberFormatId == (uint)CellFormat.DateVariant
+                || numberFormatId == (uint)CellFormat.TimeSpanMinutes)
             {
                 return true;
             }
@@ -255,15 +261,17 @@ namespace Audacia.Spreadsheets
             return formatCode != null && (formatCode.Contains("mmm") || formatCode.Contains("yy"));
         }
 
-        private static bool IsNumberFormat(uint numberFormatId, string formatCode = null)
+#pragma warning disable AV1553
+        private static bool IsNumberFormat(uint? numberFormatId, string? formatCode = null)
+#pragma warning restore AV1553
         {
-            // Microsoft only give limited format information, there's no entire list of format codes online
-            // So first check the ones we do
-            if ((numberFormatId >= (uint)CellFormat.Integer 
-              && numberFormatId <= (uint)CellFormat.Scientific)
-              || numberFormatId == (uint)CellFormat.Currency
-              || (numberFormatId >= (uint)CellFormat.AccountingGBP 
-              && numberFormatId <= (uint)CellFormat.AccountingEUR))
+            // Microsoft only give limited format information, there isn't an entire list of format codes online
+            // So first check the ones we do know.
+            if ((numberFormatId >= (uint)CellFormat.Integer
+                 && numberFormatId <= (uint)CellFormat.Scientific)
+                || numberFormatId == (uint)CellFormat.Currency
+                || (numberFormatId >= (uint)CellFormat.AccountingGBP
+                    && numberFormatId <= (uint)CellFormat.AccountingEUR))
             {
                 return true;
             }
@@ -275,29 +283,39 @@ namespace Audacia.Spreadsheets
         public static bool IsTimespanFormat(uint numberFormatId)
         {
             return (numberFormatId >= (uint)CellFormat.Time
-                && numberFormatId <= (uint)CellFormat.TimeSpanFull)
-                || numberFormatId == (uint)CellFormat.TimeSpanMinutes;
+                    && numberFormatId <= (uint)CellFormat.TimeSpanFull)
+                   || numberFormatId == (uint)CellFormat.TimeSpanMinutes;
         }
 
         private static ICollection<uint> GetDateFormatsInFile(WorkbookStylesPart stylePart)
         {
+            if (stylePart == null)
+            {
+                throw new ArgumentNullException(nameof(stylePart));
+            }
+
             var formatIds = new Collection<uint>();
 
             var numFormatsParentNodes = stylePart.Stylesheet.ChildElements.OfType<NumberingFormats>();
 
             foreach (var numFormatParentNode in numFormatsParentNodes)
             {
-                var formatNodes = numFormatParentNode.ChildElements.OfType<NumberingFormat>();
-                foreach (var formatNode in formatNodes)
-                {
-                    if (IsDateFormat(formatNode.NumberFormatId.Value, formatNode.FormatCode))
-                    {
-                        formatIds.Add(formatNode.NumberFormatId.Value);
-                    }
-                }
+                AddFormatIds(numFormatParentNode, formatIds);
             }
 
             return formatIds;
+        }
+
+        private static void AddFormatIds(NumberingFormats numFormatParentNode, Collection<uint> formatIds)
+        {
+            var formatNodes = numFormatParentNode.ChildElements.OfType<NumberingFormat>();
+            foreach (var formatNode in formatNodes)
+            {
+                if (IsDateFormat(formatNode.NumberFormatId?.Value, formatNode.FormatCode))
+                {
+                    formatIds.Add(formatNode.NumberFormatId!.Value);
+                }
+            }
         }
     }
 }

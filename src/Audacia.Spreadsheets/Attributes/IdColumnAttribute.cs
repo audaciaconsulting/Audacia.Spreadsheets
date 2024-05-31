@@ -2,7 +2,8 @@
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class IdColumnAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class IdColumnAttribute : Attribute
     {
     }
 }

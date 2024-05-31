@@ -1,5 +1,9 @@
 ﻿using System.ComponentModel;
 using System.Runtime.Serialization;
+//#pragma warning disable AV1704
+//#pragma warning disable CA1720 // Field 'Decimal2Dp' contains one or more digits in its name
+#pragma warning disable CA1720
+#pragma warning disable AV1704
 
 namespace Audacia.Spreadsheets
 {
@@ -151,7 +155,6 @@ namespace Audacia.Spreadsheets
         /// </summary>
         AccountingEUR = 166U,
 
-
         // Below are custom formats not provided by OpenXml.
         
         /// <summary>
@@ -197,6 +200,5 @@ namespace Audacia.Spreadsheets
         /// Uses the enum value as an integer.
         /// </summary>
         EnumValue = 1575,
-
     }
 }

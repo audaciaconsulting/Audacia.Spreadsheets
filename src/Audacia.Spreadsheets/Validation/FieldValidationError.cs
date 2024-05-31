@@ -21,7 +21,9 @@ namespace Audacia.Spreadsheets.Validation
         {
             var builder = new StringBuilder();
             if (ValidationErrors.Any())
+            {
                 builder.AppendLine("The validation requirements were not met;");
+            }
 
             foreach (var error in ValidationErrors)
             {
@@ -34,6 +36,7 @@ namespace Audacia.Spreadsheets.Validation
 
                 builder.AppendLine();
             }
+
             return builder.ToString();
         }
     }

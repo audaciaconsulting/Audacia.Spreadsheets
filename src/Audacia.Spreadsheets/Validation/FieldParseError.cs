@@ -6,8 +6,10 @@ namespace Audacia.Spreadsheets.Validation
     public class FieldParseError : RowImportError, IImportError
     {
         public string FieldName { get; }
-        public string Value { get; }
-        public string PossibleValues { get; }
+        
+        public string? Value { get; }
+        
+        public string? PossibleValues { get; }
 
         public FieldParseError(int rowNumber, string fieldName)
             : base(rowNumber)
@@ -20,7 +22,7 @@ namespace Audacia.Spreadsheets.Validation
         {
             FieldName = fieldName;
             Value = value;
-            PossibleValues = possibleValues != null && possibleValues.Length > 0
+            PossibleValues = possibleValues.Length > 0
                 ? string.Join(", ", possibleValues)
                 : null;
         }

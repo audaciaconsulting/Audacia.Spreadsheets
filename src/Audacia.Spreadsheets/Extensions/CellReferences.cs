@@ -3,7 +3,9 @@ using System.Linq;
 
 namespace Audacia.Spreadsheets.Extensions
 {
+#pragma warning disable AV1745
     public static class CellReferences
+#pragma warning restore AV1745
     {
         /// <summary>
         /// Returns the row number from a cell reference string.
@@ -75,9 +77,10 @@ namespace Audacia.Spreadsheets.Extensions
 
             while (dividend > 0)
             {
-                var modulo = (dividend - 1) % 26;
+                const int possibleLetterCount = 26;
+                var modulo = (dividend - 1) % possibleLetterCount;
                 columnName = Convert.ToChar('A' + modulo) + columnName;
-                dividend = (dividend - modulo) / 26;
+                dividend = (dividend - modulo) / possibleLetterCount;
             }
 
             return columnName;
@@ -88,7 +91,11 @@ namespace Audacia.Spreadsheets.Extensions
         /// </summary>
         public static string PreviousColumn(this string columnName)
         {
-            if (columnName == "A") throw new Exception("Cannot get previous column if column is 'A'");
+            if (columnName == "A")
+            {
+                throw new ArgumentOutOfRangeException(nameof(columnName), "Cannot get previous column if column is 'A'");
+            }
+
             return (columnName.ToColumnNumber() - 1).ToColumnLetter();
         }
     }

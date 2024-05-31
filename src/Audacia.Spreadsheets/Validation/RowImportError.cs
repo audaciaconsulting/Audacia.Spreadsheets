@@ -7,7 +7,7 @@ namespace Audacia.Spreadsheets.Validation
     {
         public int RowNumber { get; }
 
-        public RowImportError(int rowNumber)
+        protected RowImportError(int rowNumber)
         {
             RowNumber = rowNumber;
         }

@@ -9,8 +9,6 @@
     {
         private readonly string _value;
 
-        private DataType() { }
-
         private DataType(string value) => _value = value;
         
         public static implicit operator string(DataType source) => source.ToString();
@@ -28,7 +26,9 @@
         public static DataType Number { get; } = new DataType("n");
         
         public static DataType SharedString { get; } = new DataType("s");
-        
+
+#pragma warning disable CA1720 // Identifier 'String' contains type name
         public static DataType String { get; } = new DataType("str");
+#pragma warning restore CA1720
     }
 }

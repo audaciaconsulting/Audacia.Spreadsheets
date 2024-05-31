@@ -2,8 +2,9 @@ using System;
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class CellHeaderNameAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class CellHeaderNameAttribute : Attribute
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

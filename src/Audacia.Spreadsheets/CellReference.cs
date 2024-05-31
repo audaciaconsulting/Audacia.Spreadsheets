@@ -29,12 +29,12 @@ namespace Audacia.Spreadsheets
         }
                 
         /// <summary>
-        /// The Column Letter ie; A, B, C, D.
+        /// Gets or sets the Column Letter ie; A, B, C, D.
         /// </summary>
         public string ColumnLetter { get; set; }
         
         /// <summary>
-        /// The row number ie; 1, 2, 3, 4.
+        /// Gets or sets the row number ie; 1, 2, 3, 4.
         /// </summary>
         public uint RowNumber { get; set; }
 

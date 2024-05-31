@@ -12,18 +12,26 @@ namespace Audacia.Spreadsheets
     {
         public TableCell() { }
 
-        public TableCell(object value)
+        public TableCell(object? value)
         {
             Value = value;
         }
         
-        public TableCell(object value, bool isFormula)
+#pragma warning disable AV1564
+        public TableCell(object? value, bool isFormula)
+#pragma warning restore AV1564
         {
             Value = value;
             IsFormula = isFormula;
         }
         
-        public TableCell(object value = null, bool isFormula = false, bool hasBorders = true, bool isBold = false)
+        public TableCell(
+            object? value = null,
+#pragma warning disable AV1564
+            bool isFormula = false, 
+            bool hasBorders = true,
+            bool isBold = false)
+#pragma warning restore AV1564
         {
             Value = value;
             IsFormula = isFormula;
@@ -31,17 +39,20 @@ namespace Audacia.Spreadsheets
             IsBold = isBold;
         }
 
-        public object Value { get; set; }
+        public object? Value { get; set; }
 
-        public string FillColour { get; set; }
+        public string? FillColour { get; set; }
 
-        public string TextColour { get; set; }
+        public string? TextColour { get; set; }
 
         public bool IsFormula { get; set; }
 
         public bool HasBorderTop { get; set; } = true;
+        
         public bool HasBorderRight { get; set; } = true;
+        
         public bool HasBorderBottom { get; set; } = true;
+        
         public bool HasBorderLeft { get; set; } = true;
 
         // making still usable despite separating the border into 4 sections as may be required
@@ -79,66 +90,93 @@ namespace Audacia.Spreadsheets
 
         public void Write(UInt32Value styleIndex, CellFormat format, string reference, OpenXmlWriter writer)
         {
-            (DataType dataType, string value) = GetDataTypeAndFormattedValue(format);
+            (DataType dataType, string value) = GetDataTypeFormattedValueTuple(format);
             WriteCell(writer, styleIndex, reference, dataType, value, IsFormula);
         }
 
-        public static void WriteCell(OpenXmlWriter writer, UInt32Value styleIndex,
-            string reference, DataType dataType, string value, bool isFormula)
+#pragma warning disable ACL1003
+        public static void WriteCell(
+            OpenXmlWriter writer,
+            UInt32Value? styleIndex,
+#pragma warning restore ACL1003
+            string reference,
+            DataType dataType,
+            string value,
+#pragma warning disable AV1564
+            bool isFormula)
+#pragma warning restore AV1564
         {
+            if (styleIndex?.Value == default)
+            {
+                throw new ArgumentNullException(nameof(styleIndex));
+            }
+
             var attributes = new List<OpenXmlAttribute>
             {
-                new OpenXmlAttribute("r", null, reference),
-                new OpenXmlAttribute("s", null, styleIndex),
-                new OpenXmlAttribute("t", null, dataType)
+                new OpenXmlAttribute("r", nameof(reference), reference),
+                new OpenXmlAttribute("s", nameof(styleIndex), styleIndex),
+                new OpenXmlAttribute("t", nameof(dataType), dataType)
             };
-
-            writer.WriteStartElement(new Cell(), attributes);
+            var newCell = new Cell();
+            writer.WriteStartElement(newCell, attributes);
 
             if (!string.IsNullOrWhiteSpace(value))
             {
                 if (isFormula)
                 {
-                    writer.WriteElement(new CellFormula(value));
+                    var cellFormula = new CellFormula(value);
+                    writer.WriteElement(cellFormula);
                 }
                 else
                 {
-                    writer.WriteElement(new CellValue(value));
+                    var cellValue = new CellValue(value);
+                    writer.WriteElement(cellValue);
                 }
             }
 
             writer.WriteEndElement();
         }
 
-        private Tuple<DataType, string> GetDataTypeAndFormattedValue(CellFormat format)
+#pragma warning disable ACL1002
+        private Tuple<DataType, string> GetDataTypeFormattedValueTuple(CellFormat format)
+#pragma warning restore ACL1002
         {
             switch (Value)
             {
                 case DateTime date:
-                    return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date));
+                    var dateString = FormatDateTimeAsString(date);
+                    return new Tuple<DataType, string>(DataType.Number, dateString);
                 case DateTimeOffset date:
-                    return new Tuple<DataType, string>(DataType.Number, FormatDateTimeAsString(date.LocalDateTime));
+                    var dateTimeOffsetString = FormatDateTimeAsString(date.LocalDateTime);
+                    return new Tuple<DataType, string>(DataType.Number, dateTimeOffsetString);
                 case TimeSpan t:
-                {
                     if (format == CellFormat.Text)
                     {
-                        return new Tuple<DataType, string>(DataType.String, Value.ToString());
+                        var text = Value.ToString();
+                        return new Tuple<DataType, string>(DataType.String, text);
                     }
+                    
                     // Use the provided number format
-                    return new Tuple<DataType, string>(DataType.Number, t.ToOADatePrecise().ToString(CultureInfo.CurrentCulture));
-                } 
+                    var timeString = t.ToOADatePrecise().ToString(CultureInfo.CurrentCulture);
+                    return new Tuple<DataType, string>(DataType.Number, timeString);
                 case decimal dec:
-                    return new Tuple<DataType, string>(DataType.Number, dec.ToString(CultureInfo.CurrentCulture));
+                    var decimalString = dec.ToString(CultureInfo.CurrentCulture);
+                    return new Tuple<DataType, string>(DataType.Number, decimalString);
                 case double d:
-                    return new Tuple<DataType, string>(DataType.Number, d.ToString(CultureInfo.CurrentCulture));
+                    var doubleString = d.ToString(CultureInfo.CurrentCulture);
+                    return new Tuple<DataType, string>(DataType.Number, doubleString);
                 case float f:
-                    return new Tuple<DataType, string>(DataType.Number, f.ToString(CultureInfo.CurrentCulture));
+                    var floatString = f.ToString(CultureInfo.CurrentCulture);
+                    return new Tuple<DataType, string>(DataType.Number, floatString);
                 case int i:
-                    return new Tuple<DataType, string>(DataType.Number, i.ToString(CultureInfo.CurrentCulture));
+                    var integerString = i.ToString(CultureInfo.CurrentCulture);
+                    return new Tuple<DataType, string>(DataType.Number, integerString);
                 case bool b:
-                    return new Tuple<DataType, string>(DataType.String, FormatBooleanAsString(format, b));
+                    var booleanString = FormatBooleanAsString(format, b);
+                    return new Tuple<DataType, string>(DataType.String, booleanString);
                 case Enum e:
-                    return new Tuple<DataType, string>(DataType.String, FormatEnumAsString(format, e));
+                    var enumString = FormatEnumAsString(format, e);
+                    return new Tuple<DataType, string>(DataType.String, enumString);
                 default:
                     return new Tuple<DataType, string>(DataType.String, Value?.ToString() ?? string.Empty);
             }
@@ -158,27 +196,19 @@ namespace Audacia.Spreadsheets
 
         private static string FormatEnumAsString(CellFormat format, object value)
         {
-            string str;
             switch (format)
             {
                 case CellFormat.EnumDescription:
-                    str = EnumMember.GetDescription(value);
-                    break;
+                    return EnumMember.GetDescription(value) ?? value.ToString();
                 case CellFormat.EnumMember:
-                    str = EnumMember.GetEnumMemberValue(value);
-                    break;
+                    return EnumMember.GetEnumMemberValue(value) ?? value.ToString();
                 case CellFormat.EnumName:
-                    str = EnumMember.GetName(value);
-                    break;
+                    return EnumMember.GetName(value) ?? value.ToString();
                 case CellFormat.EnumValue:
-                    str = EnumMember.GetValue(value);
-                    break;
+                    return EnumMember.GetValue(value) ?? value.ToString();
                 default:
-                    str = EnumMember.GetOption(value);
-                    break;
+                    return EnumMember.GetOption(value) ?? value.ToString();
             }
-
-            return str ?? value.ToString();
         }
 
         private static string FormatDateTimeAsString(DateTime value)

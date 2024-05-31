@@ -8,7 +8,9 @@ using Audacia.Spreadsheets.Attributes;
 
 namespace Audacia.Spreadsheets.Extensions
 {
+#pragma warning disable AV1745
     internal static class Types
+#pragma warning restore AV1745
     {
         /// <summary>
         /// Returns an enumerable of properties that should display on the worksheet.
@@ -17,38 +19,40 @@ namespace Audacia.Spreadsheets.Extensions
         {
             return classType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(property =>
-                {
-                    // DataMember should be ignored by default everywhere
-                    var ignoreDataMemberAttrs = property.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), false);
-                    if (ignoreDataMemberAttrs.Any())
-                    {
-                        return false;
-                    }
-
-                    // Property should ony be ignored by the spreadsheet exporter
-                    var cellIgnoreAttrs = property.GetCustomAttributes(typeof(CellIgnoreAttribute), false);
-                    if (cellIgnoreAttrs.Any())
-                    {
-                        return false;
-                    }
-
-                    // Property is a primary key and should be ignored (Legacy support)
-                    var primaryKeyAttrs = property.GetCustomAttributes(typeof(IdColumnAttribute), false);
-                    if (primaryKeyAttrs.Any())
-                    {
-                        return false;
-                    }
-
-                    // Property should be ignored if it's in the list of ignoreProperties
-                    return !ignoreProperties?.Contains(property.Name) ?? true;
-                })
+                .Where(property => !IsInIgnoredProperties(ignoreProperties, property))
                 .Where(p =>
                 {
                     // And the property is a value type not a class
                     var underlyingType = p.PropertyType.GetUnderlyingTypeIfNullable();
                     return underlyingType.IsValueType || underlyingType == typeof(string);
-                });
+                }).ToList();
+        }
+
+        private static bool IsInIgnoredProperties(string[] ignoreProperties, PropertyInfo property)
+        {
+            // DataMember should be ignored by default everywhere
+            var ignoreDataMemberAttrs = property.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), false);
+            if (ignoreDataMemberAttrs.Any())
+            {
+                return true;
+            }
+
+            // Property should ony be ignored by the spreadsheet exporter
+            var cellIgnoreAttrs = property.GetCustomAttributes(typeof(CellIgnoreAttribute), false);
+            if (cellIgnoreAttrs.Any())
+            {
+                return true;
+            }
+
+            // Property is a primary key and should be ignored (Legacy support)
+            var primaryKeyAttrs = property.GetCustomAttributes(typeof(IdColumnAttribute), false);
+            if (primaryKeyAttrs.Any())
+            {
+                return true;
+            }
+
+            // Property should be ignored if it's in the list of ignoreProperties
+            return !ignoreProperties?.Contains(property.Name) ?? false;
         }
 
         /// <summary>

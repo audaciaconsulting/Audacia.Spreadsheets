@@ -34,7 +34,9 @@ namespace Audacia.Spreadsheets.Validation
         }
 
         public string DisplayName { get; }
+        
         public string MemberName { get; }
+        
         public ICollection<string> Errors { get; } = new HashSet<string>();
     }
 }

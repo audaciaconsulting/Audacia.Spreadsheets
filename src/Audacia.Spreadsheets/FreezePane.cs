@@ -5,27 +5,20 @@ namespace Audacia.Spreadsheets
     public class FreezePane
     {
         public string StartingCell { get; set; } = "A2";
+        
         public double FrozenColumns { get; set; } = 0D;
+        
         public double FrozenRows { get; set; } = 1D;
 
         public void Write(SheetView sheetView)
         {
-            var hasFrozenColumns = FrozenColumns > 0D;
-            var hasFrozenRows = FrozenRows > 0D;
+            var hasFrozenColumns = FrozenColumns > default(double);
+            var hasFrozenRows = FrozenRows > default(double);
             
             if (hasFrozenRows || hasFrozenColumns)
             {
                 // Assume frozen rows
-                var activePane = PaneValues.BottomLeft;
-                
-                if (hasFrozenRows && hasFrozenColumns)
-                {
-                    activePane = PaneValues.BottomRight;
-                }
-                else if (hasFrozenColumns)
-                {
-                    activePane = PaneValues.TopRight;
-                }
+                var activePane = GetActivePane(hasFrozenRows, hasFrozenColumns);
 
                 var pane = new Pane
                 { 
@@ -41,6 +34,22 @@ namespace Audacia.Spreadsheets
                 sheetView.Append(pane);
                 sheetView.Append(selection);
             }
+        }
+
+        private static PaneValues GetActivePane(bool hasFrozenRows, bool hasFrozenColumns)
+        {
+            var activePane = PaneValues.BottomLeft;
+
+            if (hasFrozenRows && hasFrozenColumns)
+            {
+                activePane = PaneValues.BottomRight;
+            }
+            else if (hasFrozenColumns)
+            {
+                activePane = PaneValues.TopRight;
+            }
+
+            return activePane;
         }
     }
 }

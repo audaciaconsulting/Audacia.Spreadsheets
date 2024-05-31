@@ -3,12 +3,16 @@ using System.Linq;
 
 namespace Audacia.Spreadsheets.Extensions
 {
+#pragma warning disable AV1745
     public static class TableRows
+#pragma warning restore AV1745
     {
         /// <summary>
         /// Returns an array of values for the provided rows.
         /// </summary>
-        public static string[][] GetFields(this IEnumerable<TableRow> rows)
+#pragma warning disable AV1130
+        public static string?[][] GetFields(this IEnumerable<TableRow> rows)
+#pragma warning restore AV1130
         {
             return rows.Select(GetFields).ToArray();
         }
@@ -16,7 +20,9 @@ namespace Audacia.Spreadsheets.Extensions
         /// <summary>
         /// Returns an array of cell values for the provided row.
         /// </summary>
-        public static string[] GetFields(this TableRow row)
+#pragma warning disable AV1130
+        public static string?[] GetFields(this TableRow row)
+#pragma warning restore AV1130
         {
             return row.Cells.Select(TableCells.GetValue).ToArray();
         }

@@ -2,7 +2,8 @@
 
 namespace Audacia.Spreadsheets.Attributes
 {
-    public class HideHeaderAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class HideHeaderAttribute : Attribute
     {
     }
 }
