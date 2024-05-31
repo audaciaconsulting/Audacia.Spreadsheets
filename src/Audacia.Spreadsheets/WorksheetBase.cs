@@ -150,54 +150,63 @@ namespace Audacia.Spreadsheets
         /// Defines column metadata in the spreadsheet.
         /// This is specifically for OpenXML columns & defining column widths.
         /// </summary>
+        /// <param name="tables"> A List of tables to add the columns too.</param>
+        /// <param name="writer"> A XML writer for writing worksheets.</param>
         protected static void AddColumns(IList<Table> tables, OpenXmlWriter writer)
         {
-            writer.WriteStartElement(new Columns());
+            var columns = new Columns();
+            writer.WriteStartElement(columns);
 
             // Find the table with the most columns and get the total columns
-            var maxColumnCount = tables.Max(t => t.Columns.Count);
+            var maxColumnCount = tables.Max(table => table.Columns.Count);
 
-            const double maxWidth = 11D;
+            const double maxDigitWidth = 11D;
 
             for (var columnIndex = 0; columnIndex < maxColumnCount; columnIndex++)
             {
                 // Find the max cell width from all tables with the column
-                var item = tables
-                    .Where(t => columnIndex < t.Columns.Count)
-                    .Select(t => new { Table = t, MaxCellWidth = t.GetMaxCharacterWidth(columnIndex) })
-                    .OrderByDescending(x => x.MaxCellWidth)
+                var tableMaxCellWidth = tables
+                    .Where(table => columnIndex < table.Columns.Count)
+                    .Select(table => new {Table = table, MaxCellWidth = table.GetMaxCharacterWidth(columnIndex)})
+                    .OrderByDescending(tableMaxCellWidth => tableMaxCellWidth.MaxCellWidth)
                     .FirstOrDefault();
 
-                //width = Truncate([{Number of Characters} * {Maximum Digit Width} + {20 pixel padding}]/{Maximum Digit Width}*256)/256
-                var width = Math.Truncate((item.MaxCellWidth * maxWidth + 20) / maxWidth * 256) / 256;
-                
+                // width = Truncate([{Number of Characters} * {Maximum Digit Width} + {20 pixel padding}]/{Maximum Digit Width}*256)/256
+                const int cellPadding = 20;
+                const int widthConstant = 256;
+                var cellWidth = tableMaxCellWidth!.MaxCellWidth * maxDigitWidth;
+                var totalCellWidth = cellWidth + cellPadding;
+                var width = Math.Truncate(totalCellWidth / maxDigitWidth * widthConstant) / widthConstant;
+
                 // Limit the column width to 75...
                 if (width > 75)
                 {
                     width = 75;
                 }
- 
-                //  To adjust for font size.
-                var factor = (item.Table.HeaderStyle?.FontSize ?? 11) / maxWidth;
 
-                var colWidth = (DoubleValue)(width * factor);
+                // To adjust for font size.
+                var factor = (tableMaxCellWidth.Table.HeaderStyle?.FontSize ?? 11) / maxDigitWidth;
 
-                writer.WriteElement(new Column
+                var colWidth = new DoubleValue(width * factor);
+                var column = new Column()
                 {
                     Min = Convert.ToUInt32(columnIndex + 1),
                     Max = Convert.ToUInt32(columnIndex + 1),
                     CustomWidth = true,
                     BestFit = true,
-                    Width = colWidth
-                });
+                    Width = colWidth,
+                };
+                writer.WriteElement(column);
             }
 
             writer.WriteEndElement();
         }
-        
+
         private void AddProtection(OpenXmlWriter writer)
         {
+#pragma warning disable SA1101
             if (WorksheetProtection == null)
+#pragma warning restore SA1101
             {
                 return;
             }
