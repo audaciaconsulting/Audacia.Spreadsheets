@@ -43,19 +43,22 @@ namespace Audacia.Spreadsheets.Extensions
         /// Do not use on a cell reference string.
         /// Should be chained from .GetColumnLetter()
         /// </summary>
+        /// <param name="columnName"> The name of the column.</param>
         public static int ToColumnNumber(this string columnName)
         {
             if (string.IsNullOrEmpty(columnName))
+            {
                 throw new ArgumentNullException(nameof(columnName));
+            }
 
             columnName = columnName.ToUpperInvariant();
 
             var sum = 0;
 
-            for (var i = 0; i < columnName.Length; i++)
+            for (var index = 0; index < columnName.Length; index++)
             {
                 sum *= 26;
-                sum += (columnName[i] - 'A' + 1);
+                sum += (columnName[index] - 'A' + 1);
             }
 
             return sum;
