@@ -199,6 +199,6 @@ namespace Audacia.Spreadsheets
         /// <summary>
         /// Uses the enum value as an integer.
         /// </summary>
-        EnumValue = 1575,
+        EnumValue = 1575
     }
 }

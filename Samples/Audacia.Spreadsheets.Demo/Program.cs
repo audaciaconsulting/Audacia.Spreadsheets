@@ -2,14 +2,14 @@
 
 namespace Audacia.Spreadsheets.Demo
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {
             // Create custom worksheet exports & import by accessing the spreadsheet directly
             var customExample = new CustomExportImportTask();
             var bookFileBytes = customExample.Export();
-            var books = customExample.Import(bookFileBytes);
+            var books = CustomExportImportTask.Import(bookFileBytes);
 
             // Create a generic datasheet export and import
             var genericExample = new GenericExportImportTask();

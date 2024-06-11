@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
@@ -20,16 +21,16 @@ namespace Audacia.Spreadsheets
         public FreezePane? FreezePane { get; set; }
         
         public SheetStateValues Visibility { get; set; } = SheetStateValues.Visible;
+
+        protected bool ShowGridLines { get; set; }
         
-        public bool ShowGridLines { get; set; } = false;
-        
-        public bool HasAutofilter { get; set; } = false;
+        public bool HasAutofilter { get; set; }
         
         public WorksheetProtection? WorksheetProtection { get; set; }
-        
-        public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
-        
-        public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
+
+        private List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
+
+        private List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
 
         /// <summary>
         /// Sets Visibility to Hidden.
@@ -46,9 +47,11 @@ namespace Audacia.Spreadsheets
 
         protected abstract void WriteSheetData(SharedDataTable sharedData, OpenXmlWriter writer);
 
-#pragma warning disable ACL1002
+        [SuppressMessage(
+            "Maintainability",
+            "ACL1002:Member or local function contains too many statements",
+            Justification = "Header method should not be broken down further.")]
         public void Write(SharedDataTable sharedData, OpenXmlWriter writer)
-#pragma warning restore ACL1002
         {
             // Create a worksheet
             var newWorksheet = new OpenXmlWorksheet();
@@ -79,7 +82,7 @@ namespace Audacia.Spreadsheets
             // We don't currently support autofilters for multi-table worksheets
             if (HasAutofilter && allTables.Any())
             {
-                var firstTable = allTables.First();
+                var firstTable = allTables[0];
                 AddAutoFilter(firstTable, sharedData.DefinedNames, writer);
             }
 
@@ -119,9 +122,7 @@ namespace Audacia.Spreadsheets
             }
         }
 
-#pragma warning disable ACL1002
-        protected void AddAutoFilter(Table table, DefinedNames definedNames, OpenXmlWriter writer)
-#pragma warning restore ACL1002
+        private void AddAutoFilter(Table table, DefinedNames definedNames, OpenXmlWriter writer)
         {
             if (table.IncludeHeaders && table.Rows.Any())
             {
@@ -133,11 +134,7 @@ namespace Audacia.Spreadsheets
                     firstCell.NextRow();
                 }
 
-                var rowCount = table.Rows.Count();
-                var lastCell = firstCell.MutateBy(table.Columns.Count - 1, rowCount);
-
-                // Selects All Column Headers & Data
-                var cellReference = $"{firstCell}:{lastCell}";
+                var cellReference = GetCellReference(table, firstCell);
 
                 var filter = new AutoFilter { Reference = cellReference };
 
@@ -153,6 +150,16 @@ namespace Audacia.Spreadsheets
                 definedNames.Append(dn);
                 writer.WriteElement(filter);
             }
+        }
+
+        private static string GetCellReference(Table table, CellReference firstCell)
+        {
+            var rowCount = table.Rows.Count();
+            var lastCell = firstCell.MutateBy(table.Columns.Count - 1, rowCount);
+
+            // Selects All Column Headers & Data
+            var cellReference = $"{firstCell}:{lastCell}";
+            return cellReference;
         }
 
         private static void DefineColumnsIfRequired(IEnumerable<Table> tables)
@@ -176,11 +183,9 @@ namespace Audacia.Spreadsheets
         /// Defines column metadata in the spreadsheet.
         /// This is specifically for OpenXML columns & defining column widths.
         /// </summary>
-#pragma warning disable ACL1002
         /// <param name="tables"> A List of tables to add the columns too.</param>
         /// <param name="writer"> A XML writer for writing worksheets.</param>
-        protected static void AddColumns(IList<Table> tables, OpenXmlWriter writer)
-#pragma warning restore ACL1002
+        private static void AddColumns(IList<Table> tables, OpenXmlWriter writer)
         {
             var newColumn = new Columns();
             writer.WriteStartElement(newColumn);
@@ -195,41 +200,53 @@ namespace Audacia.Spreadsheets
                 // Find the max cell width from all tables with the column
                 var tableMaxCellWidth = tables
                     .Where(table => columnIndex < table.Columns.Count)
-                    .Select(table => new {Table = table, MaxCellWidth = table.GetMaxCharacterWidth(columnIndex)})
+                    .Select(table => new { Table = table, MaxCellWidth = table.GetMaxCharacterWidth(columnIndex) })
                     .OrderByDescending(tableMaxCellWidth => tableMaxCellWidth.MaxCellWidth)
                     .FirstOrDefault();
 
-                //width = Truncate([{Number of Characters} * {Maximum Digit Width} + {20 pixel padding}]/{Maximum Digit Width}*256)/256
-                var width = Math.Truncate((item.MaxCellWidth * maxWidth + PixelPadding) / maxWidth * ColumnWidth) / ColumnWidth;
-                
-                // Limit the column width to 75...
-                if (width > 75)
+                if (tableMaxCellWidth != null)
                 {
-                    width = 75;
+                    var column = GetColumn(tableMaxCellWidth.MaxCellWidth, maxDigitWidth, columnIndex);
+                    writer.WriteElement(column);
                 }
-
-                // To adjust for font size.
-                var factor = (tableMaxCellWidth.Table.HeaderStyle?.FontSize ?? 11) / maxDigitWidth;
-
-                var column = new Column
-                {
-                    Min = Convert.ToUInt32(columnIndex + 1),
-                    Max = Convert.ToUInt32(columnIndex + 1),
-                    CustomWidth = true,
-                    BestFit = true,
-                    Width = colWidth
-                };
-                writer.WriteElement(column);
             }
 
             writer.WriteEndElement();
         }
 
+        private static Column GetColumn(double maxCellWidth, double maxDigitWidth, int columnIndex)
+        {
+            // width = Truncate([{Number of Characters} * {Maximum Digit Width} + {20 pixel padding}]/{Maximum Digit Width}*256)/256
+            var width = Math.Truncate((maxCellWidth * maxDigitWidth + PixelPadding) / maxDigitWidth * ColumnWidth) / ColumnWidth;
+                
+            // Limit the column width to 75...
+            width = EvaluateWidth(width);
+
+            var column = new Column
+            {
+                Min = Convert.ToUInt32(columnIndex + 1),
+                Max = Convert.ToUInt32(columnIndex + 1),
+                CustomWidth = true,
+                BestFit = true,
+                Width = width
+            };
+
+            return column;
+        }
+
+        private static double EvaluateWidth(double width)
+        {
+            if (width > 75)
+            {
+                width = 75;
+            }
+
+            return width;
+        }
+
         private void AddProtection(OpenXmlWriter writer)
         {
-#pragma warning disable SA1101
             if (WorksheetProtection == null)
-#pragma warning restore SA1101
             {
                 return;
             }
@@ -262,7 +279,7 @@ namespace Audacia.Spreadsheets
             }
         }
 
-        protected void AddSheetView(OpenXmlWriter writer)
+        private void AddSheetView(OpenXmlWriter writer)
         {
             var newSheetView = new SheetViews();
             writer.WriteStartElement(newSheetView);
@@ -278,9 +295,11 @@ namespace Audacia.Spreadsheets
             writer.WriteEndElement();
         }
 
-#pragma warning disable ACL1002
+        [SuppressMessage(
+            "Maintainability",
+            "ACL1002:Member or local function contains too many statements",
+            Justification = "Method is too small to break down any further.")]
         protected static int GetMaxRowWidth(WorksheetPart worksheetPart)
-#pragma warning restore ACL1002
         {
             var maxWidth = 0;
             var rows = worksheetPart.Worksheet.Elements<SheetData>().First().Elements<Row>().ToList();

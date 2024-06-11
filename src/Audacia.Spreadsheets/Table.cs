@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using Audacia.Core.Extensions;
 using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Audacia.Spreadsheets

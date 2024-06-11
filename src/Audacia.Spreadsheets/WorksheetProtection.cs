@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Audacia.Spreadsheets
+﻿namespace Audacia.Spreadsheets
 {
     public class WorksheetProtection
     {

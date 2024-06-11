@@ -89,7 +89,7 @@ namespace Audacia.Spreadsheets.Tests
                 EnumModel.Shape.Pentagon,
                 EnumModel.Shape.Square,
                 EnumModel.Shape.Triangle,
-                EnumModel.Shape.Circle,
+                EnumModel.Shape.Circle
             }, t => t.Value);
         }
 
@@ -145,7 +145,7 @@ namespace Audacia.Spreadsheets.Tests
                 new TimeSpan(9, 13, 0),
                 new TimeSpan(12, 0, 7),
                 new TimeSpan(16, 43, 15),
-                new TimeSpan(18, 3, 0),
+                new TimeSpan(18, 3, 0)
             }, t => t.Value);
         }
 

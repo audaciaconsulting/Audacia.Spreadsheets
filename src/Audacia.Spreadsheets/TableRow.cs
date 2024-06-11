@@ -5,8 +5,6 @@ using System.Globalization;
 using System.Linq;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OpenXmlCellFormat = DocumentFormat.OpenXml.Spreadsheet.CellFormat;

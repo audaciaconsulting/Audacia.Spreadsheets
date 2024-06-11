@@ -4,7 +4,6 @@ using System.Linq;
 using Audacia.Spreadsheets.Demo.Models;
 using Audacia.Spreadsheets.Extensions;
 
-
 namespace Audacia.Spreadsheets.Demo.Tasks
 {
     /// <summary>
@@ -12,7 +11,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
     /// </summary>
     public class GenericExportImportTask
     {
-        private Account[] Dataset { get; } = new[]
+        private Account[] Dataset { get; } = 
         {
             new Account
             { 

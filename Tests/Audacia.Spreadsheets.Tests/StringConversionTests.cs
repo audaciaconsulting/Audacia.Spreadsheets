@@ -71,7 +71,7 @@ namespace Audacia.Spreadsheets.Tests
                 "02/03/2018",
                 "2016-10-01 08:35:05",
                 "2011-05-01 18:30",
-                "1970-01-01",
+                "1970-01-01"
             });
 
             ValidateAllRowsParsedCorrectly(expected, actual, a => a.Value);
@@ -101,7 +101,7 @@ namespace Audacia.Spreadsheets.Tests
                 "02/03/2018",
                 "2016-10-01 08:35:05",
                 "2011-05-01 18:30",
-                "1970-01-01",
+                "1970-01-01"
             });
 
             ValidateAllRowsParsedCorrectly(expected, actual, a => a.Value);
@@ -119,7 +119,7 @@ namespace Audacia.Spreadsheets.Tests
                 EnumModel.Shape.Circle,
                 EnumModel.Shape.Pentagon,
                 EnumModel.Shape.Square,
-                EnumModel.Shape.Hexagon,
+                EnumModel.Shape.Hexagon
             };
 
             var actual = ConvertInputValues<EnumModel>(new StringModel[]

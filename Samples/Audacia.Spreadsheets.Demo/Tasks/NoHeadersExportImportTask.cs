@@ -16,7 +16,7 @@ namespace Audacia.Spreadsheets.Demo.Tasks
             new Stock { PartNumber = "PWE-376", Condition = "NEW", Manufacturer = "HP",     StockLevel = 7 },
             new Stock { PartNumber = "HDJ-213", Condition = "REF", Manufacturer = "Cisco",  StockLevel = 8 },
             new Stock { PartNumber = "OTN-676", Condition = "NEW", Manufacturer = "Lenovo", StockLevel = 3 },
-            new Stock { PartNumber = "RMS-982", Condition = "REF", Manufacturer = "Dell",   StockLevel = 5 },
+            new Stock { PartNumber = "RMS-982", Condition = "REF", Manufacturer = "Dell",   StockLevel = 5 }
         };
 
         public byte[] Export()

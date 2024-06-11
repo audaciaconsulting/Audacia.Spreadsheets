@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Audacia.Spreadsheets.Demo.Models;
 using Audacia.Spreadsheets.Extensions;
 
@@ -20,17 +19,6 @@ namespace Audacia.Spreadsheets.Demo.Importers
 
             // Get a column map of column header to column index
             var columns = table.Columns.ToDictionary();
-
-            string GetValue(string[] fields, string columnName)
-            {
-                if (!columns.ContainsKey(columnName)) return string.Empty;
-                
-                var columnIndex = columns[columnName];
-                
-                if (fields.Length <= columnIndex) return string.Empty;
-                
-                return fields[columnIndex];
-            }
 
             var books = new List<Book>();
             foreach (var row in table.Rows)
@@ -55,6 +43,23 @@ namespace Audacia.Spreadsheets.Demo.Importers
             }
 
             return books;
+
+            string GetValue(string[] fields, string columnName)
+            {
+                if (!columns.ContainsKey(columnName))
+                {
+                    return string.Empty;
+                }
+                
+                var columnIndex = columns[columnName];
+
+                if (fields.Length <= columnIndex)
+                {
+                    return string.Empty;
+                }
+                
+                return fields[columnIndex];
+            }
         }
     }
 }
