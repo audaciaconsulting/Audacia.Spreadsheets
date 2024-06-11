@@ -4,9 +4,12 @@
 	<TargetFramework>netstandard2.0</TargetFramework>
 	<Version>1.2.0.0</Version>
 	<AssemblyVersion>1.2.0.0</AssemblyVersion>
-	<Company>Audacia ltd.</Company>
-	<Copyright>Copyright © Audacia 2019</Copyright>
-	<PackageIconUrl>https://girnka-dm2305.files.1drv.com/y4mUfw_5APiy6YhvPidloaNkO5IMUh4GTX222ecazimKACSrlsUoptXi3WHjmHmPtDIxhjfcG0AJHcQ4NDxm4tA13PEBjzjoEnKm5hcoNzxS1i6um3cBaB0o9AMT3PXAULs9utk0wG6YP7tmUmQ_UTSaiG9mNEcXM_t1_Eiguvs1XeaIKBjbb_WF8hTUMzmwY_pGG8BuM9CDcu7tpW2oxK7fw</PackageIconUrl>
+    <Authors>Audacia</Authors>
+	<Company>Audacia Consulting Ltd.</Company>
+	<Copyright>Copyright © Audacia $([System.DateTime]::UtcNow.Year)</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageIcon>package-icon.png</PackageIcon>
 	<Description>Utilities for importing and generating spreadsheets</Description>
 	<Nullable>enable</Nullable>
 	<LangVersion>8.0</LangVersion>
