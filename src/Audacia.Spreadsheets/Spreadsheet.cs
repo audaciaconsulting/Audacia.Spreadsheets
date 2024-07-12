@@ -36,6 +36,8 @@ namespace Audacia.Spreadsheets
                 var workbookPart = document.AddWorkbookPart();
                 workbookPart.Workbook = new Workbook();
                 var workbook = workbookPart.Workbook;
+                var newSheets = new Sheets();
+                var sheets = workbook.AppendChild(newSheets);
 
                 workbook.CalculationProperties = new CalculationProperties();
 
@@ -51,7 +53,8 @@ namespace Audacia.Spreadsheets
 
                 for (var index = 0; index < Worksheets.Count; index++)
                 {
-                    WriteWorkSheet(index, workbook, workbookPart, sharedData);
+                    var workSheetDto = new WriteWorksheetDto(workbook, workbookPart, sharedData, sheets);
+                    WriteWorkSheet(index, workSheetDto);
                 }
 
                 AddDefinedNames(workbookPart);
@@ -77,16 +80,15 @@ namespace Audacia.Spreadsheets
                 workbookPart.Workbook.DefinedNames = definedNames;
             }
         }
-
+        
+        //RS: Unable to reduce this more meaningfully
 #pragma warning disable ACL1002
-        private Sheets WriteWorkSheet(int index, Workbook workbook, WorkbookPart workbookPart, SharedDataTable sharedData)
+        private Sheets WriteWorkSheet(int index, WriteWorksheetDto dto)
 #pragma warning restore ACL1002
         {
-            var newSheets = new Sheets();
-            var sheets = workbook.AppendChild(newSheets);
             var sheetNumber = index + 1;
             var worksheet = Worksheets[index];
-            var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+            var worksheetPart = dto.WorkbookPart.AddNewPart<WorksheetPart>();
             using (var writer = OpenXmlWriter.Create(worksheetPart))
             {
                 // Sanitize worksheet name
@@ -102,18 +104,18 @@ namespace Audacia.Spreadsheets
 
                 var sheet = new Sheet
                 {
-                    Id = workbookPart.GetIdOfPart(worksheetPart),
+                    Id = dto.WorkbookPart.GetIdOfPart(worksheetPart),
                     SheetId = Convert.ToUInt32(sheetNumber),
                     State = worksheet.Visibility,
                     Name = worksheet.SheetName
                 };
 
-                sheets.Append(sheet);
+                dto.Sheets.Append(sheet);
 
-                worksheet.Write(sharedData, writer);
+                worksheet.Write(dto.SharedData, writer);
             }
 
-            return sheets;
+            return dto.Sheets;
         }
 
         /// <summary>

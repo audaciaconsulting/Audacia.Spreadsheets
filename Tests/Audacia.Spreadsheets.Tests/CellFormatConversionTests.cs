@@ -352,13 +352,12 @@ namespace Audacia.Spreadsheets.Tests
             where T : class, new()
         {
             // Export row models into spreadsheet file
-            var bytes = Spreadsheet.FromWorksheets(source.ToWorksheet()).Export();
-
+            var bytes =  Spreadsheet.FromWorksheets(source.ToWorksheet()).Export();
+            
             // Read and parse spreadsheet into row models
             var output = new WorksheetImporter<T>()
-                .ParseWorksheet(Spreadsheet.FromBytes(bytes).Worksheets[0])
-                .ToArray();
-
+                .ParseWorksheet(Spreadsheet.FromBytes(bytes).Worksheets[0]).ToArray();
+            
             var actual = output
                 .Select(importRow => importRow.IsValid
                     ? propertyFunc(importRow.Data)

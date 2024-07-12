@@ -113,9 +113,13 @@ namespace Audacia.Spreadsheets
 
             var attributes = new List<OpenXmlAttribute>
             {
-                new OpenXmlAttribute("r", nameof(reference), reference),
-                new OpenXmlAttribute("s", nameof(styleIndex), styleIndex),
-                new OpenXmlAttribute("t", nameof(dataType), dataType)
+                //RS: This pragma is required due to the suggested alternative actually changing the name space in open xml and becomes a breaking change
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+                new OpenXmlAttribute("r", null, reference),
+
+                new OpenXmlAttribute("s", null, styleIndex),
+                new OpenXmlAttribute("t", null, dataType)
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
             };
             var newCell = new Cell();
             writer.WriteStartElement(newCell, attributes);

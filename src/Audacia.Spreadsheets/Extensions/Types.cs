@@ -19,40 +19,41 @@ namespace Audacia.Spreadsheets.Extensions
         {
             return classType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(property => !IsInIgnoredProperties(ignoreProperties, property))
+                .Where(property => WantedProperty(ignoreProperties, property))
                 .Where(p =>
-                {
-                    // And the property is a value type not a class
-                    var underlyingType = p.PropertyType.GetUnderlyingTypeIfNullable();
-                    return underlyingType.IsValueType || underlyingType == typeof(string);
-                }).ToList();
+            {
+                // And the property is a value type not a class
+                var underlyingType = p.PropertyType.GetUnderlyingTypeIfNullable();
+                return underlyingType.IsValueType || underlyingType == typeof(string);
+            }).ToList();
         }
 
-        private static bool IsInIgnoredProperties(string[] ignoreProperties, PropertyInfo property)
+#pragma warning disable RCS1213
+        private static bool WantedProperty(string[] ignoreProperties, PropertyInfo property)
+#pragma warning restore RCS1213
         {
-            // DataMember should be ignored by default everywhere
             var ignoreDataMemberAttrs = property.GetCustomAttributes(typeof(IgnoreDataMemberAttribute), false);
             if (ignoreDataMemberAttrs.Any())
             {
-                return true;
+                return false;
             }
 
             // Property should ony be ignored by the spreadsheet exporter
             var cellIgnoreAttrs = property.GetCustomAttributes(typeof(CellIgnoreAttribute), false);
             if (cellIgnoreAttrs.Any())
             {
-                return true;
+                return false;
             }
 
             // Property is a primary key and should be ignored (Legacy support)
             var primaryKeyAttrs = property.GetCustomAttributes(typeof(IdColumnAttribute), false);
             if (primaryKeyAttrs.Any())
             {
-                return true;
+                return false;
             }
 
             // Property should be ignored if it's in the list of ignoreProperties
-            return !ignoreProperties?.Contains(property.Name) ?? false;
+            return !ignoreProperties?.Contains(property.Name) ?? true;
         }
 
         /// <summary>

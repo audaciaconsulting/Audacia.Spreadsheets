@@ -174,7 +174,7 @@ namespace Audacia.Spreadsheets
             // processing columns until we reach that ColumnLetter.
             var lastColumn = worksheetPart.Worksheet
                 .Descendants<Cell>()
-                .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value))
+                .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value)) // RS: Probably not needed come back to this later, tell me to remove this if not id todo here but it makes the build break :)
                 .Select(cell => new CellReference(cell.CellReference!.Value!))
                 .Last(c => c.RowNumber == cellReference.RowNumber).ColumnLetter;
 
