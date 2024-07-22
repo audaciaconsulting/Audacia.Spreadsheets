@@ -695,9 +695,9 @@ namespace Audacia.Spreadsheets
             }
             else if (propertyType == typeof(bool))
             {
-                if (Bool.TryParse(valueString!, out var b))
+                if (Bool.TryParse(valueString!, out var boolValue))
                 {
-                    return b;
+                    return boolValue;
                 }
             }
             else if (propertyType.IsEnum)
@@ -713,7 +713,7 @@ namespace Audacia.Spreadsheets
                 importErrors.Add(importError);
                 return null;
             }
-
+            
             importError = new FieldParseError(rowNumber, columnName, valueString!);
             importErrors.Add(importError);
             return null;
