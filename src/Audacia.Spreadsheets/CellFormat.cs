@@ -34,7 +34,7 @@ namespace Audacia.Spreadsheets
         /// Formats number as a decimal.
         /// Format: 0.00
         /// </summary>
-        Decimal2Dp = 2U,
+        DecimalTwoDp = 2U,
 
         /// <summary>
         /// Formats number as an integer.
@@ -48,7 +48,7 @@ namespace Audacia.Spreadsheets
         /// Adds commas for numbers over 1000.
         /// Format: #,##0.00
         /// </summary>
-        Decimal2DpWithCommas = 4U,
+        DecimalTwoDpWithCommas = 4U,
 
         /// <summary>
         /// Formats decimal as a percentage.
@@ -62,7 +62,7 @@ namespace Audacia.Spreadsheets
         /// Expects values from 0.00 - 1.00.
         /// Format: 0.00%
         /// </summary>
-        Percentage2Dp = 10U,
+        PercentageTwoDp = 10U,
         
         /// <summary>
         /// Formats decimal as standard form.

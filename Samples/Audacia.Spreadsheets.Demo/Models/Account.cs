@@ -33,7 +33,7 @@ namespace Audacia.Spreadsheets.Demo.Models
         public TimeSpan WorkingHours { get; set; }
 
         [DisplayName("Hourly Rate")]
-        [CellFormat(CellFormat.Decimal2Dp)]
+        [CellFormat(CellFormat.DecimalTwoDp)]
         public decimal HourlyRate { get; set; }
 
         [DisplayName("Minimum Timeout (Mins)")]

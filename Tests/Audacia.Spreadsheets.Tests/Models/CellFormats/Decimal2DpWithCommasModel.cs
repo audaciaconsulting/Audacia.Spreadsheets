@@ -4,7 +4,7 @@ namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
     public class Decimal2DpWithCommasModel
     {
-        [CellFormat(CellFormat.Decimal2DpWithCommas)]
+        [CellFormat(CellFormat.DecimalTwoDpWithCommas)]
         public decimal Value { get; set; }
 
         public static implicit operator Decimal2DpWithCommasModel(decimal d)

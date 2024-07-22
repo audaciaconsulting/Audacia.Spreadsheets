@@ -17,7 +17,7 @@ namespace Audacia.Spreadsheets.Validation
             FieldName = fieldName;
         }
 
-        public FieldParseError(int rowNumber, string fieldName, string value, params string[] possibleValues) 
+        public FieldParseError(int rowNumber, string fieldName, string value, params string?[] possibleValues) 
             : base(rowNumber)
         {
             FieldName = fieldName;

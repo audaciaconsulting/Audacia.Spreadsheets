@@ -8,28 +8,28 @@ namespace Audacia.Spreadsheets.Validation
     /// </summary>
     public class RecordAssociationError : RowGroupImportError, IImportError
     {
-        private string Type1 { get; }
+        private string TypeOne { get; }
         
-        private string Type2 { get; }
+        private string TypeTwo { get; }
         
-        private string Value1 { get; }
+        private string ValueOne { get; }
         
-        private string Value2 { get; }
+        private string ValueTwo { get; }
 
 #pragma warning disable ACL1003
-        public RecordAssociationError(string type1, string type2, string value1, string value2, IEnumerable<int> rowNumbers) 
+        public RecordAssociationError(string typeOne, string typeTwo, string valueOne, string valueTwo, IEnumerable<int> rowNumbers) 
 #pragma warning restore ACL1003
             : base(rowNumbers)
         {
-            Type1 = type1;
-            Type2 = type2;
-            Value1 = value1;
-            Value2 = value2;
+            TypeOne = typeOne;
+            TypeTwo = typeTwo;
+            ValueOne = valueOne;
+            ValueTwo = valueTwo;
         }
 
         public string GetMessage()
         {
-            return $"{Type1} of {Value1} is not associated with {Type2} of {Value2}.";
+            return $"{TypeOne} of {ValueOne} is not associated with {TypeTwo} of {ValueTwo}.";
         }
     }
 }

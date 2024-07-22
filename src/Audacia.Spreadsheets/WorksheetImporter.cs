@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.Serialization;
 using Audacia.Core;
 using Audacia.Core.Extensions;
 using Audacia.Spreadsheets.Extensions;
@@ -61,9 +64,9 @@ namespace Audacia.Spreadsheets
 #pragma warning restore ACL1009
         {
             var propertyInfo = ExpressionExtensions.GetPropertyInfo(propertyExpression);
-            var columnHeader = propertyInfo.GetDataAnnotationDisplayName();
+            var columnHeader = propertyInfo!.GetDataAnnotationDisplayName();
 
-            return MapColumn(columnHeader, propertyExpression);
+            return MapColumn(columnHeader!, propertyExpression);
         }
 
         /// <summary>
@@ -81,7 +84,7 @@ namespace Audacia.Spreadsheets
             }
 
             var propertyInfo = ExpressionExtensions.GetPropertyInfo(propertyExpression);
-            ExpectedColumns.Add(columnHeader, propertyInfo);
+            ExpectedColumns.Add(columnHeader, propertyInfo!);
 
             // Manually append spreadsheet cell mapping in the case where no column headers exist
             if (_skipWorksheetColumnMapping)
@@ -174,8 +177,6 @@ namespace Audacia.Spreadsheets
             foreach (var row in sheet.Table.Rows)
             {
                 // We're using yield return to allow for developers to design large imports where the memory can be garbage collected
-                // Obviously this is a band aid against the raging typhoon that is the DocumentFormat.OpenXml library
-                // Because of this design choice we can't have a global validation error list
                 yield return ParseRows(row);
             }
         }
@@ -218,10 +219,10 @@ namespace Audacia.Spreadsheets
         {
             var propertyInfo = ExpressionExtensions.GetPropertyInfo(propertyExpression);
 
-            if (!ExpectedColumns.Values.Contains(propertyInfo))
+            if (!ExpectedColumns.Values.Contains(propertyInfo!))
             {
                 throw new InvalidOperationException(
-                    $"Property '{propertyInfo.Name}' is not an expected worksheet column.");
+                    $"Property '{propertyInfo!.Name}' is not an expected worksheet column.");
             }
 
             return ExpectedColumns.Single(kvp => kvp.Value == propertyInfo).Key;
@@ -427,7 +428,7 @@ namespace Audacia.Spreadsheets
         /// </summary>
         /// <param name="propertyExpression">Expected property</param>
         /// <param name="value">Cell Value</param>
-        protected bool TryGetEnum<TEnum>(Expression<Func<TRowModel, object>> propertyExpression, out TEnum value)
+        protected bool TryGetEnum<TEnum>(Expression<Func<TRowModel, object>> propertyExpression, out TEnum? value)
             where TEnum : struct
         {
             // Further optimisation possible can be done but code makes code look overly complex
@@ -488,10 +489,10 @@ namespace Audacia.Spreadsheets
         {
             var propertyInfo = ExpressionExtensions.GetPropertyInfo(propertyExpression);
 
-            if (!ExpectedColumns.Values.Contains(propertyInfo))
+            if (!ExpectedColumns.Values.Contains(propertyInfo!))
             {
                 throw new InvalidOperationException(
-                    $"Property '{propertyInfo.Name}' is not an expected column in the spreadsheet.");
+                    $"Property '{propertyInfo!.Name}' is not an expected column in the spreadsheet.");
             }
 
             var columnHeader = ExpectedColumns.Single(kvp => kvp.Value == propertyInfo).Key;
@@ -701,7 +702,7 @@ namespace Audacia.Spreadsheets
             }
             else if (propertyType.IsEnum)
             {
-                if (EnumMember.TryParse(propertyType, valueString, out var enumValue))
+                if (EnumMember.TryParse(propertyType, valueString!, out var enumValue))
                 {
                     return enumValue;
                 }

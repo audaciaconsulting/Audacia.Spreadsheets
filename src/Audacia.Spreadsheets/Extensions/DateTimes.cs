@@ -16,7 +16,10 @@ namespace Audacia.Spreadsheets.Extensions
         
         /// <summary>1900 Date System, Epoch is 30th December 1899.</summary>
 #pragma warning disable AV1704
+#pragma warning disable ACL1014
+        //RS: pragma'd as a date
         public static readonly DateTime EpochJan1900 = new DateTime(1899, 12, 30);
+#pragma warning restore ACL1014
 #pragma warning restore AV1704
 
         /// <summary>

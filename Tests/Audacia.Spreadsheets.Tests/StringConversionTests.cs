@@ -209,10 +209,11 @@ namespace Audacia.Spreadsheets.Tests
             var actual = output
                 .Select(importRow => importRow.IsValid
                     ? propertyFunc(importRow.Data)
-                    : default(N))
+                    : default(N)!)
                 .ToArray();
 
             // Assert parsed collection matches the expected collection
+            
             Assert.Equal(expected, actual);
 
             // Ensure that a parsing failure isn't ignored

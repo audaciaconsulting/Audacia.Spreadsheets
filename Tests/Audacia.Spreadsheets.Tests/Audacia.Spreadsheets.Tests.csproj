@@ -5,10 +5,11 @@
 	<IsPackable>false</IsPackable>
 	<Nullable>enable</Nullable>
 	<LangVersion>8.0</LangVersion>
+	<Company>Audacia Consulting Ltd.</Company>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Audacia.CodeAnalysis" Version="1.5.1">
+    <PackageReference Include="Audacia.CodeAnalysis" Version="1.9.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

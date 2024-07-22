@@ -4,7 +4,7 @@ namespace Audacia.Spreadsheets.Tests.Models.CellFormats
 {
     public class Percentage2DpModel
     {
-        [CellFormat(CellFormat.Percentage2Dp)]
+        [CellFormat(CellFormat.PercentageTwoDp)]
         public decimal Value { get; set; }
 
         public static implicit operator Percentage2DpModel(decimal d)
