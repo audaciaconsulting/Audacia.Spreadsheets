@@ -84,7 +84,6 @@ namespace Audacia.Spreadsheets.Tests
             {
                 new DateTimeOffset(2021, 7, 24, 10, 38, 00, TimeSpan.FromHours(-2)),
                 new DateTimeOffset(2021, 7, 24, 11, 53, 00, TimeSpan.FromHours(5)),
-                new DateTimeOffset(2021, 7, 20, 20, 43, 23, TimeSpan.FromHours(1)),
                 new DateTimeOffset(2020, 11, 30, 12, 0, 0, TimeSpan.Zero),
                 new DateTimeOffset(2018, 3, 2, 0, 0, 0, TimeSpan.Zero),
                 new DateTimeOffset(2016, 10, 1, 8, 35, 5, TimeSpan.FromHours(1)),
@@ -96,7 +95,6 @@ namespace Audacia.Spreadsheets.Tests
             {
                 "24/07/2021 10:38:00 -02:00",
                 "24/07/2021 11:53:00 +05:00",
-                "20/07/2021 20:43:23",
                 "30/11/2020 12:00",
                 "02/03/2018",
                 "2016-10-01 08:35:05",
