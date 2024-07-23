@@ -8,7 +8,21 @@ stages:
 - stage: Build
   displayName: Build
   jobs:
-  - template: src/build/dotnet/jobs/nuget-package.job.yaml@templates
+  - job:
+    displayName: Build
+    variables:
+    - group: Code Signing
+
+    steps:
+    # Some DateTimeOffset conversion tests rely on being in the UK time zone
+    # This is extremely sub-optimal, but means the pipeline can run on hosted agents without breaking changes to the code
+    - task: PowerShell@2
+      displayName: 'Set Time Zone'
+      inputs:
+        targetType: 'inline'
+        script: Set-TimeZone -Id 'GMT Standard Time'
+    
+    - template: src/build/dotnet/steps/nuget-package.steps.yaml@templates
 
 - stage: Release
   displayName: Release
