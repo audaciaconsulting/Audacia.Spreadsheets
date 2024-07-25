@@ -1,20 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>netstandard2.1</TargetFramework>
-	<Version>1.2.0.0</Version>
-	<AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Version>1.2.0.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
     <Authors>Audacia</Authors>
-	<Company>Audacia Consulting Ltd.</Company>
-	<Copyright>Copyright © Audacia $([System.DateTime]::UtcNow.Year)</Copyright>
+    <Company>Audacia Consulting Ltd.</Company>
+    <Copyright>Copyright © Audacia $([System.DateTime]::UtcNow.Year)</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageIcon>package-icon.png</PackageIcon>
-	<Description>Utilities for importing and generating spreadsheets</Description>
-	<Nullable>enable</Nullable>
-	<LangVersion>8.0</LangVersion>
-	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Description>Utilities for importing and generating spreadsheets</Description>
+    <Nullable>enable</Nullable>
+    <LangVersion>8.0</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\package-icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Audacia.CodeAnalysis" Version="1.9.0">
