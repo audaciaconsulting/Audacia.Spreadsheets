@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-	<Nullable>enable</Nullable>
-	<LangVersion>8.0</LangVersion>
-	<Company>Audacia Consulting Ltd.</Company>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <LangVersion>8.0</LangVersion>
+    <Company>Audacia Consulting Ltd.</Company>
   </PropertyGroup>
 
   <ItemGroup>
