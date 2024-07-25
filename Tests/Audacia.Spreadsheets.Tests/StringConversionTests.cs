@@ -84,11 +84,11 @@ namespace Audacia.Spreadsheets.Tests
             {
                 new DateTimeOffset(2021, 7, 24, 10, 38, 00, TimeSpan.FromHours(-2)),
                 new DateTimeOffset(2021, 7, 24, 11, 53, 00, TimeSpan.FromHours(5)),
-                new DateTimeOffset(2021, 7, 20, 20, 43, 23, TimeSpan.FromHours(1)),
+                BuildExpectedWithLocalOffset(new DateTime(2021, 7, 20, 20, 43, 23)),
                 new DateTimeOffset(2020, 11, 30, 12, 0, 0, TimeSpan.Zero),
                 new DateTimeOffset(2018, 3, 2, 0, 0, 0, TimeSpan.Zero),
-                new DateTimeOffset(2016, 10, 1, 8, 35, 5, TimeSpan.FromHours(1)),
-                new DateTimeOffset(2011, 5, 1, 18, 30, 0, TimeSpan.FromHours(1)),
+                BuildExpectedWithLocalOffset(new DateTime(2016, 10, 1, 8, 35, 5)),
+                BuildExpectedWithLocalOffset(new DateTime(2011, 5, 1, 18, 30, 0)),
                 new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)
             };
 
@@ -175,6 +175,19 @@ namespace Audacia.Spreadsheets.Tests
             });
 
             ValidateAllRowsParsedCorrectly(expected, actual, a => a.Value);
+        }
+
+        /// <summary>
+        /// Converts the given <see cref="DateTime"/> to a <see cref="DateTimeOffset"/> offset by the local system time zone.
+        /// </summary>
+        /// <param name="expectedDateTime">The <see cref="DateTime"/> value to offset.</param>
+        /// <returns>A <see cref="DateTimeOffset"/> object offset to the local system time zone.</returns>
+        private static DateTimeOffset BuildExpectedWithLocalOffset(DateTime expectedDateTime)
+        {
+            var currentTimeZone = TimeZoneInfo.Local;
+            var expectedOffset = currentTimeZone.GetUtcOffset(expectedDateTime);
+
+            return new DateTimeOffset(expectedDateTime, expectedOffset);
         }
 
         /// <summary>
