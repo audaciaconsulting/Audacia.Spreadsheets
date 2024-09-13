@@ -172,11 +172,13 @@ namespace Audacia.Spreadsheets
 
             // Get the ColumnLetter of the last cell with a value so that we can carry on
             // processing columns until we reach that ColumnLetter.
-            var lastColumn = worksheetPart.Worksheet
+            
+            var cells = worksheetPart.Worksheet
                 .Descendants<Cell>()
-                .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value)) // RS: Probably not needed come back to this later, tell me to remove this if not id todo here but it makes the build break :)
-                .Select(cell => new CellReference(cell.CellReference!.Value!))
-                .Last(c => c.RowNumber == cellReference.RowNumber).ColumnLetter;
+                .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value))
+                .Select(cell => new CellReference(cell.CellReference!.Value!)); // RS: Probably not needed come back to this later, tell me to remove this if not id todo here but it makes the build break :);
+
+            var lastColumn = cells.Any() ? cells.Last(c => c.RowNumber == cellReference.RowNumber).ColumnLetter : cellReference.ColumnLetter; // RS: I changed this line but I think the actual issue is the fact the headers are being lost and are not being parsed into cells
 
             return ColumnIterator();
 
