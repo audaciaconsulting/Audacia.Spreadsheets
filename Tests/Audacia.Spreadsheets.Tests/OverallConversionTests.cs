@@ -1,42 +1,27 @@
-﻿using Audacia.Spreadsheets.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Audacia.Spreadsheets.Extensions;
 using Xunit;
+using Audacia.Spreadsheets.Tests.Models.WorksheetClasses;
 
 namespace Audacia.Spreadsheets.Tests
 {
-    public class NoErrorOnEmptyArraySheet : Worksheet
-    {
-        public static List<string> ColumnHeaders = new List<string>() { "test1", "test2", "test3" };
-        public NoErrorOnEmptyArraySheet()
-        {
-            SheetName = "Test Sheet";
-            ShowGridLines = true;
-            Table = new Table(true)
-            {
-                Columns = TableColumns.ToList(),
-            };
-        }
-
-        public static IEnumerable<TableColumn> TableColumns => ColumnHeaders.Select(column => new TableColumn(column));
-    }
-   
     public class OverallConversionTests
     {
         [Fact]
-        public void No_Error_On_Empty_Array()
+        public void NoErrorOnEmptyArray()
         {
-            var worksheet = new NoErrorOnEmptyArraySheet();
+            var worksheet = new NoErrorOnEmptyArrayWorksheet();
 
-            var importer = new WorksheetImporter<NoErrorOnEmptyArraySheet>();
+            var importer = new WorksheetImporter<NoErrorOnEmptyArrayWorksheet>();
             var spreadsheet = Spreadsheet.FromWorksheets(worksheet);
             var bytes = spreadsheet.Export();
             var testsheet = Spreadsheet.FromBytes(bytes);
             var columns = testsheet.Worksheets[0].GetTable().Columns.ConvertAll(c => c.Name);
-            Assert.True(columns.All(c => NoErrorOnEmptyArraySheet.TableColumns.Any(tc => tc.Name == c)));
+            Assert.True(columns.All(c => NoErrorOnEmptyArrayWorksheet.TableColumns.Any(tc => tc.Name == c)));
         }
     }
 }

@@ -82,11 +82,10 @@ namespace Audacia.Spreadsheets
             {
                 var isFirstColumn = column == Columns.ElementAt(0);
                 var isLastColumn = column == Columns.ElementAt(Columns.Count - 1);
-                if (HeaderStyle != null)
-                {
-                    column.Write(HeaderStyle, headerCellRef, isFirstColumn, isLastColumn, sharedData, writer);
-                    headerCellRef.NextColumn();
-                }
+                //HeaderStyle below is fine to be null, adding a check here for it will possibly break existing implementations
+                //See OverallConversionTests.cs NoErrorOnEmptyArray
+                column.Write(HeaderStyle, headerCellRef, isFirstColumn, isLastColumn, sharedData, writer);
+                headerCellRef.NextColumn();
             }
         }
 

@@ -176,9 +176,9 @@ namespace Audacia.Spreadsheets
             var cells = worksheetPart.Worksheet
                 .Descendants<Cell>()
                 .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value))
-                .Select(cell => new CellReference(cell.CellReference!.Value!)); // RS: Probably not needed come back to this later, tell me to remove this if not id todo here but it makes the build break :);
+                .Select(cell => new CellReference(cell.CellReference!.Value!));
 
-            var lastColumn = cells.Any() ? cells.Last(c => c.RowNumber == cellReference.RowNumber).ColumnLetter : cellReference.ColumnLetter; // RS: I changed this line but I think the actual issue is the fact the headers are being lost and are not being parsed into cells
+            var lastColumn = cells.Last(c => c.RowNumber == cellReference.RowNumber).ColumnLetter;
 
             return ColumnIterator();
 
