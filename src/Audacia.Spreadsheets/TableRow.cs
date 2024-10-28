@@ -238,7 +238,9 @@ namespace Audacia.Spreadsheets
         {
             var colour = fill.ForegroundColor;
             // Due to OpenXml limitations, colour.Rgb gives "FF######" so the first 2 characters are removed.
-            return colour != null && colour!.Auto!.HasValue && colour.Rgb!.HasValue ? colour.Rgb!.Value!.Substring(2) : null;
+            return colour != null && colour.Auto?.HasValue == true && colour.Rgb?.HasValue == true
+                    ? colour.Rgb?.Value?.Substring(2)
+                    : null;
         }
 
 #pragma warning disable AV1553
