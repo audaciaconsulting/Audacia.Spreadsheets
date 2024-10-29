@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0.1 - 2024-10-29
+### Added
+- No new functionality added
+
+### Changed
+- No changes
+
+### Fixed
+- Bug Fix: NullReference exception thrown when uploading Spreadsheet with colour filled cells
+
 ## 1.2.0.0 - 2023-10-04
 ### Added
 - No new functionality added
