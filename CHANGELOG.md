@@ -1,32 +1,41 @@
 # Changelog
 
-## 1.2.1 - 2024-09-05
+## 1.2.2 - 2024-10-29
 ### Added
-- CHANGELOG.md file added
+- No functionality added
 
 ### Changed
-- README.md updated to include CHANGELOG.md reference
+- No functionality changed
 
-## 1.2.0.0 - 2023-10-04
+### Fixed
+- NullReference exception when uploading Spreadsheet with colour filled cells
+
+## 1.2.1 - 2024-09-30
+### Added
+- No functionality added
+
+### Changed
+- No functionality changed
+
+### Fixed
+- Sequence Containing No Matching Elements error thrown when parsing Spreadsheet with Columns but no Rows
+
+## 1.2.0 - 2024-07-25
 ### Added
 - No new functionality added
 
 ### Changed
-- Updated documentation
+- Open-sourced the library under the MIT license
 
 ### Fixed
-- Bug Fix: Fix code analysis errors in data representation models
+- No bug fixes
 
-## 1.1.0.0 - 2023-07-26
+## 1.1.22077 - 2023-07-26
 ### Added
-- Added WorksheetImporter<TRowModel>
-- Added possible breaking change for parsing TimeSpans on TableRow.FromOpenXml()
-- Added new CellFormats for Time
-- Added unit tests to prove type conversion works as expected
-- Added sample project to demo functionality
+- Added optional parameter for ignoring specified sheets when importing
 
 ### Changed
-- Updated documentation
+- No functionality changed
 
 ### Fixed
-- Bug Fix: Fixed linting issues with existing documentation
+- No bug fixes
