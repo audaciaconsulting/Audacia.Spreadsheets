@@ -150,7 +150,7 @@ namespace Audacia.Spreadsheets
                                 {
                                     if (!valueAdded && decimal.TryParse(matchedCell.CellValue!.Text, out var value))
                                     {
-                                        newCell.Value = value;
+                                        newCell.Value = NormalizeDecimal(matchedCell.CellValue!.Text, value);
                                         cellData.Add(newCell);
                                         valueAdded = true;
                                     }
@@ -241,6 +241,19 @@ namespace Audacia.Spreadsheets
             return colour != null && colour.Auto?.HasValue == true && colour.Rgb?.HasValue == true
                     ? colour.Rgb?.Value?.Substring(2)
                     : null;
+        }
+
+        private static decimal NormalizeDecimal(string sourceText, decimal value)
+        {
+            var decimalPointIndex = sourceText.IndexOf('.');
+            if (decimalPointIndex >= 0 && sourceText.Length - decimalPointIndex - 1 > 10)
+            {
+                value = Math.Round(value, 10);
+            }
+
+            var stringValue = value.ToString(CultureInfo.InvariantCulture);
+            stringValue = stringValue.Contains('.') ? stringValue.TrimEnd('0').TrimEnd('.') : stringValue;
+            return decimal.Parse(stringValue, CultureInfo.InvariantCulture);
         }
 
 #pragma warning disable AV1553
