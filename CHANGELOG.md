@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.3 - 2025-06-24
+### Added
+- No functionality added
+
+### Changed
+- No functionality changed
+
+### Fixed
+- Floating point error when parsing a spreadsheet containing decimals
+
 ## 1.2.2 - 2024-10-29
 ### Added
 - No functionality added

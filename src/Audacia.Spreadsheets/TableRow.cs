@@ -23,14 +23,14 @@ namespace Audacia.Spreadsheets
         {
             var newRow = new Row();
             writer.WriteStartElement(newRow);
-                
+
             for (var columnIndex = 0; columnIndex < columns.Count; columnIndex++)
             {
                 var column = columns[columnIndex];
                 var cell = Cells.Count > columnIndex
                     ? Cells[columnIndex]
                     : new TableCell(hasBorders: Cells.Count > 0 && Cells.Last().HasBorders);
-                
+
                 var cellStyle = cell.CellStyle(column);
 
                 SetCellColours(sharedData, cell, cellStyle);
@@ -64,21 +64,21 @@ namespace Audacia.Spreadsheets
             {
                 Id = id
             };
-            
+
             foreach (var cell in cells)
             {
                 row.Cells.Add(cell);
             }
-            
+
             return row;
         }
 
 #pragma warning disable ACL1002
 #pragma warning disable CA1502
         public static IEnumerable<TableRow> FromOpenXml(
-            WorksheetPart worksheetPart, 
-            SpreadsheetDocument spreadSheet, 
-            int columnsCount, 
+            WorksheetPart worksheetPart,
+            SpreadsheetDocument spreadSheet,
+            int columnsCount,
             int startingRowIndex = 0)
 #pragma warning restore ACL1002
 #pragma warning restore CA1502
@@ -99,7 +99,7 @@ namespace Audacia.Spreadsheets
                 var cellRef = rowPointer.Clone();
                 var cells = row.Elements<Cell>().ToArray();
                 var cellData = new List<TableCell>();
-                
+
                 for (var columnIndex = 0; columnIndex < columnsCount; columnIndex++)
                 {
                     var cellReference = cellRef.ToString();
@@ -115,7 +115,7 @@ namespace Audacia.Spreadsheets
                     else
                     {
                         var matchedCell = matchedCells.First();
-                        if (matchedCell.DataType is { Value: CellValues.SharedString } && 
+                        if (matchedCell.DataType is { Value: CellValues.SharedString } &&
                             !string.IsNullOrEmpty(matchedCell.CellValue?.Text))
                         {
                             var newCell = CreateCellAsSharedString(spreadSheet, matchedCell, stringTable, cellFormats, stylesheet);
@@ -123,6 +123,8 @@ namespace Audacia.Spreadsheets
                         }
                         else
                         {
+                            const int roundingPrecision = 28;
+
                             // Read value from worksheet
                             var valueAdded = false;
                             var newCell = new TableCell(null);
@@ -150,7 +152,8 @@ namespace Audacia.Spreadsheets
                                 {
                                     if (!valueAdded && decimal.TryParse(matchedCell.CellValue!.Text, out var value))
                                     {
-                                        newCell.Value = value;
+                                        // Round using the highest degree of precision to prevent floating point errors.
+                                        newCell.Value = decimal.Round(value, roundingPrecision);
                                         cellData.Add(newCell);
                                         valueAdded = true;
                                     }
@@ -163,12 +166,22 @@ namespace Audacia.Spreadsheets
                             // Read cell value as string
                             if (!valueAdded)
                             {
-                                newCell.Value = matchedCell.CellValue!.Text;
+                                var cellText = matchedCell.CellValue!.Text;
+                                if (decimal.TryParse(cellText, NumberStyles.Any, CultureInfo.InvariantCulture, out var fallbackValue))
+                                {
+                                    // Round using the highest degree of precision to prevent floating point errors.
+                                    newCell.Value = decimal.Round(fallbackValue, roundingPrecision);
+                                }
+                                else
+                                {
+                                    newCell.Value = cellText;
+                                }
+
                                 cellData.Add(newCell);
                             }
                         }
                     }
-                    
+
                     cellRef.NextColumn();
                 }
 #pragma warning restore ACL1011
@@ -180,7 +193,7 @@ namespace Audacia.Spreadsheets
                 {
                     continue;
                 }
-                
+
                 yield return FromCells(cellData, rowId);
             }
         }
@@ -203,10 +216,10 @@ namespace Audacia.Spreadsheets
 #pragma warning disable ACL1003
 #pragma warning disable ACL1002
         private static TableCell CreateCellAsSharedString(
-            SpreadsheetDocument spreadSheet, 
+            SpreadsheetDocument spreadSheet,
             Cell matchedCell,
-            SharedStringTablePart? stringTable, 
-            CellFormats? cellFormats, 
+            SharedStringTablePart? stringTable,
+            CellFormats? cellFormats,
             Stylesheet? stylesheet)
 #pragma warning restore ACL1003
 #pragma warning restore ACL1002
