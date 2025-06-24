@@ -106,13 +106,5 @@ namespace Audacia.Spreadsheets.Tests
 
             return stream;
         }
-
-        [Fact]
-        public void SampleHardcodeTEst()
-        {
-            var test = Spreadsheet.FromFilePath(@"C:\Temp\Excel Tests\Rounding Error.xlsx");
-
-            test.Export(@"C:\Temp\Excel Tests\Output.xlsx");
-        }
     }
 }
