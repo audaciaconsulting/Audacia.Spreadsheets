@@ -27,11 +27,10 @@ namespace Audacia.Spreadsheets.Tests
             using var spreadsheetDocument = SpreadsheetDocument.Open(stream, false);
             var workbookPart = spreadsheetDocument.WorkbookPart!.WorksheetParts.First();
             var rows = TableRow.FromOpenXml(workbookPart, spreadsheetDocument, 1).ToList();
-            var cellValue = rows.Last().Cells.First().Value;
+            var cellValue = rows.Last().Cells.First().Value!.ToString();
 
-            // Assert: ensure the value is exactly 1.1.
-            Assert.IsType<decimal>(cellValue);
-            Assert.Equal(value, (decimal)cellValue!);
+            Assert.True(decimal.TryParse(cellValue, out var result));
+            Assert.Equal(value, result);
         }
 
         /// <summary>

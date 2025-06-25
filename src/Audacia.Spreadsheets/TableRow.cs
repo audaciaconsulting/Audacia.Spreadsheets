@@ -123,8 +123,6 @@ namespace Audacia.Spreadsheets
                         }
                         else
                         {
-                            const int roundingPrecision = 28;
-
                             // Read value from worksheet
                             var valueAdded = false;
                             var newCell = new TableCell(null);
@@ -153,7 +151,7 @@ namespace Audacia.Spreadsheets
                                     if (!valueAdded && decimal.TryParse(matchedCell.CellValue!.Text, out var value))
                                     {
                                         // Round using the highest degree of precision to prevent floating point errors.
-                                        newCell.Value = decimal.Round(value, roundingPrecision);
+                                        newCell.Value = decimal.Round(value, 28);
                                         cellData.Add(newCell);
                                         valueAdded = true;
                                     }
@@ -167,10 +165,15 @@ namespace Audacia.Spreadsheets
                             if (!valueAdded)
                             {
                                 var cellText = matchedCell.CellValue!.Text;
-                                if (decimal.TryParse(cellText, NumberStyles.Any, CultureInfo.InvariantCulture, out var fallbackValue))
+
+                                if (int.TryParse(cellText, out var _))
                                 {
-                                    // Round using the highest degree of precision to prevent floating point errors.
-                                    newCell.Value = decimal.Round(fallbackValue, roundingPrecision);
+                                    newCell.Value = cellText;
+                                }
+                                else if (decimal.TryParse(cellText, NumberStyles.Any, CultureInfo.InvariantCulture, out var fallbackValue))
+                                {
+                                    // Round using the highest degree of precision supported in floating point notation and trim trailing zeros.
+                                    newCell.Value = decimal.Round(fallbackValue, 15).ToString("G29");
                                 }
                                 else
                                 {
