@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.4 - 2025-06-25
+### Added
+- No functionality added
+
+### Changed
+- No functionality changed
+
+### Fixed
+- Negative integer parsing error (introduced in 1.2.3)
+
 ## 1.2.3 - 2025-06-24
 ### Added
 - No functionality added
