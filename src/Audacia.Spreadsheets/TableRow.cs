@@ -161,6 +161,14 @@ namespace Audacia.Spreadsheets
                                 newCell.FillColour = GetColor(spreadSheet, patternFill!);
                             }
 
+                            // Handle Boolean cells
+                            if (matchedCell.DataType is { Value: CellValues.Boolean } && matchedCell.CellValue != null)
+                            {
+                                newCell.Value = matchedCell.CellValue.Text == "1" ? "TRUE" : "FALSE";
+                                cellData.Add(newCell);
+                                valueAdded = true;
+                            }
+
                             // Read cell value as string
                             if (!valueAdded)
                             {

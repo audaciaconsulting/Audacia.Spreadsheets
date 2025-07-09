@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Audacia.Spreadsheets.Extensions;
 using Audacia.Spreadsheets.Tests.Models.Unformatted;
 using Audacia.Spreadsheets.Validation;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Xunit;
 
 namespace Audacia.Spreadsheets.Tests
@@ -16,7 +20,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void BooleanConversions()
         {
-            var expected = new[] 
+            var expected = new[]
             {
                 true,
                 true,
@@ -178,6 +182,24 @@ namespace Audacia.Spreadsheets.Tests
         }
 
         /// <summary>
+        /// Asserts that when parsing a value that Excel has converted to a bool, the string value is retained (i.e. it is not 1/0).
+        /// </summary>
+        [Fact]
+        public void FromOpenXmlParsesBooleanCellsAsTrueOrFalseStrings()
+        {
+            using var spreadsheetStream = GenerateSpreadsheetStreamWithBooleanStrings();
+
+            // Act: Parse the spreadsheet.
+            using var readDoc = SpreadsheetDocument.Open(spreadsheetStream, false);
+            var worksheetPartRead = readDoc.WorkbookPart!.WorksheetParts.First();
+            var rows = TableRow.FromOpenXml(worksheetPartRead, readDoc, 1).ToList();
+
+            // Assert: The boolean values are parsed as "TRUE" and "FALSE".
+            Assert.Equal("TRUE", rows[1].Cells[0].Value);
+            Assert.Equal("FALSE", rows[2].Cells[0].Value);
+        }
+
+        /// <summary>
         /// Converts the given <see cref="DateTime"/> to a <see cref="DateTimeOffset"/> offset by the local system time zone.
         /// </summary>
         /// <param name="expectedDateTime">The <see cref="DateTime"/> value to offset.</param>
@@ -226,7 +248,7 @@ namespace Audacia.Spreadsheets.Tests
                 .ToArray();
 
             // Assert parsed collection matches the expected collection
-            
+
             Assert.Equal(expected, actual);
 
             // Ensure that a parsing failure isn't ignored
@@ -245,6 +267,92 @@ namespace Audacia.Spreadsheets.Tests
             Assert.Equal(1, output.ImportErrors.Count);
 
             Assert.IsType<FieldParseError>(output.ImportErrors.First());
+        }
+
+        /// <summary>
+        /// Generates a sample spreadsheet with cells containing boolean strings (i.e. TRUE and FALSE), and returns it as a <see cref="Stream"/>.
+        /// </summary>
+        private static MemoryStream GenerateSpreadsheetStreamWithBooleanStrings()
+        {
+            var stream = new MemoryStream();
+
+            using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
+            {
+                var workbookPart = document.AddWorkbookPart();
+                workbookPart.Workbook = new Workbook();
+
+                var sharedStringPart = workbookPart.AddNewPart<SharedStringTablePart>();
+                var sharedStringTable = new SharedStringTable();
+                sharedStringTable.Append(new SharedStringItem(new Text("Example Column")));
+
+                sharedStringTable.Append(new SharedStringItem(new Text("TRUE")));
+                sharedStringTable.Append(new SharedStringItem(new Text("FALSE")));
+
+                sharedStringPart.SharedStringTable = sharedStringTable;
+                sharedStringPart.SharedStringTable.Save();
+
+                var stylesPart = workbookPart.AddNewPart<WorkbookStylesPart>();
+                stylesPart.Stylesheet = new Stylesheet(
+                    new Fonts(new Font()),
+                    new Fills(new Fill()),
+                    new Borders(new Border()),
+                    new CellFormats()
+                );
+
+                stylesPart.Stylesheet.Save();
+
+                var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+                var sheetData = new SheetData();
+
+                var headerRow = new Row() { RowIndex = 1 };
+                var cell = new Cell()
+                {
+                    CellReference = "A1",
+                    DataType = CellValues.SharedString,
+                    CellValue = new CellValue("0")
+                };
+
+                headerRow.Append(cell);
+                sheetData.Append(headerRow);
+
+                var trueRow = new Row() { RowIndex = 2 };
+                trueRow.Append(
+                    new Cell
+                    {
+                        CellReference = "A2",
+                        DataType = CellValues.Boolean,
+                        CellValue = new CellValue("1")
+                    });
+
+                var falseRow = new Row() { RowIndex = 3 };
+                falseRow.Append(
+                    new Cell
+                    {
+                        CellReference = "A3",
+                        DataType = CellValues.Boolean,
+                        CellValue = new CellValue("0")
+                    });
+
+                sheetData.Append(trueRow);
+                sheetData.Append(falseRow);
+
+                worksheetPart.Worksheet = new DocumentFormat.OpenXml.Spreadsheet.Worksheet(sheetData);
+                worksheetPart.Worksheet.Save();
+
+                var sheets = workbookPart.Workbook.AppendChild(new Sheets());
+                sheets.Append(new Sheet
+                {
+                    Id = workbookPart.GetIdOfPart(worksheetPart),
+                    SheetId = 1,
+                    Name = "Sample Worksheet"
+                });
+
+                workbookPart.Workbook.Save();
+            }
+
+            stream.Position = 0;
+
+            return stream;
         }
     }
 }
