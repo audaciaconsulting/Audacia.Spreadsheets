@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.5 - 2025-07-09
+### Added
+- No functionality added
+
+### Changed
+- No functionality changed
+
+### Fixed
+- Boolean string parsing error
+
 ## 1.2.4 - 2025-06-25
 ### Added
 - No functionality added
