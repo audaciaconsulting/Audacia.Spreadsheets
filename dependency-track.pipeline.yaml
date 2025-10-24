@@ -60,31 +60,61 @@ variables:
     value: true
 
 stages:
-  - stage: audit
-    displayName: "Audit Dependencies (E2E)"
+  # =========================
+  # 1) GENERATE STAGE
+  # =========================
+  - stage: generate
+    displayName: "Generate SBOMs (npm + .NET via CycloneDX)"
     jobs:
-      - job: audit_dependencies
-        displayName: "Audit dependencies (generate → upload → deactivate)"
+      - job: generate_sbom
+        displayName: "Generate SBOMs & publish artifact"
         steps:
-          - template: /src/security/dependency-track/steps/audit-dependencies.steps.yaml@templates
+          # Generate .NET SBOMs
+          - template: /src/security/dependency-track/steps/generate-dotnet-sbom.steps.yaml@templates
             parameters:
               dotnetProjects: |
                 $(audaciaSpreadsheetsProjectPath)
                 $(audaciaSpreadsheetsTestsProjectPath)
-              publishArtifact: ${{ variables.publishArtifact }}
-              artifactName: $(artifactName)
-              nodeVersion: $(nodeVersion)
-              includeLicenseTexts: true
-              failOnUploadError: ${{ variables.failOnUploadError }}
-              parentProjectName: ${{ variables.parentProjectName }}
-              parentProjectVersion: ${{ variables.parentProjectVersion }}
-              deactivateOld: ${{ variables.deactivateOld }}
               vstsFeed: 'Audacia.Public/AudaciaPublic'
               nugetConfigPath: ''
-              requireProjectTags: true
-              validationOnly: false
-              bomProcessingTimeoutSec: 300
+              publishArtifact: true
+              artifactName: $(artifactName)
+
+  # =========================
+  # 2) UPLOAD STAGE
+  # =========================
+  - stage: upload
+    displayName: "Upload SBOMs to Dependency-Track"
+    dependsOn: generate
+    jobs:
+      - job: upload_sbom
+        displayName: "Upload SBOM & Log Summary"
+        steps:
+          - checkout: none
+          - template: /src/security/dependency-track/steps/upload-sbom.steps.yaml@templates
+            parameters:
               envName: $(envName)
               additionalTags: $(additionalTags)
               version: $(version)
               systemName: $(systemName)
+              failOnUploadError: ${{ variables.failOnUploadError }}
+              parentProjectName: ${{ variables.parentProjectName }}
+              parentProjectVersion: ${{ variables.parentProjectVersion }}
+
+  # =========================
+  # 3) DEACTIVATE STAGE (run standalone or after upload)
+  # =========================
+  - stage: deactivate
+    displayName: "Deactivate old Dependency-Track project versions"
+    dependsOn: upload
+    condition: and(succeeded('upload'), eq(variables['deactivateOld'], true))
+    jobs:
+      - job: deactivate_old_versions
+        displayName: "Set non-latest versions to inactive"
+        steps:
+          - checkout: none
+          - template: /src/security/dependency-track/steps/deactivate-nonlatest.steps.yaml@templates
+            parameters:
+              artifactName: $(artifactName)
+              tryDownloadArtifact: ${{ variables.tryDownloadArtifact }}
+              parentProjectName: ${{ variables.parentProjectName }}
