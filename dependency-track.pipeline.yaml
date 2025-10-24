@@ -24,7 +24,7 @@ variables:
   - name: DT_API_URL
     value: 'https://api.dependency-track.audacia.tech/api'
 
-  # Template-parameter variables (camelCase)
+  # Template-parameter variables
   - name: systemName
     value: Audacia.Libraries
   - name: envName
