@@ -1,0 +1,90 @@
+name: $(Year:yy)$(DayOfYear).$(Rev:r)
+trigger:
+  - master
+pr:
+  branches:
+    include:
+      - master
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      endpoint: shared-github
+      name: audaciaconsulting/Audacia.Build
+
+pool:
+  vmImage: windows-latest
+
+variables:
+  - group: Audacia.Libraries.Dependency-Track
+
+  # Secrets / env
+  - name: DT_API_KEY
+    value: $(DT-API-KEY)
+  - name: DT_API_URL
+    value: 'https://api.dependency-track.audacia.tech/api'
+
+  # Template-parameter variables (camelCase)
+  - name: systemName
+    value: Audacia.Libraries
+  - name: envName
+    value: dev
+  - name: version
+    value: $(Build.SourceBranchName)
+  - name: additionalTags
+    value: ' '
+  - name: deactivateOld
+    value: true
+
+  # Optional parent project
+  - name: parentProjectName
+    value: 'Audacia - Libraries'
+  - name: parentProjectVersion
+    value: ''
+
+  # Project paths and settings
+  - name: audaciaSpreadsheetsProjectPath
+    value: $(System.DefaultWorkingDirectory)/src/Audacia.Spreadsheets/Audacia.Spreadsheets.csproj
+  - name: audaciaSpreadsheetsTestsProjectPath
+    value: $(System.DefaultWorkingDirectory)/src/Audacia.Olympus.Ui/Audacia.Olympus.Ui.csproj
+
+  - name: nodeVersion
+    value: '22.x'
+  - name: artifactName
+    value: 'sbom-files'
+  - name: publishArtifact
+    value: true
+  - name: failOnUploadError
+    value: true
+  - name: tryDownloadArtifact
+    value: true
+
+stages:
+  - stage: audit
+    displayName: "Audit Dependencies (E2E)"
+    jobs:
+      - job: audit_dependencies
+        displayName: "Audit dependencies (generate → upload → deactivate)"
+        steps:
+          - template: /src/security/dependency-track/steps/audit-dependencies.steps.yaml@templates
+            parameters:
+              dotnetProjects: |
+                $(audaciaSpreadsheetsProjectPath)
+                $(audaciaSpreadsheetsTestsProjectPath)
+              publishArtifact: ${{ variables.publishArtifact }}
+              artifactName: $(artifactName)
+              nodeVersion: $(nodeVersion)
+              includeLicenseTexts: true
+              failOnUploadError: ${{ variables.failOnUploadError }}
+              parentProjectName: ${{ variables.parentProjectName }}
+              parentProjectVersion: ${{ variables.parentProjectVersion }}
+              deactivateOld: ${{ variables.deactivateOld }}
+              vstsFeed: 'Audacia.Public/AudaciaPublic'
+              nugetConfigPath: ''
+              requireProjectTags: true
+              validationOnly: false
+              bomProcessingTimeoutSec: 300
+              envName: $(envName)
+              additionalTags: $(additionalTags)
+              version: $(version)
+              systemName: $(systemName)
