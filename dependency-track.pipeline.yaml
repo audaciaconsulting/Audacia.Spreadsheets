@@ -29,7 +29,7 @@ variables:
     value: Audacia.Libraries
   - name: envName
     value: dev
-  - name: version
+  - name: projectVersion
     value: $(Build.SourceBranchName)
   - name: additionalTags
     value: ' '
@@ -95,7 +95,7 @@ stages:
             parameters:
               envName: $(envName)
               additionalTags: $(additionalTags)
-              version: $(version)
+              version: $(projectVersion)
               systemName: $(systemName)
               failOnUploadError: ${{ variables.failOnUploadError }}
               parentProjectName: ${{ variables.parentProjectName }}
