@@ -11,6 +11,7 @@ resources:
       type: github
       endpoint: shared-github
       name: audaciaconsulting/Audacia.Build
+      ref: refs/heads/feature/203056-derive-version-from-the-package.json-or-csproj-when-not-provided
 
 pool:
   vmImage: windows-latest
@@ -29,8 +30,6 @@ variables:
     value: Audacia.Libraries
   - name: envName
     value: dev
-  - name: projectVersion
-    value: $(Build.SourceBranchName)
   - name: additionalTags
     value: ' '
   - name: deactivateOld
@@ -95,7 +94,6 @@ stages:
             parameters:
               envName: $(envName)
               additionalTags: $(additionalTags)
-              version: $(projectVersion)
               systemName: $(systemName)
               failOnUploadError: ${{ variables.failOnUploadError }}
               parentProjectName: ${{ variables.parentProjectName }}
