@@ -11,7 +11,6 @@ resources:
       type: github
       endpoint: shared-github
       name: audaciaconsulting/Audacia.Build
-      ref: refs/heads/feature/203056-derive-version-from-the-package.json-or-csproj-when-not-provided
 
 pool:
   vmImage: windows-latest
