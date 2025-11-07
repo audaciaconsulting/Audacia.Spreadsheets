@@ -22,8 +22,8 @@ variables:
   - name: DT_API_KEY
     value: $(DT-API-KEY)
   - name: DT_API_URL
-    value: 'https://api.dependency-track.audacia.tech/api'
-
+    value: $(DT-API-URL)
+    
   # Template-parameter variables
   - name: systemName
     value: Audacia.Libraries
