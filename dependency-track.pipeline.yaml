@@ -41,6 +41,8 @@ variables:
   # Project paths and settings
   - name: audaciaSpreadsheetsProjectPath
     value: $(System.DefaultWorkingDirectory)/src/Audacia.Spreadsheets/Audacia.Spreadsheets.csproj
+  - name: audaciaSpreadsheetsTestsProjectPath
+    value: $(System.DefaultWorkingDirectory)/src/Audacia.Spreadsheets/Audacia.Spreadsheets.Tests.csproj
 
   - name: artifactName
     value: 'sbom-files'
