@@ -70,7 +70,7 @@ stages:
                 $(audaciaSpreadsheetsProjectPath)
                 $(audaciaSpreadsheetsTestsProjectPath)
               vstsFeed: 'Audacia.Public/AudaciaPublic'
-              publishArtifact: $(publishArtifact)
+              publishArtifact: ${{ variables.publishArtifact }}
               artifactName: $(artifactName)
 
   # =========================
