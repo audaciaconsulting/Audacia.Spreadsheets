@@ -29,8 +29,6 @@ variables:
     value: Audacia.Libraries
   - name: envName
     value: dev
-  - name: additionalTags
-    value: ' '
   - name: deactivateOld
     value: true
 
@@ -43,11 +41,7 @@ variables:
   # Project paths and settings
   - name: audaciaSpreadsheetsProjectPath
     value: $(System.DefaultWorkingDirectory)/src/Audacia.Spreadsheets/Audacia.Spreadsheets.csproj
-  - name: audaciaSpreadsheetsTestsProjectPath
-    value: $(System.DefaultWorkingDirectory)/src/Audacia.Olympus.Ui/Audacia.Olympus.Ui.csproj
 
-  - name: nodeVersion
-    value: '22.x'
   - name: artifactName
     value: 'sbom-files'
   - name: publishArtifact
@@ -75,7 +69,7 @@ stages:
                 $(audaciaSpreadsheetsTestsProjectPath)
               vstsFeed: 'Audacia.Public/AudaciaPublic'
               nugetConfigPath: ''
-              publishArtifact: true
+              publishArtifact: $(publishArtifact)
               artifactName: $(artifactName)
 
   # =========================
