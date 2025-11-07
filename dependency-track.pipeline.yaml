@@ -70,7 +70,6 @@ stages:
                 $(audaciaSpreadsheetsProjectPath)
                 $(audaciaSpreadsheetsTestsProjectPath)
               vstsFeed: 'Audacia.Public/AudaciaPublic'
-              nugetConfigPath: ''
               publishArtifact: $(publishArtifact)
               artifactName: $(artifactName)
 
