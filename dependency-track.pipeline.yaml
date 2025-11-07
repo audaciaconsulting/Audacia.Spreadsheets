@@ -87,7 +87,6 @@ stages:
           - template: /src/security/dependency-track/steps/upload-sbom.steps.yaml@templates
             parameters:
               envName: $(envName)
-              additionalTags: $(additionalTags)
               systemName: $(systemName)
               failOnUploadError: ${{ variables.failOnUploadError }}
               parentProjectName: ${{ variables.parentProjectName }}
