@@ -27,8 +27,6 @@ variables:
   # Template-parameter variables
   - name: systemName
     value: Audacia.Libraries
-  - name: envName
-    value: dev
   - name: deactivateOld
     value: true
 
@@ -52,6 +50,8 @@ variables:
     value: true
   - name: tryDownloadArtifact
     value: true
+  - name: vstsFeed
+    value: 'Audacia.Public/AudaciaPublic'
 
 stages:
   # =========================
@@ -69,7 +69,7 @@ stages:
               dotnetProjects: |
                 $(audaciaSpreadsheetsProjectPath)
                 $(audaciaSpreadsheetsTestsProjectPath)
-              vstsFeed: 'Audacia.Public/AudaciaPublic'
+              vstsFeed: ${{ variables.vstsFeed }}
               publishArtifact: ${{ variables.publishArtifact }}
               artifactName: $(artifactName)
 
@@ -86,7 +86,6 @@ stages:
           - checkout: none
           - template: /src/security/dependency-track/steps/upload-sbom.steps.yaml@templates
             parameters:
-              envName: $(envName)
               systemName: $(systemName)
               failOnUploadError: ${{ variables.failOnUploadError }}
               parentProjectName: ${{ variables.parentProjectName }}
