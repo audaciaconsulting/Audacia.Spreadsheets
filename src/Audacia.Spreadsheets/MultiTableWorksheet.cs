@@ -17,9 +17,9 @@ namespace Audacia.Spreadsheets
             CellReference? prevCellTableEnd = null;
             foreach (var table in Tables)
             {
-                // Extract the logic for handling the gap between tables
                 if (prevCellTableEnd != null)
                 {
+                    // Handle gap between tables, if applicable
                     HandleGapBetweenTables(writer, prevCellTableEnd);
                     table.StartingCellRef = prevCellTableEnd;
                 }
@@ -33,7 +33,7 @@ namespace Audacia.Spreadsheets
         {
             if (IncludeGapBetweenTables)
             {
-                // Add a row inbetween to separate the tables
+                // Add a row in between to separate the tables
                 var newRow = new Row();
                 writer.WriteStartElement(newRow);
                 writer.WriteEndElement();
