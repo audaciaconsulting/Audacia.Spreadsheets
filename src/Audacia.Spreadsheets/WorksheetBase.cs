@@ -22,15 +22,15 @@ namespace Audacia.Spreadsheets
         
         public SheetStateValues Visibility { get; set; } = SheetStateValues.Visible;
 
-        protected bool ShowGridLines { get; set; }
+        public bool ShowGridLines { get; set; }
         
         public bool HasAutofilter { get; set; }
         
         public WorksheetProtection? WorksheetProtection { get; set; }
 
-        private List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
+        public List<StaticDropdown> StaticDataValidations { get; } = new List<StaticDropdown>();
 
-        private List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
+        public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
 
         /// <summary>
         /// Sets Visibility to Hidden.

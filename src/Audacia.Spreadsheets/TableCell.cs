@@ -55,6 +55,10 @@ namespace Audacia.Spreadsheets
         
         public bool HasBorderLeft { get; set; } = true;
 
+        public HorizontalAlignmentValues AlignHorizontal { get; set; } = HorizontalAlignmentValues.Left;
+
+        public VerticalAlignmentValues AlignVertical { get; set; } = VerticalAlignmentValues.Top;
+
         // making still usable despite separating the border into 4 sections as may be required
         public bool HasBorders
         {
@@ -82,7 +86,9 @@ namespace Audacia.Spreadsheets
                 BorderRight = HasBorderRight,
                 Format = column.Format,
                 HasWordWrap = Value is string && !IsFormula,
-                IsEditable = IsEditable
+                IsEditable = IsEditable,
+                AlignHorizontal = AlignHorizontal,
+                AlignVertical = AlignVertical
             };
         }
 

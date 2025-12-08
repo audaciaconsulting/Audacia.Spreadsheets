@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Audacia.Spreadsheets
 {
@@ -19,7 +20,11 @@ namespace Audacia.Spreadsheets
         public uint TextColour { get; set; }
 
         public CellFormat Format { get; set; }
-        
+
+        public HorizontalAlignmentValues AlignHorizontal { get; set; }
+
+        public VerticalAlignmentValues AlignVertical { get; set; }
+
         public bool HasWordWrap { get; set; }
 
         public bool IsEditable { get; set; }

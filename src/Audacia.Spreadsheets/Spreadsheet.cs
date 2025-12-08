@@ -113,6 +113,19 @@ namespace Audacia.Spreadsheets
                 dto.Sheets.Append(sheet);
 
                 worksheet.Write(dto.SharedData, writer);
+
+                if (worksheet is MultiTableWorksheet castWorksheet && castWorksheet.MergeCells.Any())
+                {
+                    //create a MergeCells class to hold each MergeCell
+                    var mergeCells = new MergeCells();
+
+                    foreach (var mergeCell in castWorksheet.MergeCells)
+                    {
+                        mergeCells.Append(new MergeCell { Reference = new StringValue(mergeCell) });
+                    }
+
+                    worksheetPart.Worksheet.InsertAfter(mergeCells, worksheetPart.Worksheet.Elements<SheetData>().First());
+                }
             }
 
             return dto.Sheets;
