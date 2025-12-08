@@ -32,6 +32,8 @@ namespace Audacia.Spreadsheets
 
         public List<DependentDropdown> DependentDataValidations { get; } = new List<DependentDropdown>();
 
+        public List<string> MergeCells { get; set; } = new List<string>();
+
         /// <summary>
         /// Sets Visibility to Hidden.
         /// </summary>
@@ -200,13 +202,13 @@ namespace Audacia.Spreadsheets
                 // Find the max cell width from all tables with the column
                 var tableMaxCellWidth = tables
                     .Where(table => columnIndex < table.Columns.Count)
-                    .Select(table => new { Table = table, MaxCellWidth = table.GetMaxCharacterWidth(columnIndex) })
+                    .Select(table => new { Table = table, MaxCellWidth = table.GetMaxCharacterWidth(columnIndex), ColumnHidden = table.Columns[columnIndex].IsHidden })
                     .OrderByDescending(tableMaxCellWidth => tableMaxCellWidth.MaxCellWidth)
                     .FirstOrDefault();
 
                 if (tableMaxCellWidth != null)
                 {
-                    var column = GetColumn(tableMaxCellWidth.MaxCellWidth, maxDigitWidth, columnIndex);
+                    var column = GetColumn(tableMaxCellWidth.MaxCellWidth, tableMaxCellWidth.ColumnHidden, maxDigitWidth, columnIndex);
                     writer.WriteElement(column);
                 }
             }
@@ -214,13 +216,13 @@ namespace Audacia.Spreadsheets
             writer.WriteEndElement();
         }
 
-        private static Column GetColumn(double maxCellWidth, double maxDigitWidth, int columnIndex)
+        private static Column GetColumn(double maxCellWidth, bool columnHidden, double maxDigitWidth, int columnIndex)
         {
             // width = Truncate([{Number of Characters} * {Maximum Digit Width} + {20 pixel padding}]/{Maximum Digit Width}*256)/256
             var width = Math.Truncate((maxCellWidth * maxDigitWidth + PixelPadding) / maxDigitWidth * ColumnWidth) / ColumnWidth;
                 
             // Limit the column width to 75...
-            width = EvaluateWidth(width);
+            width = columnHidden ? 0 : EvaluateWidth(width);
 
             var column = new Column
             {
@@ -228,7 +230,8 @@ namespace Audacia.Spreadsheets
                 Max = Convert.ToUInt32(columnIndex + 1),
                 CustomWidth = true,
                 BestFit = true,
-                Width = width
+                Width = width,
+                Hidden = columnHidden
             };
 
             return column;

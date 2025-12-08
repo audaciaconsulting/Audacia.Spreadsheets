@@ -10,8 +10,6 @@ namespace Audacia.Spreadsheets
 
         public IList<Table> Tables { get; set; } = new List<Table>();
 
-        public IEnumerable<string> MergeCells { get; set; } = new List<string>();
-
         protected override void WriteSheetData(SharedDataTable sharedData, OpenXmlWriter writer)
         {
             CellReference? prevCellTableEnd = null;
