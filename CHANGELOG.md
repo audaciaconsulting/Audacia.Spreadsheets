@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0 - 2025-12-09
+### Added
+- Added ability to merge cells.
+- Added ability to align text within a cell.
+- Added ability to hide columns.
+
+### Changed
+- No functionality changed
+
+### Fixed
+- No functionality fixed
+
 ## 1.2.5 - 2025-07-09
 ### Added
 - No functionality added

@@ -91,8 +91,8 @@ namespace Audacia.Spreadsheets.Extensions
                     : default,
                 Alignment = new Alignment
                 {
-                    Horizontal = HorizontalAlignmentValues.Left,
-                    Vertical = VerticalAlignmentValues.Top,
+                    Horizontal = cellStyle.AlignHorizontal,
+                    Vertical = cellStyle.AlignVertical,
                     TextRotation = 0U,
                     WrapText = cellStyle.HasWordWrap,
                     ReadingOrder = 1U
@@ -122,7 +122,9 @@ namespace Audacia.Spreadsheets.Extensions
         {
             return leftHandObject.Format == rightHandObject.Format &&
                    leftHandObject.HasWordWrap == rightHandObject.HasWordWrap &&
-                   leftHandObject.IsEditable == rightHandObject.IsEditable;
+                   leftHandObject.IsEditable == rightHandObject.IsEditable &&
+                   leftHandObject.AlignHorizontal == rightHandObject.AlignHorizontal &&
+                   leftHandObject.AlignVertical == rightHandObject.AlignVertical;
         }
     }
 }

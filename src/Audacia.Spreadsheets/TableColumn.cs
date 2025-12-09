@@ -57,6 +57,8 @@ namespace Audacia.Spreadsheets
 
         public bool HasBorders { get; set; } = true;
 
+        public bool IsHidden { get; set; } = false;
+
         public CellFormat Format { get; set; } = CellFormat.Text;
 
         public CellBackgroundColourAttribute? CellBackgroundFormat { get; set; }

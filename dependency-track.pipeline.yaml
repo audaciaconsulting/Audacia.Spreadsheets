@@ -1,10 +1,6 @@
 name: $(Year:yy)$(DayOfYear).$(Rev:r)
 trigger:
   - master
-pr:
-  branches:
-    include:
-      - master
 resources:
   repositories:
     - repository: templates
@@ -40,7 +36,7 @@ variables:
   - name: audaciaSpreadsheetsProjectPath
     value: $(System.DefaultWorkingDirectory)/src/Audacia.Spreadsheets/Audacia.Spreadsheets.csproj
   - name: audaciaSpreadsheetsTestsProjectPath
-    value: $(System.DefaultWorkingDirectory)/src/Audacia.Spreadsheets/Audacia.Spreadsheets.Tests.csproj
+    value: $(System.DefaultWorkingDirectory)/Tests/Audacia.Spreadsheets.Tests/Audacia.Spreadsheets.Tests.csproj
 
   - name: artifactName
     value: 'sbom-files'

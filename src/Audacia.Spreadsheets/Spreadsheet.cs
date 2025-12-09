@@ -115,6 +115,19 @@ namespace Audacia.Spreadsheets
                 worksheet.Write(dto.SharedData, writer);
             }
 
+            if (worksheet.MergeCells.Any())
+            {
+                //create a MergeCells class to hold each MergeCell
+                var mergeCells = new MergeCells();
+
+                foreach (var mergeCell in worksheet.MergeCells)
+                {
+                    mergeCells.Append(new MergeCell { Reference = new StringValue(mergeCell) });
+                }
+
+                worksheetPart.Worksheet.InsertAfter(mergeCells, worksheetPart.Worksheet.Elements<SheetData>().First());
+            }
+
             return dto.Sheets;
         }
 
