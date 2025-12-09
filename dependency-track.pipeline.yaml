@@ -37,8 +37,6 @@ variables:
     value: ''
 
   # Project paths and settings
-  - name: audaciaSpreadsheetsProjectPath
-    value: $(System.DefaultWorkingDirectory)/src/Audacia.Spreadsheets/Audacia.Spreadsheets.csproj
   - name: audaciaSpreadsheetsTestsProjectPath
     value: $(System.DefaultWorkingDirectory)/Tests/Audacia.Spreadsheets.Tests/Audacia.Spreadsheets.Tests.csproj
 
@@ -67,7 +65,6 @@ stages:
           - template: /src/security/dependency-track/steps/generate-dotnet-sbom.steps.yaml@templates
             parameters:
               dotnetProjects: |
-                $(audaciaSpreadsheetsProjectPath)
                 $(audaciaSpreadsheetsTestsProjectPath)
               vstsFeed: ${{ variables.vstsFeed }}
               publishArtifact: ${{ variables.publishArtifact }}
