@@ -2,7 +2,7 @@
 
 Text can be aligned horizontally or vertically within a cell.
 These can be set using the `AlignHorizontal` and `AlignVertical` properties on the `TableCell` class.
-The valeus which can be used are defined in the `HorizontalAlignment` and `VerticalAlignment` enums in the OpenXML library.
+The values which can be used are defined in the `HorizontalAlignment` and `VerticalAlignment` enums in the OpenXML library.
 
 ```csharp
 using Audacia.Spreadsheets;
