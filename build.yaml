@@ -13,13 +13,21 @@ resources:
       name: audaciaconsulting/Audacia.Build
 pool:
   vmImage: windows-2022
+variables:
+  - group: Code Signing
 
 stages:
 - stage: Stage_Build
   displayName: Build
   jobs:
-    - template: src/build/dotnet/jobs/nuget-package.job.yaml@templates
+    - template: src/build/dotnet/jobs/signed-nuget-package.job.yaml@templates
       parameters:
+        trustedSigningEndpoint: $(TrustedSigningEndpoint)
+        trustedSigningAccount: $(TrustedSigningAccount)
+        trustedSigningCertificateProfile: $(TrustedSigningCertificateProfile)
+        directory: $(Build.SourcesDirectory)/src/Audacia.Spreadsheets
+        fileToSignPattern: 'Audacia.Spreadsheets.dll'
+        serviceConnection: 'Audacia Code Signing'
         excludePaths: '*.Tests.csproj,*.Demo.csproj'
 
 - stage: Stage_Release
