@@ -1,10 +1,6 @@
 name: $(Year:yy)$(DayOfYear).$(Rev:r)
 trigger:
   - master
-pr:
-  branches:
-    include:
-      - master
 resources:
   repositories:
     - repository: templates

@@ -1,0 +1,24 @@
+name: $(Year:yy)$(DayOfYear).$(Rev:r)
+trigger:
+  - master
+pr:
+  branches:
+    include:
+      - master
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      endpoint: shared-github
+      name: audaciaconsulting/Audacia.Build
+pool:
+  vmImage: windows-2022
+
+stages:
+- stage: Stage_Build
+  displayName: Build
+  jobs:
+    - template: src/build/dotnet/jobs/nuget-package.job.yaml@templates
+      parameters:
+        signAssemblies: false
+        excludePaths: '*.Tests.csproj,*.Demo.csproj'
