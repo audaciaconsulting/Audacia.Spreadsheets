@@ -37,4 +37,4 @@ stages:
       eq(dependencies.Stage_Build.outputs['Job_Build.UpdateVersions.ShouldPublish'], true)
     )
   jobs:
-    - template: src/deployment/nuget/jobs/internal-public-nuget-package.job.yaml@templates
+    - template: src/deployment/nuget/jobs/public-nuget-package.job.yaml@templates
