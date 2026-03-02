@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Audacia.Core.Extensions;
+using Audacia.Spreadsheets.Constants;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Spreadsheet;
 
@@ -145,10 +146,10 @@ namespace Audacia.Spreadsheets
                 }
             }
 
-            //  While arbitrary, 75 has been tested to be a sufficient max width for columns.
-            if (current > 75)
+            // Prevent columns from being excessively wide
+            if (current > TableConstants.OptimalMaxColumnWidth)
             {
-                current = 75;
+                current = TableConstants.OptimalMaxColumnWidth;
             }
 
             return current;

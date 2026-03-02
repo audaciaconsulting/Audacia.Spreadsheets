@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Audacia.Spreadsheets.Constants;
 using Audacia.Spreadsheets.Extensions;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -239,9 +240,9 @@ namespace Audacia.Spreadsheets
 
         private static double EvaluateWidth(double width)
         {
-            if (width > 75)
+            if (width > TableConstants.OptimalMaxColumnWidth)
             {
-                width = 75;
+                width = TableConstants.OptimalMaxColumnWidth;
             }
 
             return width;
@@ -304,6 +305,11 @@ namespace Audacia.Spreadsheets
             Justification = "Method is too small to break down any further.")]
         protected static int GetMaxRowWidth(WorksheetPart worksheetPart)
         {
+            if (worksheetPart.Worksheet == null)
+            {
+                throw new InvalidOperationException("WorksheetPart does not contain a Worksheet");
+            }
+
             var maxWidth = 0;
             var rows = worksheetPart.Worksheet.Elements<SheetData>().First().Elements<Row>().ToList();
 
