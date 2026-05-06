@@ -8,6 +8,8 @@
 - Upgraded Demo and Test projects to .NET 10.0
 - Removed the PR pipeline's trigger (previously master).
 - Added all existing pipeline and documentation files to `Solution Items/`
+- Upgrade all nuget packages to their latest versions.
+- Replaced `xunit` with `xunit.v3` in the Test project.
 
 ### Fixed
 - No functionality fixed
