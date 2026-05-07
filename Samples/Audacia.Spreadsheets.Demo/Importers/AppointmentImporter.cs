@@ -6,12 +6,12 @@ using Audacia.Spreadsheets.Validation;
 
 namespace Audacia.Spreadsheets.Demo.Importers
 {
-    public class AppointmentImporter : WorksheetImporter<Appointment>
+    public class AppointmentImporter : WorksheetImporter<Appointment?>
     {
         private readonly DateTime MinDate = new DateTime(2021, 1, 1);
         private HashSet<int> UniqueChecksums = new HashSet<int>();
 
-        protected override IEnumerable<IImportError> ParseRow(out Appointment model)
+        protected override IEnumerable<IImportError> ParseRow(out Appointment? model)
         {
             // Optionally replace the row parser code
             model = null;

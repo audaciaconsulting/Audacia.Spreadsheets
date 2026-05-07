@@ -62,7 +62,7 @@ namespace Audacia.Spreadsheets.Tests
         [Fact]
         public void TextIsHorizontallyCentredInCell()
         {
-            const HorizontalAlignmentValues alignment = HorizontalAlignmentValues.Center;
+            var alignment = HorizontalAlignmentValues.Center;
             var spreadsheet = GetSpreadsheet();
 
             spreadsheet.Worksheets.First().GetTable().Rows.First().Cells.First().AlignHorizontal = alignment;

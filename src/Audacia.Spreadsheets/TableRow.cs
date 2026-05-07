@@ -88,7 +88,7 @@ namespace Audacia.Spreadsheets
             var dateFormatIds = GetDateFormatsInFile(spreadSheet.WorkbookPart?.WorkbookStylesPart!);
 
             // Read each row and add to table
-            var rows = worksheetPart.Worksheet.Elements<SheetData>().First().Elements<Row>().ToList();
+            var rows = worksheetPart.Worksheet?.Elements<SheetData>().First().Elements<Row>().ToList();
             var stringTable = spreadSheet.WorkbookPart?.GetPartsOfType<SharedStringTablePart>().First();
 
             var rowPointer = new CellReference("A1").MutateBy(0, startingRowIndex);
@@ -115,7 +115,7 @@ namespace Audacia.Spreadsheets
                     else
                     {
                         var matchedCell = matchedCells.First();
-                        if (matchedCell.DataType is { Value: CellValues.SharedString } &&
+                        if (matchedCell.DataType?.Value == CellValues.SharedString &&
                             !string.IsNullOrEmpty(matchedCell.CellValue?.Text))
                         {
                             var newCell = CreateCellAsSharedString(spreadSheet, matchedCell, stringTable, cellFormats, stylesheet);
@@ -162,7 +162,7 @@ namespace Audacia.Spreadsheets
                             }
 
                             // Handle Boolean cells
-                            if (matchedCell.DataType is { Value: CellValues.Boolean } && matchedCell.CellValue != null)
+                            if (matchedCell.DataType?.Value == CellValues.Boolean && matchedCell.CellValue != null)
                             {
                                 newCell.Value = matchedCell.CellValue.Text == "1" ? "TRUE" : "FALSE";
                                 cellData.Add(newCell);
@@ -320,11 +320,14 @@ namespace Audacia.Spreadsheets
 
             var formatIds = new Collection<uint>();
 
-            var numFormatsParentNodes = stylePart.Stylesheet.ChildElements.OfType<NumberingFormats>();
+            var numFormatsParentNodes = stylePart.Stylesheet?.ChildElements.OfType<NumberingFormats>();
 
-            foreach (var numFormatParentNode in numFormatsParentNodes)
+            if (numFormatsParentNodes != null)
             {
-                AddFormatIds(numFormatParentNode, formatIds);
+                foreach (var numFormatParentNode in numFormatsParentNodes)
+                {
+                    AddFormatIds(numFormatParentNode, formatIds);
+                }
             }
 
             return formatIds;

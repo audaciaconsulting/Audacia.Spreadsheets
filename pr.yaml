@@ -1,6 +1,5 @@
 name: $(Year:yy)$(DayOfYear).$(Rev:r)
-trigger:
-  - master
+trigger: none
 pr:
   branches:
     include:

@@ -7,7 +7,7 @@ namespace Audacia.Spreadsheets.Demo.Models
     public class Appointment
     {
         [DisplayName("Customer Reference")]
-        public string Reference { get; set; }
+        public string Reference { get; set; } = null!;
 
         [DisplayName("Start Date"), CellFormat(CellFormat.Date)]
         public DateTime StartDateTime { get; set; }
@@ -19,10 +19,10 @@ namespace Audacia.Spreadsheets.Demo.Models
         public int DurationInMinutes { get; set; }
 
         [DisplayName("Employee Name")]
-        public string EmployeeName { get; set; }
+        public string EmployeeName { get; set; } = null!;
 
         [DisplayName("Customer Name")]
-        public string CustomerName { get; set; }
+        public string CustomerName { get; set; } = null!;
 
         public override string ToString()
         {

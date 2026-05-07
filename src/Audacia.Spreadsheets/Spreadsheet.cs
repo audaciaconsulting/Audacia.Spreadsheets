@@ -77,7 +77,10 @@ namespace Audacia.Spreadsheets
                     definedNames.Append(definedNameToPush);
                 }
 
-                workbookPart.Workbook.DefinedNames = definedNames;
+                if (workbookPart.Workbook != null) 
+                {
+                    workbookPart.Workbook.DefinedNames = definedNames;
+                }
             }
         }
         
@@ -125,7 +128,11 @@ namespace Audacia.Spreadsheets
                     mergeCells.Append(new MergeCell { Reference = new StringValue(mergeCell) });
                 }
 
-                worksheetPart.Worksheet.InsertAfter(mergeCells, worksheetPart.Worksheet.Elements<SheetData>().First());
+                if (worksheetPart.Worksheet != null)
+                {
+                    var firstSheetData = worksheetPart.Worksheet.Elements<SheetData>().First();
+                    worksheetPart.Worksheet?.InsertAfter(mergeCells, firstSheetData);
+                }
             }
 
             return dto.Sheets;
@@ -237,7 +244,7 @@ namespace Audacia.Spreadsheets
         {
             using (var spreadSheet = SpreadsheetDocument.Open(stream, false))
             {
-                var descendants = spreadSheet.WorkbookPart?.Workbook.Descendants<Sheet>();
+                var descendants = spreadSheet.WorkbookPart?.Workbook?.Descendants<Sheet>();
                 if (ignoreSheets != null && ignoreSheets!.Any())
                 {
                     descendants = descendants.Where(d => !ignoreSheets.Contains(d.Name?.ToString()));

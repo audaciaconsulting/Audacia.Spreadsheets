@@ -174,8 +174,7 @@ namespace Audacia.Spreadsheets
 
             // Get the ColumnLetter of the last cell with a value so that we can carry on
             // processing columns until we reach that ColumnLetter.
-            
-            var cells = worksheetPart.Worksheet
+            var cells = worksheetPart.Worksheet?
                 .Descendants<Cell>()
                 .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value))
                 .Select(cell => new CellReference(cell.CellReference!.Value!));
@@ -219,7 +218,8 @@ namespace Audacia.Spreadsheets
             var columnName = cellReference.ColumnLetter;
 
             // Get the cells in the specified column and order them by row.
-            var cells = worksheetPart.Worksheet.Descendants<Cell>()
+            var cells = worksheetPart.Worksheet?
+                .Descendants<Cell>()
                 .Where(cell => !string.IsNullOrEmpty(cell.CellReference?.Value))
                 .Select(cell => (new CellReference(cell.CellReference!.Value!), cell))
                 .Where(c =>
@@ -250,8 +250,14 @@ namespace Audacia.Spreadsheets
             }
 
             var shareStringPart = document.WorkbookPart?.GetPartsOfType<SharedStringTablePart>().First();
-            var items = shareStringPart!.SharedStringTable.Elements<SharedStringItem>().ToArray();
+            var items = shareStringPart!.SharedStringTable?.Elements<SharedStringItem>().ToArray();
             var itemIndex = int.Parse(headCell.CellValue!.Text, CultureInfo.CurrentCulture.NumberFormat);
+            if (items == null || items.Length - 1 < itemIndex)
+            {
+                throw new InvalidOperationException(
+                    "The spreadsheet contains a cell with a shared string value, but the SharedStringTablePart is missing items.");
+            }
+
             return items[itemIndex].InnerText.Trim();
         }
     }
